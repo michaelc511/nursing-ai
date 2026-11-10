@@ -11,6 +11,10 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setenv("DEMO_PASSWORD", "test-pass")
     monkeypatch.setenv("DEMO_MODE", "")
     monkeypatch.setenv("SECRET_KEY", "test-secret-key-at-least-32-bytes-long")
+    monkeypatch.setenv("CHROMA_DIR", str(tmp_path / "chroma"))
+    from app.rag import index
+    index.set_embedder(index.HashEmbedder())   # offline, no model download in tests
+    index.reset_client()
     (tmp_path / "inbox").mkdir()
     (tmp_path / "samples").mkdir()
     from app import db
@@ -18,6 +22,7 @@ def env(tmp_path, monkeypatch):
     db.init_db()
     yield tmp_path
     db.reset_engine()
+    index.reset_client()
 
 
 @pytest.fixture

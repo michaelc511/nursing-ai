@@ -1,0 +1,37 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NurseOps Now features</title><style>
+:root{--bg:#fff;--fg:#1c1f23;--muted:#5b6470;--line:#dde1e6;--code:#f3f5f7;--accent:#0b6e8a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3238;--code:#1e2328;--accent:#5cc3df}}
+:root[data-theme="dark"]{--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3238;--code:#1e2328;--accent:#5cc3df}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:860px;margin:0 auto}h1,h2{line-height:1.25}h2{border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:2em}
+a{color:var(--accent)}code,pre{background:var(--code);border-radius:4px;font-size:.9em}code{padding:1px 4px}
+pre{padding:12px;overflow-x:auto}table{border-collapse:collapse;width:100%;display:block;overflow-x:auto}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}blockquote{border-left:3px solid var(--accent);margin:0;padding-left:12px;color:var(--muted)}
+</style></head><body><main><h1>NurseOps Now features</h1>
+<p>Status of all 42 features from <code>claude-config/super-features.html</code> for this app (decided 2026-11-10).</p>
+<p><b>Y</b> = built, or built on &quot;go&quot; without an AI key · <b>To Do When LLM is ready</b> = needs the AI key (or Phase 11) · <b>N/A - Optional</b> = optional, skipped. ← new = production / enterprise feature added 2026-11-10.</p>
+<p>Totals: 23 Y · 15 To Do When LLM is ready · 4 N/A - Optional.</p>
+<h2>Scope &amp; Foundation</h2>
+<ul><li>F0 App Idea &amp; Scope Design: Y</li><li>F1 Prototype Execution: Y</li><li>F4/S16 FastAPI Backend: Y</li><li>F12 Engine Strategy Factory: Y</li><li>F12.1 Parallel Entry Point: Y ← new (AI-MK engine frozen as a baseline next to LangGraph)</li></ul>
+<h2>Ingestion &amp; Indexing</h2>
+<ul><li>F3 Semantic RAG &amp; Vector Store: Y</li><li>S14 Clause-Aware Chunking: Y</li><li>S4 Metadata Extraction: Y</li><li>N1 Document Parsing (OCR/tables): Y ← new</li><li>N2 Incremental Re-index + Versioning: Y</li></ul>
+<h2>Retrieval Quality</h2>
+<ul><li>F18/S9 Hybrid Search: Y</li><li>F10/S10 Cross-Encoder Re-ranking: Y</li><li>S8 Query Rewriting: To Do When LLM is ready</li></ul>
+<h2>Prompting &amp; Generation</h2>
+<ul><li>F3.1 System Prompt &amp; Persona: To Do When LLM is ready</li><li>F2 Dynamic LLM Selector: To Do When LLM is ready ← new</li><li>N3 Semantic Cache + Model Fallback: To Do When LLM is ready ← new (Claude down -&gt; needs review, never a silent mock in prod)</li></ul>
+<h2>Agents &amp; Tools</h2>
+<ul><li>F13/S17 LangGraph Engines: To Do When LLM is ready</li><li>F13.1 LangGraph State Machine: To Do When LLM is ready</li><li>F13.2 Agentic RAG: To Do When LLM is ready</li><li>F11 Text-to-SQL: N/A - Optional (optional; agent tools call services/)</li><li>F8 FastMCP Server: Y</li><li>F14 CrewAI: N/A - Optional (optional)</li><li>F15 AutoGen: N/A - Optional (optional)</li></ul>
+<h2>Memory</h2>
+<ul><li>F7 Chat Memory: To Do When LLM is ready</li><li>F16 Persistent Checkpointing: To Do When LLM is ready</li></ul>
+<h2>Safety, Security &amp; Privacy</h2>
+<ul><li>F22 Prompt-Injection Defense: Y</li><li>F19 Intent Gating: Y</li><li>S5 PII Sanitization: Y ← new (logs, traces, chat history)</li><li>F21/S21 Auth, Rate Limiting &amp; RBAC: Y</li><li>N5 Red Teaming: To Do When LLM is ready ← new</li></ul>
+<h2>Evaluation &amp; QA</h2>
+<ul><li>F17 RAG Evals Harness: To Do When LLM is ready</li><li>F20 CI Eval Gate: To Do When LLM is ready</li><li>F23 Unit Tests: Y</li></ul>
+<h2>Observability &amp; Cost</h2>
+<ul><li>F9 Tracing: Y</li><li>F6 Token &amp; Cost Accounting: Y</li><li>N4 Online Quality Monitoring: To Do When LLM is ready ← new</li></ul>
+<h2>Interfaces &amp; Deployment</h2>
+<ul><li>F5 Web Interfaces: Y</li><li>F24 Deploy: To Do When LLM is ready (Phase 11)</li><li>N8 Production Ops &amp; Compliance: To Do When LLM is ready ← new (Phase 11)</li></ul>
+<h2>Governance &amp; Process</h2>
+<ul><li>N6 AI Governance: Y ← new (Phase 11)</li><li>F25 Retro &amp; Memory: Y</li></ul>
+<h2>Emerging</h2>
+<ul><li>N7 GraphRAG / Multimodal: N/A - Optional (optional)</li></ul></main></body></html>

@@ -1,6 +1,6 @@
 {
   "project": "nursing-ai",
-  "current_phase": 3,
+  "current_phase": 4,
   "updated": "2026-11-10",
   "requirements_file": "README.md",
   "stack": {
@@ -20,7 +20,7 @@
     "vector_db": "Chroma",
     "embedding": "sentence-transformers",
     "chunking": null,
-    "framework": "none",
+    "framework": "langgraph",
     "tracing": null,
     "deploy": "fly"
   },
@@ -96,32 +96,114 @@
       }
     },
     "3": {
-      "status": "pending",
-      "note": "Layer 2 built with mock engine first (Mike's choice: mimic AI on the web, label AI-MK); real Claude engine + policy RAG decision pending"
+      "status": "built",
+      "note": "real embedder all-MiniLM-L6-v2, 21 chunks (7/8/6); r5 'documents required for knee MRI' misses -> Phase 7 hybrid. S5 + N1 deferred to Phase 8 / Phase 4 (logs/traces; OCR before Claude)",
+      "answers": {
+        "rag": "yes (Dev Rec, CLAUDE.md Layer 3)",
+        "chunking": "S14 clause-aware: one chunk per criterion/section + header (policy, version, CPT, section, page) (Dev Rec)",
+        "metadata_S4": "yes: cpt, version, section, page; search filtered by CPT (Dev Rec)",
+        "pii_S5": "yes for prod (Mike 2026-11-10, overrides earlier No): redact PII in logs, traces, LangSmith and chat history; policies stay unredacted (no PII)",
+        "vector_db": "Chroma",
+        "embedding": "sentence-transformers all-MiniLM-L6-v2",
+        "N1_parsing": "yes (prod): layout-aware parsing + local OCR for scanned faxes before Claude",
+        "N2_versioning": "yes (Dev Rec: policies versioned; answers cite version)"
+      },
+      "started": "2026-11-10 13:05",
+      "finished": "2026-11-10 13:25",
+      "minutes": 20,
+      "features": [
+        "F3",
+        "S14",
+        "S4",
+        "N2"
+      ],
+      "tests": {
+        "pytest": 71
+      },
+      "retrieval": {
+        "hit@1": "8/9",
+        "off_topic_top_score": 0.0
+      }
     },
     "4": {
-      "status": "pending"
+      "status": "pending",
+      "answers": {
+        "prompt": "Claude drafts backend/prompts/review_v1.md (Dev Rec)",
+        "python_checks": "yes: CPT regex, quote verification, Pydantic validate + retry once (Dev Rec)",
+        "model": "F2 selector added (Mike 2026-11-10, overrides one-model answer): CLAUDE_MODEL default claude-opus-5-5 + provider/model selector behind one interface",
+        "mcp": "FastMCP per PROMPT_DEVPHASE2_MCP: 7 tools, no Approve/Deny, Streamable HTTP + bearer (Dev Rec)",
+        "intent_gate_F19": "yes, cheap keyword check on AI Assist (Claude rec)",
+        "always": "F22 injection checks, F6 tokens/cost/latency",
+        "N3_cache_fallback": "yes (prod): semantic cache + model routing + fallback (Claude down -> needs_review, never silent mock in prod)"
+      }
     },
     "5": {
-      "status": "pending"
+      "status": "pending",
+      "answers": {
+        "agents": "yes, LangGraph (Mike's choice; differs from PROMPT_DEVPHASE1 single call)",
+        "design": "review graph: read_form(Python) -> retrieve_policy(RAG) -> claude_review -> verify(Python, 1 retry) -> route; step cap 6, cost cap per case, never Approve/Deny",
+        "scope": "review + AI Assist agentic RAG graph (tools: case lookup, policy RAG, guide_me RAG)",
+        "text_to_sql_F11": "no (optional; agent tools call services/)",
+        "tool_review": "own MCP server not used as an agent tool (self-loop)",
+        "F12.1_parallel_entry": "yes (enterprise): AI-MK single-call engine frozen as baseline next to LangGraph engine, side-by-side compare",
+        "F14_F15": "no (optional; LangGraph chosen)"
+      }
     },
     "6": {
-      "status": "pending"
+      "status": "pending",
+      "answers": {
+        "assist_claude": "yes, Claude + RAG over guide_me.pdf, scripted Guide me fallback (Dev Rec README)",
+        "memory": "last N (~10) turns per user+case, saved in SQLite (LangGraph SqliteSaver), clear-chat button"
+      }
     },
     "7": {
-      "status": "pending"
+      "status": "pending",
+      "answers": {
+        "retrieval": "hybrid BM25 + vector (RRF) + cross-encoder re-ranking (Mike)",
+        "answer_check": "check step on every answer: review verify node + AI Assist grounding/citation check",
+        "query_rewrite_S8": "yes, chat + AI review (Mike chose both; +1 LLM call per review)",
+        "N7": "no (optional)"
+      }
     },
     "8": {
-      "status": "pending"
+      "status": "pending",
+      "answers": {
+        "tracing": "both: local trace table in SQLite (always) + LangSmith (env toggle, off without LANGSMITH_API_KEY)",
+        "auth_rbac": "already built in 2.5 (logins + roles)",
+        "limits": "yes: per-user AI calls/min + daily cost cap from env, 429, audited",
+        "N4_online_monitoring": "yes (prod): nurse thumbs up/down + override rate, live grounding checks, drift + cost alerts, failures -> golden set"
+      }
     },
     "9": {
-      "status": "pending"
+      "status": "pending",
+      "answers": {
+        "evals": "yes, evaluation/run_evals.py over golden set (demo cases, policy Qs, injection, off-topic), baseline saved; AI-MK now, Claude with key",
+        "scoring": "RAGAS + LLM judge (Mike)",
+        "ci": "GitHub Actions: pytest + vitest + eval gate (needs ANTHROPIC_API_KEY GitHub secret, Mike adds)",
+        "unit": "pytest --cov",
+        "N5_red_team": "yes (enterprise): automated injection/jailbreak suite run on schedule + CI"
+      }
     },
     "10": {
-      "status": "pending"
+      "status": "pending",
+      "answers": {
+        "ui": "keep React Vite (Dev Rec)",
+        "features": [
+          "citations + retrieved policy chunks",
+          "tokens/cost/latency + trace",
+          "AI Assist chat on Claude (memory, clear, fallback)",
+          "loading/error/empty states"
+        ],
+        "debug_mode": "Mike: features not for nurses (tokens/cost/latency, trace, raw chunks, rewritten query) show only in debug mode (DEBUG_UI=true)"
+      }
     },
     "11": {
-      "status": "pending"
+      "status": "pending",
+      "answers": {
+        "N6_governance": "yes (prod): prompt/model versioning, eval-gated change approval, model card, risk register, data-use policy",
+        "N8_prod_ops": "yes (prod): SSO plan, secrets manager, SLOs + alerts, load test, backups/DR, retention, runbooks",
+        "F24": "Fly (from earlier plan; ask at Phase 11)"
+      }
     },
     "12": {
       "status": "pending"
@@ -136,14 +218,13 @@
     "[CONFIRM] Presentation slides + business-friendly architecture diagram not planned yet",
     "[CONFIRM] Use 'NurseOps Now' in README/CLAUDE.md titles + presentation? Folder stays nursing-ai unless Mike asks",
     "[LATER] Guide Me chat -> RAG over backend/knowledge/guide_me.pdf + LLM (keep scripted guide as fallback); regenerate the PDF whenever roles/rules/workflows change",
-    "[DECIDE] Layer 3 for demo: keep RAG (CLAUDE.md) or whole policy in prompt + RAG on the scale slide",
-    "[DECIDE] Layer 2 hybrid: Python cross-check (regex CPT/ICD, quote verification) + rules fallback if API down",
     "[TODO] ANTHROPIC_API_KEY in .env (Mike) before Phase 3 live calls",
     "[TODO] Demo run of show: 15 min (problem+3 opportunities, architecture, live demo 4 steps, extensibility, compliance) + backup recording",
     "[PLAN Layer 2] Run order: #2a read CPT (python regex, Claude fallback) before #3 policy lookup, then #2b full review",
     "[DONE 2026-11-10] Mock AI (AI-MK) for all AI features + Run AI review buttons; labels '(AI-MK)' everywhere",
     "[DONE] Icon preview ?icons=ai (demo mode only); prod = one Fly app, AI_MODE=claude, no mock fallback (case -> needs review); optional staging app with AI_MODE=mock",
-    "[DONE] Header AI switch AI-MK | Claude (demo mode only, audited; Claude disabled until ClaudeEngine.ready + API key); reset fills the queue (run_all); index.html no-cache"
+    "[DONE] Header AI switch AI-MK | Claude (demo mode only, audited; Claude disabled until ClaudeEngine.ready + API key); reset fills the queue (run_all); index.html no-cache",
+    "[CONFIRM] Phases 3-10 answered 2026-11-10; implement only after Mike says go"
   ],
   "app_name": "NurseOps Now",
   "layers": {
@@ -156,7 +237,7 @@
   "repo": {
     "remote": "git@github.com:michaelc511/nursing-ai.git",
     "last_ship": "2026-11-10",
-    "main": "727d31d",
+    "main": "d8dbebf",
     "commit": "2e96252",
     "previous_main": "727d31d"
   }

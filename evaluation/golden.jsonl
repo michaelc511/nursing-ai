@@ -1,0 +1,10 @@
+{"id": "r1", "type": "retrieval", "cpt": "72148", "question": "patient has had back pain for two months and tried physical therapy", "expect_label": "§2.A", "source": "Claude draft, Mike reviews"}
+{"id": "r2", "type": "retrieval", "cpt": "72148", "question": "saddle numbness and new bladder problems", "expect_label": "§2.B", "source": "Claude draft, Mike reviews"}
+{"id": "r3", "type": "retrieval", "cpt": "72148", "question": "surgeon is planning an epidural steroid injection", "expect_label": "§2.C", "source": "Claude draft, Mike reviews"}
+{"id": "r4", "type": "retrieval", "cpt": "73721", "question": "knee keeps locking and giving way, positive McMurray test", "expect_label": "§2.A", "source": "Claude draft, Mike reviews"}
+{"id": "r5", "type": "retrieval", "cpt": "73721", "question": "what documents are required for a knee MRI", "expect_label": "§3", "source": "Claude draft, Mike reviews"}
+{"id": "r6", "type": "retrieval", "cpt": "73721", "question": "osteoarthritis already visible on x-ray", "expect_label": "§4", "source": "Claude draft, Mike reviews"}
+{"id": "r7", "type": "retrieval", "cpt": "70551", "question": "worst headache of my life came on suddenly", "expect_label": "§2", "source": "Claude draft, Mike reviews"}
+{"id": "r8", "type": "retrieval", "cpt": "70551", "question": "migraine with a normal neuro exam", "expect_label": "§5", "source": "Claude draft, Mike reviews"}
+{"id": "r9", "type": "retrieval", "cpt": "70551", "question": "work-up for suspected multiple sclerosis", "expect_label": "§3", "source": "Claude draft, Mike reviews"}
+{"id": "r10", "type": "retrieval", "cpt": null, "question": "do you deliver pizza", "expect_label": null, "max_score": 0.25, "source": "off-topic: low score -> I don't know (Phase 4)"}

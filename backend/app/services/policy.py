@@ -1,6 +1,8 @@
 """Layer 3: policy knowledge. CPT code -> policy (registry in backend/policies/index.json).
 
-Phase 2.5: list, view and download policy PDFs. Phase 3 adds RAG over the same PDFs.
+Phase 2.5: list, view and download policy PDFs. Phase 3: RAG over the same PDFs (app/rag/):
+clause-aware chunks with metadata, sentence-transformers embeddings, Chroma, search within
+the CPT's policy only. Policies only, never patient documents.
 """
 import json
 from pathlib import Path
@@ -55,3 +57,35 @@ def policy_for_case(case: Case) -> dict | None:
     except NotFound:
         return None
     return {k: p[k] for k in ("cpt", "title", "number", "version", "effective")}
+
+
+# ---------------------------------------------------------------- Phase 3: RAG (F3, S14, S4, N2)
+
+REVIEW_QUERY = "coverage criteria conservative therapy red flags required documentation"
+
+
+def index_policies() -> dict:
+    from app.rag import index
+    return index.index_all()
+
+
+def search(query: str, cpt: str | None = None, k: int = 4) -> list[dict]:
+    """Top-k policy chunks; builds the index on first use so a fresh checkout just works."""
+    from app.rag import index
+    if cpt:
+        get_policy(cpt)                       # 404 for an unknown CPT
+    if index.count() == 0:
+        index.index_all()
+    return index.search(query, cpt=cpt, k=k)
+
+
+def chunks(cpt: str) -> list[dict]:
+    from app.rag import index
+    return [{"id": c.id, "label": c.meta["label"], "section_title": c.meta["section_title"],
+             "page": c.meta["page"], "text": c.text} for c in index.chunks_for(cpt)]
+
+
+def criteria_for_review(cpt: str, request_text: str = "") -> list[dict]:
+    """Policy chunks the AI review reads (CLAUDE.md data flow: 'Claude reads blob + RAG policy chunks')."""
+    query = f"{REVIEW_QUERY} {request_text[:600]}".strip()
+    return search(query, cpt=cpt, k=6)

@@ -103,5 +103,28 @@ def reset_demo(yes: bool = typer.Option(False, "--yes", help="confirm wiping all
                f"{len(s['incomplete'])} incomplete.")
 
 
+
+@app.command("index-policies")
+def index_policies_cmd():
+    """(Re)embed the policy PDFs into Chroma (clause-aware chunks + metadata)."""
+    from app.services import policy
+    r = policy.index_policies()
+    typer.echo(f"Embedder: {r['embedder']}")
+    for p in r["policies"]:
+        flag = f", FLAGGED (kept out): {p['flagged']}" if p["flagged"] else ""
+        typer.echo(f"  CPT {p['cpt']} v{p['version']}: {p['chunks']} chunks{flag}")
+    typer.echo(f"Total chunks: {r['total_chunks']}")
+
+
+@app.command("search-policies")
+def search_policies_cmd(query: str, cpt: str = typer.Option(None, help="search only this CPT's policy"),
+                        k: int = typer.Option(3, help="number of chunks")):
+    """Retrieval only (no LLM): top policy chunks for a question."""
+    from app.services import policy
+    for i, c in enumerate(policy.search(query, cpt=cpt, k=k), 1):
+        typer.echo(f"\n#{i} score {c['score']}  {c['policy_number']} v{c['version']} {c['label']} "
+                   f"{c['section_title']} (page {c['page']})\n{c['quote']}")
+
+
 if __name__ == "__main__":
     app()

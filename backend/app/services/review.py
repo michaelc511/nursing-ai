@@ -128,6 +128,9 @@ def review_case(session: Session, case_id: int, actor: str = "system") -> AIRevi
         case.cpt = cpt_read
     pol = policy.policy_for_case(case)                             # #3
     pol_pdf = policy.policy_path(pol["cpt"])[0] if pol else None
+    chunks = policy.criteria_for_review(pol["cpt"], " ".join(pdf_pages(docs[0])[:1])) if pol else []  # #4 RAG
+    if pol:
+        pol = {**pol, "chunks": chunks}
     raw = eng.review(case, docs, pol)                              # #2b (AI)
     try:
         result = ReviewResult.model_validate(raw)
@@ -142,7 +145,9 @@ def review_case(session: Session, case_id: int, actor: str = "system") -> AIRevi
         case.cpt = result.fields.cpt
     if result.fields.diagnosis:
         case.diagnosis = f"{result.fields.diagnosis} ({result.fields.icd10})" if result.fields.icd10 else result.fields.diagnosis
-    data = {**result.model_dump(), "engine": eng.label, "policy": pol}
+    pol_meta = {k: v for k, v in pol.items() if k != "chunks"} if pol else None
+    rag = [{k: c[k] for k in ("id", "label", "section_title", "page", "score", "quote")} for c in chunks]
+    data = {**result.model_dump(), "engine": eng.label, "policy": pol_meta, "policy_chunks": rag}
     review = repo.add(session, AIReview(case_id=case.id, result=data, tier=result.tier, prompt_version=eng.version))
     audit.log(session, eng.label, "ai_review", case.id, tier=result.tier, complete=result.complete,
               warnings=len(result.warnings), requested_by=actor)

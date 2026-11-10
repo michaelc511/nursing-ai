@@ -13,3 +13,4 @@ inbox/*
 !inbox/.gitkeep
 .DS_Store
 *.tsbuildinfo
+backend/data/chroma/

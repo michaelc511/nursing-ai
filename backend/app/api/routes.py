@@ -127,6 +127,17 @@ def list_policies(user=Depends(current_user)):
     return policy.list_policies()
 
 
+@router.get("/policies/{cpt}/search")
+def policy_search(cpt: str, q: str = Query(..., min_length=2), k: int = Query(4, ge=1, le=10),
+                  user=Depends(current_user)):
+    return policy.search(q, cpt=cpt, k=k)
+
+
+@router.get("/policies/{cpt}/chunks")
+def policy_chunks(cpt: str, user=Depends(current_user)):
+    return policy.chunks(cpt)
+
+
 @router.get("/policies/{cpt}/document")
 def policy_document(cpt: str, download: bool = False, user=Depends(current_user)):
     path, filename = policy.policy_path(cpt)

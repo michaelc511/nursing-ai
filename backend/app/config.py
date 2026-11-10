@@ -44,6 +44,15 @@ class Settings:
         return (_get("AI_MODE") or "mock").lower()
 
     @property
+    def chroma_dir(self) -> Path:
+        """Policy RAG index (Chroma). Rebuild with: python -m app.cli index-policies."""
+        return Path(_get("CHROMA_DIR") or BACKEND / "data" / "chroma")
+
+    @property
+    def embed_model(self) -> str:
+        return _get("EMBED_MODEL") or "sentence-transformers/all-MiniLM-L6-v2"
+
+    @property
     def secret_key(self) -> str:
         return _get("SECRET_KEY") or "dev-only-secret-change-me-in-env-0123456789"
 

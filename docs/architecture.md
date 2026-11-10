@@ -70,6 +70,14 @@ Demo logins per role: `nurse1`, `nurse2` (nurse), `meddir` (medical director), `
 - `AI_MODE=claude` → real Claude (`anthropic` SDK, PDF input, structured output), next.
 - Either way Python reads the CPT (#2a), verifies quotes against the PDF text, and forces needs_review on any mismatch.
 
+## Policy RAG (Phase 3, Layer 3)
+- `backend/app/rag/chunker.py`: policy PDF → clause-aware chunks (S14), one per criterion (§2.A…) or section, each with a header `[policy v<version> | title | CPT | §label section | page]`; page furniture dropped; recursive split above 1,200 chars; injection-like text flagged and kept out of the index.
+- `backend/app/rag/index.py`: sentence-transformers `all-MiniLM-L6-v2` (Claude never embeds) → Chroma collection `policies` in `backend/data/chroma/` (git-ignored). Metadata per chunk (S4): cpt, policy number, version, section, criterion, page.
+- Search is always filtered to the CPT's policy. Re-index replaces a policy's old chunks (N2: versioned). The index builds itself on first search.
+- The AI review gets the top 6 chunks of the case's policy and saves them with the review (`policy_chunks`), so every citation can point to its clause.
+- CLI `index-policies`, `search-policies "<question>" --cpt <code>`; API `GET /api/policies/{cpt}/search?q=`, `GET /api/policies/{cpt}/chunks`.
+- Retrieval eval: `evaluation/golden.jsonl` + `python ../evaluation/run_retrieval.py` (from `backend/`). Baseline 2026-11-10: hit@1 8/9 (89%); off-topic scores ≈ 0.
+
 ## Demo tools (Claude, Phase 2.5)
 - `mark <case_id> ready|incomplete` (test-only CLI) moves a case until AI review exists.
 - Reset (needs `DEMO_MODE=true`): CLI `reset-demo --yes`, or the hidden area right after the "Now" title in the header (confirm popup). Wipes cases and reloads the 3 samples. Never exposed via MCP.

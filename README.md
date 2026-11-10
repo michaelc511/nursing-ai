@@ -44,7 +44,7 @@ The Intake Coordinator's **Check inbox** can replace Cowork's scheduled start.
 1. Intake and storage (Python + API + CLI) - Built
 2. AI review (Claude API + Python) - Built with mock AI (AI-MK); real Claude next
 3. Policy lookup and PDFs (Python + API + React) - Built
-4. Policy RAG (Python + Chroma) - Not built
+4. Policy RAG (Python + Chroma) - Built (Phase 3)
 5. Nurse decision (React + API) - Built
 6. Systems of record (Python, mocked) - Built
 7. Cowork operator (Cowork + MCP) - Not built
@@ -54,7 +54,7 @@ The Intake Coordinator's **Check inbox** can replace Cowork's scheduled start.
 1. **#7** Cowork operator starts the run on a schedule - Not built
 2. **#1** Intake and storage turns each new document into a case - Built
 3. **#3** Policy lookup and PDFs picks the policy by CPT - Built
-4. **#4** Policy RAG finds the criteria that matter - Not built
+4. **#4** Policy RAG finds the criteria that matter - Built (Phase 3)
 5. **#2** AI review reads, checks, cites and suggests - Built with mock AI (AI-MK)
 6. **#6** Systems of record sends the provider request if something is missing - Built
 7. **#7** Cowork operator reports what needs people - Not built
