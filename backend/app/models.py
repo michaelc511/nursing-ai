@@ -78,3 +78,32 @@ class AuditLog(Base):
     action: Mapped[str] = mapped_column(String(50))
     details: Mapped[dict] = mapped_column(JSON, default=dict)
     at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class LLMCall(Base):
+    """F6: one row per AI call (Claude or AI-MK): tokens, cost, latency. Never stores prompt text."""
+    __tablename__ = "llm_calls"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    case_id: Mapped[int | None] = mapped_column(ForeignKey("cases.id"), nullable=True)
+    purpose: Mapped[str] = mapped_column(String(40))          # review | rewrite | chat | judge ...
+    engine: Mapped[str] = mapped_column(String(20))           # AI-MK | AI
+    model: Mapped[str] = mapped_column(String(60))
+    input_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    cache_read_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    cost_usd: Mapped[float] = mapped_column(default=0.0)
+    latency_ms: Mapped[int] = mapped_column(Integer, default=0)
+    cached: Mapped[bool] = mapped_column(Boolean, default=False)   # N3: answered from the cache
+    status: Mapped[str] = mapped_column(String(20), default="ok")  # ok | refused | error | fallback
+    actor: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class LLMCache(Base):
+    """N3: exact-input cache (same documents + policy version + prompt + model -> same answer)."""
+    __tablename__ = "llm_cache"
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    purpose: Mapped[str] = mapped_column(String(40))
+    model: Mapped[str] = mapped_column(String(60))
+    value: Mapped[dict] = mapped_column(JSON)
+    at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)

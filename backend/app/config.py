@@ -44,6 +44,30 @@ class Settings:
         return (_get("AI_MODE") or "mock").lower()
 
     @property
+    def claude_model(self) -> str:
+        """CLAUDE.md: model from env. Default Claude Opus 5.5."""
+        return _get("CLAUDE_MODEL") or "claude-opus-5-5"
+
+    @property
+    def claude_models(self) -> list[str]:
+        """F2: models staff may pick in demo mode (comma list)."""
+        raw = _get("CLAUDE_MODELS") or "claude-opus-5-5,claude-sonnet-5-5,claude-haiku-5-5"
+        return [m.strip() for m in raw.split(",") if m.strip()]
+
+    @property
+    def claude_fallback_model(self) -> str:
+        """N3: tried when the main model is overloaded or down. Empty = no model fallback."""
+        return _get("CLAUDE_FALLBACK_MODEL", "claude-sonnet-5-5")
+
+    @property
+    def claude_effort(self) -> str:
+        return _get("CLAUDE_EFFORT") or "high"
+
+    @property
+    def llm_cache(self) -> bool:
+        return _get("LLM_CACHE", "true").lower() in {"1", "true", "yes"}
+
+    @property
     def chroma_dir(self) -> Path:
         """Policy RAG index (Chroma). Rebuild with: python -m app.cli index-policies."""
         return Path(_get("CHROMA_DIR") or BACKEND / "data" / "chroma")

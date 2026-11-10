@@ -65,9 +65,14 @@ Demo logins per role: `nurse1`, `nurse2` (nurse), `meddir` (medical director), `
 (intake coordinator: intake + add documents, can't decide → 403); one shared
 `DEMO_PASSWORD` from `.env`. Production: SSO + role-based access (HIPAA).
 
-## AI engines (Phase 3)
+## AI engines (Phase 3-4)
 - `AI_MODE=mock` → **AI-MK**: prepared answers for the demo requests, same `ReviewResult` schema as Claude; every output labeled (AI-MK).
-- `AI_MODE=claude` → real Claude (`anthropic` SDK, PDF input, structured output), next.
+- `AI_MODE=claude` → real Claude: request PDFs sent natively + the RAG policy chunks inside `<policy_chunks>`, prompt `backend/app/prompts/review_v1.md`, structured output validated against `ReviewResult` (`client.beta.messages.parse`), effort `high`, server-side refusal fallback on.
+- LLM layer `backend/app/llm/`: model from `CLAUDE_MODEL` (default `claude-opus-5-5`), allowed list `CLAUDE_MODELS`, switchable in demo mode (F2, `GET/POST /api/ai/model`); every call written to `llm_calls` with tokens, cost and latency, prompts never stored (F6, `GET /api/ai/usage`); exact-input cache in `llm_cache` and a fallback model `CLAUDE_FALLBACK_MODEL` (N3). If every model fails, the case goes to a person (Ready for review, needs review, warning "AI unavailable"); production never shows mock answers.
+- Guardrails `backend/app/guard.py` (F22): instruction-like text in a document is flagged and forces needs_review; outputs that leak the prompt or a key are blocked; chat input checks + topic gate (F19) are used by AI Assist (Phase 6).
+- Parsing `backend/app/services/parsing.py` (N1): text per page with local OCR (RapidOCR) for scanned faxes, so CPT regex, quote checks and the injection scan work on scans.
+- MCP (F8, Dev Phase 2): `backend/app/mcp_server.py` (FastMCP) with 7 tools over services/ and no decision tool; Streamable HTTP at `/mcp`, bearer `MCP_TOKEN` (off if unset), allowed hosts `MCP_ALLOWED_HOSTS`. Local: `python -m app.mcp_server` (stdio).
+- Live check (key needed, costs money): `AI_MODE=claude python ../evaluation/ask_live.py` from `backend/`.
 - Either way Python reads the CPT (#2a), verifies quotes against the PDF text, and forces needs_review on any mismatch.
 
 ## Policy RAG (Phase 3, Layer 3)

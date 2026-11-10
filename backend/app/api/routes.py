@@ -38,6 +38,28 @@ def set_ai_mode(body: dict, session=Depends(get_session), user=Depends(current_u
     return {"mode": mode_svc.set_mode(session, str(body.get("mode", "")), user.username)}
 
 
+@router.get("/ai/model")
+def ai_model(session=Depends(get_session), user=Depends(current_user)):
+    """F2: current Claude model + the allowed list (switchable in demo mode)."""
+    from app.config import settings
+    from app.llm import client as llm
+    return {"model": llm.current_model(session), "models": settings.claude_models,
+            "fallback": settings.claude_fallback_model, "switchable": settings.demo_mode}
+
+
+@router.post("/ai/model")
+def set_ai_model(body: dict, session=Depends(get_session), user=Depends(current_user)):
+    from app.llm import client as llm
+    return {"model": llm.set_model(session, str(body.get("model", "")), user.username)}
+
+
+@router.get("/ai/usage")
+def ai_usage(case_id: int | None = None, session=Depends(get_session), user=Depends(current_user)):
+    """F6: AI calls, tokens, cost and average latency (all time, or one case)."""
+    from app.llm import client as llm
+    return llm.totals(session, case_id=case_id)
+
+
 @router.get("/auth/me")
 def me(user=Depends(current_user)):
     return {"username": user.username, "full_name": user.full_name, "role": user.role}

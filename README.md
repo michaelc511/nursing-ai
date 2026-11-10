@@ -42,12 +42,12 @@ The Intake Coordinator's **Check inbox** can replace Cowork's scheduled start.
 **Layers** (build status updated every phase)
 
 1. Intake and storage (Python + API + CLI) - Built
-2. AI review (Claude API + Python) - Built with mock AI (AI-MK); real Claude next
+2. AI review (Claude API + Python) - Built: Claude engine (AI_MODE=claude, needs the API key) + mock AI (AI-MK)
 3. Policy lookup and PDFs (Python + API + React) - Built
 4. Policy RAG (Python + Chroma) - Built (Phase 3)
 5. Nurse decision (React + API) - Built
 6. Systems of record (Python, mocked) - Built
-7. Cowork operator (Cowork + MCP) - Not built
+7. Cowork operator (Cowork + MCP) - MCP server built (Phase 4); Cowork setup at deploy
 
 **In the order it runs** (#n = layer above)
 

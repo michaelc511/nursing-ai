@@ -1,6 +1,6 @@
 {
   "project": "nursing-ai",
-  "current_phase": 4,
+  "current_phase": 5,
   "updated": "2026-11-10",
   "requirements_file": "README.md",
   "stack": {
@@ -126,7 +126,7 @@
       }
     },
     "4": {
-      "status": "pending",
+      "status": "built",
       "answers": {
         "prompt": "Claude drafts backend/prompts/review_v1.md (Dev Rec)",
         "python_checks": "yes: CPT regex, quote verification, Pydantic validate + retry once (Dev Rec)",
@@ -135,7 +135,25 @@
         "intent_gate_F19": "yes, cheap keyword check on AI Assist (Claude rec)",
         "always": "F22 injection checks, F6 tokens/cost/latency",
         "N3_cache_fallback": "yes (prod): semantic cache + model routing + fallback (Claude down -> needs_review, never silent mock in prod)"
-      }
+      },
+      "started": "2026-11-10 13:30",
+      "finished": "2026-11-10 14:20",
+      "minutes": 50,
+      "features": [
+        "F3.1",
+        "F6",
+        "F22",
+        "F19",
+        "F2",
+        "F8",
+        "N3",
+        "N1",
+        "F12"
+      ],
+      "tests": {
+        "pytest": 90
+      },
+      "note": "Claude engine via beta.messages.parse + fallbacks=default (not yet run live: no key); mcp pinned <2 for FastMCP; FastAPI upgraded 0.162 for starlette 1.x; N1 OCR via RapidOCR (tesseract not installed)"
     },
     "5": {
       "status": "pending",
