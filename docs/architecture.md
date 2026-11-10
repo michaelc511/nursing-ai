@@ -89,6 +89,14 @@ Demo logins per role: `nurse1`, `nurse2` (nurse), `meddir` (medical director), `
 - No node can approve, pend or deny. Node timings are saved with each review (`pipeline.steps`).
 - F12.1 baseline: `REVIEW_PIPELINE=linear` runs the original one-pass review (frozen); tests check both give the same tier and status on the demo cases.
 
+## AI Assist (Phase 6)
+- `backend/app/services/assist.py`, LangGraph `gate → agent → check → finish`, prompt `backend/app/prompts/assist_v1.md`.
+- gate (code, no LLM): injection check (F22) + topic gate (F19) → polite refusal.
+- agent (F13.2 agentic RAG): Claude picks read-only tools that call services/: `get_case`, `list_cases`, `stuck_cases`, `metrics`, `search_policy` (policy RAG), `search_guide` (RAG over `backend/knowledge/guide_me.pdf`, Chroma collection `guide`). Max 4 tool rounds. No SQL, no decisions. Without a key or with `AI_MODE=mock`, a rule router answers from the same tools (AI-MK).
+- check: blocks prompt/key leaks; answers without a source get a "please check" note.
+- Memory (F7, F16): LangGraph `SqliteSaver` in `backend/data/assist_memory.db` (git-ignored), one thread per user and case; last `ASSIST_TURNS` (10) turns go to Claude; survives restarts; `DELETE /api/assist/history` clears it (audited).
+- API: `POST /api/assist/chat {message, case_id?}`, `GET/DELETE /api/assist/history?case_id=`.
+
 ## Demo tools (Claude, Phase 2.5)
 - `mark <case_id> ready|incomplete` (test-only CLI) moves a case until AI review exists.
 - Reset (needs `DEMO_MODE=true`): CLI `reset-demo --yes`, or the hidden area right after the "Now" title in the header (confirm popup). Wipes cases and reloads the 3 samples. Never exposed via MCP.

@@ -78,6 +78,15 @@ class Settings:
         return float(_get("MAX_CASE_COST_USD") or 0.50)
 
     @property
+    def assist_db(self) -> Path:
+        """AI Assist chat memory (LangGraph SqliteSaver checkpoints)."""
+        return Path(_get("ASSIST_DB") or BACKEND / "data" / "assist_memory.db")
+
+    @property
+    def assist_turns(self) -> int:
+        return int(_get("ASSIST_TURNS") or 10)
+
+    @property
     def chroma_dir(self) -> Path:
         """Policy RAG index (Chroma). Rebuild with: python -m app.cli index-policies."""
         return Path(_get("CHROMA_DIR") or BACKEND / "data" / "chroma")

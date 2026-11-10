@@ -14,3 +14,4 @@ inbox/*
 .DS_Store
 *.tsbuildinfo
 backend/data/chroma/
+backend/data/assist_memory.db*

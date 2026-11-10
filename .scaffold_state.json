@@ -1,6 +1,6 @@
 {
   "project": "nursing-ai",
-  "current_phase": 6,
+  "current_phase": 7,
   "updated": "2026-11-10",
   "requirements_file": "README.md",
   "stack": {
@@ -180,11 +180,23 @@
       "note": "review graph built; AI Assist agentic graph (F13.2) built with Phase 6 memory"
     },
     "6": {
-      "status": "pending",
+      "status": "built",
       "answers": {
         "assist_claude": "yes, Claude + RAG over guide_me.pdf, scripted Guide me fallback (Dev Rec README)",
         "memory": "last N (~10) turns per user+case, saved in SQLite (LangGraph SqliteSaver), clear-chat button"
-      }
+      },
+      "started": "2026-11-10 14:50",
+      "finished": "2026-11-10 15:20",
+      "minutes": 30,
+      "features": [
+        "F7",
+        "F16",
+        "F13.2"
+      ],
+      "tests": {
+        "pytest": 105
+      },
+      "note": "AI Assist backend on Claude + tools + guide RAG + SqliteSaver memory; UI wiring in Phase 10; scripted Guide me stays as fallback in the frontend; N3 semantic chat cache not built (exact review cache only)"
     },
     "7": {
       "status": "pending",

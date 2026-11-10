@@ -197,3 +197,31 @@ def text(session: Session, *, purpose: str, system: str, messages: list, case_id
                latency_ms=latency, case_id=case_id, status="fallback" if i else "ok", actor=actor)
         return "".join(b.text for b in resp.content if getattr(b, "type", "") == "text").strip()
     raise LLMUnavailable(f"AI unavailable: {last_err}")
+
+
+def create(session: Session, *, purpose: str, system: str, messages: list, tools: list | None = None,
+           case_id: int | None = None, actor: str | None = None, effort: str = "medium", max_tokens: int = 8000):
+    """Raw response (for tool-use loops). Same accounting + fallback model as parse()."""
+    import anthropic
+    last_err = None
+    for i, model in enumerate(_models(session)):
+        t0 = time.monotonic()
+        try:
+            kw = {"tools": tools} if tools else {}
+            resp = client().beta.messages.create(
+                model=model, max_tokens=max_tokens, system=system, messages=messages,
+                output_config={"effort": effort}, betas=[FALLBACK_BETA], fallbacks="default", **kw)
+        except (anthropic.RateLimitError, anthropic.InternalServerError, anthropic.APIConnectionError,
+                anthropic.APITimeoutError) as e:
+            last_err = e
+            record(session, purpose=purpose, engine="AI", model=model, case_id=case_id, status="error", actor=actor)
+            continue
+        latency = int((time.monotonic() - t0) * 1000)
+        status = "refused" if resp.stop_reason == "refusal" else ("fallback" if i else "ok")
+        record(session, purpose=purpose, engine="AI", model=resp.model or model, usage=resp.usage,
+               latency_ms=latency, case_id=case_id, status=status, actor=actor)
+        if resp.stop_reason == "refusal":
+            last_err = LLMUnavailable("refused")
+            continue
+        return resp
+    raise LLMUnavailable(f"AI unavailable: {last_err}")

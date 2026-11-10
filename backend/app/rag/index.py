@@ -127,3 +127,62 @@ def chunks_for(cpt: str) -> list[Chunk]:
     """All chunks of one policy straight from the PDF (no index needed); used by the UI/tests."""
     p = policy_svc.get_policy(cpt)
     return chunk_policy(policy_svc.policy_path(cpt)[0], p)
+
+
+# ---------------------------------------------------------------- AI Assist knowledge base (Phase 6)
+
+GUIDE = "guide"
+GUIDE_PDF_NAME = "guide_me.pdf"
+
+
+def guide_collection():
+    collection()                                   # make sure the client exists
+    return _client.get_or_create_collection(GUIDE, metadata={"hnsw:space": "cosine"}, embedding_function=None)
+
+
+def guide_chunks(path) -> list[Chunk]:
+    """guide_me.pdf -> one chunk per numbered section (recursive split if long), header = section title."""
+    import re as _re
+    from app.rag.chunker import _split_long, load_pages
+    sections, cur = [], None
+    for page_no, lines in load_pages(path):
+        for ln in lines:
+            s = ln.strip()
+            if _re.match(r"^(NurseOps Now · AI Assist knowledge base|Page \d+$)", s):
+                continue
+            m = _re.match(r"^(\d+)\.\s+(.+)$", s)
+            if m and len(s) < 80:
+                cur = {"n": m.group(1), "title": m.group(2), "page": page_no, "lines": []}
+                sections.append(cur)
+            elif cur is not None:
+                cur["lines"].append(s)
+    out = []
+    for sec in sections:
+        for i, piece in enumerate(_split_long("\n".join(sec["lines"]))):
+            cid = f"guide-{sec['n']}" + (f"-{i}" if i else "")
+            out.append(Chunk(id=cid, text=f"[AI Assist guide | §{sec['n']} {sec['title']} | page {sec['page']}]\n{piece}",
+                             meta={"section": sec["n"], "section_title": sec["title"], "page": sec["page"],
+                                   "label": f"§{sec['n']}"}))
+    return out
+
+
+def index_guide() -> int:
+    from app.config import BACKEND
+    chunks = guide_chunks(BACKEND / "knowledge" / GUIDE_PDF_NAME)
+    col = guide_collection()
+    old = col.get()["ids"]
+    if old:
+        col.delete(ids=old)
+    col.add(ids=[c.id for c in chunks], documents=[c.text for c in chunks], metadatas=[c.meta for c in chunks],
+            embeddings=embedder().embed([c.text for c in chunks]))
+    return len(chunks)
+
+
+def search_guide(query: str, k: int = 3) -> list[dict]:
+    col = guide_collection()
+    if col.count() == 0:
+        index_guide()
+    res = col.query(query_embeddings=embedder().embed([query]), n_results=min(k, col.count()))
+    return [{"id": i, "score": round(1 - d, 3), "label": m["label"], "section_title": m["section_title"],
+             "page": m["page"], "quote": body_of(doc)}
+            for i, doc, m, d in zip(res["ids"][0], res["documents"][0], res["metadatas"][0], res["distances"][0])]

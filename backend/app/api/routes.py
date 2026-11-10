@@ -60,6 +60,27 @@ def ai_usage(case_id: int | None = None, session=Depends(get_session), user=Depe
     return llm.totals(session, case_id=case_id)
 
 
+@router.post("/assist/chat")
+def assist_chat(body: dict, session=Depends(get_session), user=Depends(current_user)):
+    """AI Assist (Phase 6): Claude with read-only tools + RAG; AI-MK without a key."""
+    from app.services import assist
+    cid = body.get("case_id")
+    return assist.ask(session, user.username, str(body.get("message", "")), int(cid) if cid else None)
+
+
+@router.get("/assist/history")
+def assist_history(case_id: int | None = None, user=Depends(current_user)):
+    from app.services import assist
+    return assist.history(user.username, case_id)
+
+
+@router.delete("/assist/history")
+def assist_clear(case_id: int | None = None, session=Depends(get_session), user=Depends(current_user)):
+    from app.services import assist
+    assist.clear(session, user.username, case_id)
+    return {"cleared": True}
+
+
 @router.get("/auth/me")
 def me(user=Depends(current_user)):
     return {"username": user.username, "full_name": user.full_name, "role": user.role}

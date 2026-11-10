@@ -12,6 +12,9 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setenv("DEMO_MODE", "")
     monkeypatch.setenv("SECRET_KEY", "test-secret-key-at-least-32-bytes-long")
     monkeypatch.setenv("CHROMA_DIR", str(tmp_path / "chroma"))
+    monkeypatch.setenv("ASSIST_DB", str(tmp_path / "assist.db"))
+    from app.services import assist
+    assist.reset_saver()
     from app.rag import index
     index.set_embedder(index.HashEmbedder())   # offline, no model download in tests
     index.reset_client()
