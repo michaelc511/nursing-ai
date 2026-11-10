@@ -49,8 +49,21 @@ class BearerGuard:
         return await self.inner(scope, receive, send)
 
 
+class McpPathSlash:
+    """Accept /mcp as well as /mcp/ (a mount only matches the slash form; the SPA route would answer 405)."""
+
+    def __init__(self, inner):
+        self.inner = inner
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http" and scope["path"] == "/mcp":
+            scope = {**scope, "path": "/mcp/", "raw_path": b"/mcp/"}
+        await self.inner(scope, receive, send)
+
+
 mcp_guard = BearerGuard(None)
 app.mount("/mcp", mcp_guard)
+app.add_middleware(McpPathSlash)
 
 
 @app.exception_handler(AppError)

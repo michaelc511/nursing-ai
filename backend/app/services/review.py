@@ -54,7 +54,7 @@ class ClaudeEngine:
     model fails, the case goes to a person with a warning (never a silent mock answer).
     """
     label = "AI"
-    version = "claude-review_v1"
+    version = "claude-review_v2"
     ready = True
 
     def review(self, case: Case, docs: list[Path], policy_info: dict | None, session: Session | None = None,
@@ -62,7 +62,7 @@ class ClaudeEngine:
         import base64
         from app.llm import client as llm
         from app.prompts import load
-        system = load("review_v1")
+        system = load("review_v2")
         blobs = [p.read_bytes() for p in docs]
         content: list = []
         for i, b in enumerate(blobs):

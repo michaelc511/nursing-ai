@@ -6,7 +6,8 @@ import { Notices } from "./components/Notices";
 import { PolicyRow } from "./components/PolicyRow";
 import { LastRun } from "./components/LastRun";
 import { ThemeToggle } from "./components/ThemeToggle";
-import { AISwitch } from "./components/AISwitch";
+import { DebugBanner } from "./components/DebugMode";
+import { DemoFooter } from "./components/DemoFooter";
 import { HelpChat, startTour } from "./components/HelpChat";
 import { HiddenReset } from "./components/HiddenReset";
 import { roleName } from "./roles";
@@ -27,10 +28,11 @@ export default function App() {
     <>
       <header className="top">
         <div className="brand"><img src="/nurse.svg" alt="" width={40} height={40} /> NurseOps Now<HiddenReset /></div>
-        <div className="who"><button type="button" className="theme-btn" onClick={startTour}>AI Assist</button> <AISwitch /> <ThemeToggle /> <HelpButton screen={openId === null ? "queue" : "case"} role={user.role} /> {user.full_name} · {roleName(user.role)}
+        <div className="who"><button type="button" className="theme-btn" onClick={startTour}>AI Assist</button> <ThemeToggle /> <HelpButton screen={openId === null ? "queue" : "case"} role={user.role} /> {user.full_name} · {roleName(user.role)}
           <button className="link" data-tour="signout" onClick={() => { logout(); setUser(null); setOpenId(null); }}>Sign out</button></div>
       </header>
       <MockBanner />
+      <DebugBanner />
       <div data-tour="metrics"><MetricsHeader refreshKey={refreshKey} /></div>
       <main className="content">
         {openId === null && <><Intro role={user.role} /><Notices /><LastRun refreshKey={refreshKey} /></>}
@@ -39,7 +41,7 @@ export default function App() {
           : <CaseDetail id={openId} onBack={() => { setOpenId(null); refresh(); }} onChange={refresh} />}
       </main>
       <HelpChat screen={openId === null ? "queue" : "case"} role={user.role} openId={openId} refreshKey={refreshKey} />
-      <footer className="muted">Synthetic data only · AI never denies: decisions are made by Nurses and Medical Directors</footer>
+      <DemoFooter />
     </>
   );
 }

@@ -1,0 +1,17 @@
+{
+  "mode": "live",
+  "scores": {
+    "retrieval": 1.0,
+    "review": 1.0,
+    "assist": 0.875,
+    "safety": 1.0,
+    "hit@1": 0.889,
+    "hit@3": 1.0
+  },
+  "ragas": {
+    "faithfulness": 0.893,
+    "answer_relevancy": 0.725,
+    "llm_context_precision_without_reference": 1.0
+  },
+  "cost_usd": 0.3305
+}

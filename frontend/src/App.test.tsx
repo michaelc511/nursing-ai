@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import App from "./App";
 import { Badge } from "./components/Badge";
 
@@ -153,15 +153,53 @@ test("icon preview is ignored outside demo mode", async () => {
   spy.mockRestore();
 });
 
-test("AI switch shows in demo mode with Claude greyed out until it's connected", async () => {
+async function renderFooter(mode: object) {
   const api = await import("./api");
-  const { AISwitch } = await import("./components/AISwitch");
+  const { DemoFooter } = await import("./components/DemoFooter");
+  const { DebugBanner } = await import("./components/DebugMode");
   const { vi } = await import("vitest");
-  const spy = vi.spyOn(api, "aiMode").mockResolvedValue({ mode: "mock", label: "AI-MK", demo: true, switchable: true, claude_available: false });
-  render(<AISwitch />);
-  expect((await screen.findByRole("button", { name: "AI-MK" })).getAttribute("aria-pressed")).toBe("true");
-  expect((screen.getByRole("button", { name: "Claude" }) as HTMLButtonElement).disabled).toBe(true);
-  spy.mockRestore();
+  const { act } = await import("@testing-library/react");
+  sessionStorage.clear();
+  const modeSpy = vi.spyOn(api, "aiMode").mockResolvedValue({ label: "AI-MK", ...mode } as never);
+  const setSpy = vi.spyOn(api, "setAIMode").mockResolvedValue({ mode: "claude" });
+  render(<><DebugBanner /><DemoFooter /></>);
+  await act(async () => { await Promise.resolve(); });
+  return { setSpy, restore: () => { modeSpy.mockRestore(); setSpy.mockRestore(); } };
+}
+
+test("Synthetic data only is an invisible AI switch in demo mode", async () => {
+  const { setSpy, restore } = await renderFooter({ mode: "mock", demo: true, switchable: true, claude_available: true });
+  expect(screen.queryByRole("button")).toBeNull();
+  fireEvent.click(screen.getByText("Synthetic data only"));
+  expect(setSpy).toHaveBeenCalledWith("claude");
+  restore();
+});
+
+test("the hidden AI switch says so when Claude isn't connected", async () => {
+  const { setSpy, restore } = await renderFooter({ mode: "mock", demo: true, switchable: true, claude_available: false });
+  fireEvent.click(screen.getByText("Synthetic data only"));
+  expect(setSpy).not.toHaveBeenCalled();
+  expect(screen.getByRole("alert").textContent).toMatch(/not connected/);
+  restore();
+});
+
+test("Medical Directors toggles debug mode and a banner announces it", async () => {
+  const { restore } = await renderFooter({ mode: "claude", demo: true, switchable: true, claude_available: true });
+  expect(screen.queryByText(/Debug mode on/)).toBeNull();
+  fireEvent.click(screen.getByText("Medical Directors"));
+  expect(await screen.findByText(/Debug mode on/)).toBeTruthy();
+  fireEvent.click(screen.getByText("Medical Directors"));
+  await waitFor(() => expect(screen.queryByText(/Debug mode on/)).toBeNull());
+  restore();
+});
+
+test("the hidden switches do nothing outside demo mode", async () => {
+  const { setSpy, restore } = await renderFooter({ mode: "claude", demo: false, switchable: false });
+  fireEvent.click(screen.getByText("Synthetic data only"));
+  fireEvent.click(screen.getByText("Medical Directors"));
+  expect(setSpy).not.toHaveBeenCalled();
+  expect(screen.queryByText(/Debug mode on/)).toBeNull();
+  restore();
 });
 
 // ---------------------------------------------------------------- Phase 10

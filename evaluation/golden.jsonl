@@ -9,7 +9,7 @@
 {"id": "r9", "type": "retrieval", "cpt": "70551", "question": "work-up for suspected multiple sclerosis", "expect_label": "§3", "source": "Claude draft, Mike reviews"}
 {"id": "r10", "type": "retrieval", "cpt": null, "question": "do you deliver pizza", "expect_label": null, "max_score": 0.25, "source": "off-topic: low score -> I don't know (Phase 4)"}
 {"id": "v1", "type": "review", "file": "72148_a_complete.pdf", "expect": {"tier": "likely_approve", "complete": true, "status": "ReadyForReview"}, "source": "README demo case A"}
-{"id": "v2", "type": "review", "file": "73721_b_missing_pt.pdf", "expect": {"complete": false, "status": "Incomplete", "missing_contains": "physical therapy"}, "source": "README demo case B"}
+{"id": "v2", "type": "review", "file": "73721_b_missing_pt.pdf", "expect": {"complete": false, "status": "Incomplete", "missing_any": ["physical therapy", "pt notes", "pt records"]}, "source": "README demo case B"}
 {"id": "v3", "type": "review", "file": "70551_c_not_met.pdf", "expect": {"tier_in": ["likely_deny", "needs_review"], "complete": true, "status": "ReadyForReview"}, "source": "README demo case C (AI never denies: tier is only a suggestion)"}
 {"id": "a1", "type": "assist", "question": "What does the knee policy require before an MRI?", "expect": {"tool": "search_policy", "contains_any": ["conservative", "x-ray", "X-ray"]}, "source": "Claude draft, Mike reviews"}
 {"id": "a2", "type": "assist", "question": "Who is allowed to deny a request?", "expect": {"contains_any": ["Medical Director", "medical director"]}, "source": "CLAUDE.md non-negotiable"}

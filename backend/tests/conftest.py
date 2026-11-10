@@ -4,6 +4,8 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def env(tmp_path, monkeypatch):
+    for secret in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN"):  # a real key in .env must never reach a test
+        monkeypatch.delenv(secret, raising=False)
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path / 'test.db'}")
     monkeypatch.setenv("STORAGE_DIR", str(tmp_path / "storage"))
     monkeypatch.setenv("INBOX_DIR", str(tmp_path / "inbox"))

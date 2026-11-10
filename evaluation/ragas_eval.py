@@ -17,7 +17,8 @@ def build():
     from ragas.llms import LangchainLLMWrapper
     from ragas.metrics import Faithfulness, LLMContextPrecisionWithoutReference, ResponseRelevancy
     llm = LangchainLLMWrapper(ChatAnthropic(model=os.environ.get("JUDGE_MODEL") or "claude-opus-5-5",
-                                            max_tokens=4000))
+                                            max_tokens=4000),
+                              bypass_temperature=True)  # current Claude models reject a temperature setting
     emb = LangchainEmbeddingsWrapper(HuggingFaceEmbeddings(
         model_name=os.environ.get("EMBED_MODEL") or "sentence-transformers/all-MiniLM-L6-v2"))
     return [Faithfulness(llm=llm), ResponseRelevancy(llm=llm, embeddings=emb),

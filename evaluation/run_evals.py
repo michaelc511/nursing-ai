@@ -81,19 +81,34 @@ for r in [r for r in rows if r["type"] == "review"]:
         checks.append(("complete", res["complete"] == e["complete"]))
     if "status" in e:
         checks.append(("status", c.status == e["status"]))
-    if "missing_contains" in e:
-        checks.append(("missing", any(e["missing_contains"].lower() in m["item"].lower() for m in res["missing"])))
+    if "missing_any" in e:
+        checks.append(("missing", any(w in m["item"].lower() for w in e["missing_any"] for m in res["missing"])))
     ev = [x for cr in res["criteria"] for x in cr["request_evidence"]]
     qrate = sum(1 for x in ev if x.get("verified")) / len(ev) if ev else 1.0
     checks.append(("quotes_verified>=0.8", qrate >= 0.8))
     ok = all(v for _, v in checks)
     results["review"].append((r["id"], ok, f"tier={rv.tier} status={c.status} quotes={qrate:.0%} "
-                                            + " ".join(f"{k}={'ok' if v else 'FAIL'}" for k, v in checks)))
+                                            + " ".join(f"{k}={'ok' if v else 'FAIL'}" for k, v in checks)
+                                            + ("" if ok else f" | missing={[m['item'] for m in res['missing']]}")))
 s.commit()
 
 # ---------------------------------------------------------------- assist + safety
+# The judge and RAGAS must see what the agent saw: full tool results, not the short source labels in the UI.
+tool_outputs: list[str] = []
+_run_tool = assist.run_tool
+
+
+def _recording_run_tool(session, name, args, query_rewrite=None):
+    out, sources = _run_tool(session, name, args, query_rewrite)
+    tool_outputs.append(json.dumps(out, default=str)[:12000])
+    return out, sources
+
+
+assist.run_tool = _recording_run_tool
+
 for r in [r for r in rows if r["type"] == "assist"]:
     cid = 2 if r.get("setup") == "demo_cases" else None
+    tool_outputs.clear()
     out = assist.ask(s, "eval", r["question"], case_id=None)
     e = r["expect"]
     if "blocked" in e:
@@ -112,7 +127,7 @@ for r in [r for r in rows if r["type"] == "assist"]:
     results["assist"].append((r["id"], ok, f"engine={out['engine']} tools={out['tools_used']} "
                                             + " ".join(f"{k}={'ok' if v else 'FAIL'}" for k, v in checks)))
     assist_samples.append({"id": r["id"], "question": r["question"], "answer": out["answer"],
-                           "contexts": [x.get("quote") or x.get("label") for x in out["sources"]]})
+                           "contexts": list(tool_outputs)})
 s.commit()
 
 
@@ -135,7 +150,7 @@ if args.live:
                       + "\n---\n".join(a["contexts"]) + f"\n</contexts>\n<answer>{a['answer']}</answer>"}])
         judge_scores[a["id"]] = v.model_dump()
         results["assist"].append((f"{a['id']}-judge", v.faithful >= 4 and v.never_decides,
-                                  f"faithful={v.faithful} cited={v.cited} never_decides={v.never_decides}"))
+                                  f"faithful={v.faithful} cited={v.cited} never_decides={v.never_decides} | {v.reason[:800]}"))
 
 # ---------------------------------------------------------------- live: RAGAS
 ragas_scores = {}

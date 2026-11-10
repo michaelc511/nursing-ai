@@ -108,7 +108,7 @@ def test_claude_engine_reviews_with_pdf_and_policy_chunks(session, env, claude_m
     r = review.review_case(session, c.id, actor="test")
     call = msgs.calls[0]
     assert call["model"] == "claude-opus-5-5" and call["output_format"] is ReviewResult
-    assert call["system"].startswith("# review_v1")
+    assert call["system"].startswith("# review_v2")
     kinds = [b["type"] for b in call["messages"][0]["content"]]
     assert kinds[0] == "document" and kinds[-1] == "text"
     assert "<policy_chunks>" in call["messages"][0]["content"][-1]["text"]
@@ -213,6 +213,17 @@ def test_mcp_http_needs_bearer_token(monkeypatch):
         monkeypatch.setenv("MCP_TOKEN", "t0k")
         assert tc.post("/mcp/", json={}).status_code == 401
         r = tc.post("/mcp/", headers={"Authorization": "Bearer t0k", "Accept": "application/json, text/event-stream"},
+                    json={"jsonrpc": "2.0", "id": 1, "method": "tools/list"})
+        assert r.status_code == 200 and "run_all" in r.text
+
+
+def test_mcp_works_without_trailing_slash(monkeypatch):
+    from fastapi.testclient import TestClient
+    from app.main import app
+    monkeypatch.setenv("MCP_TOKEN", "t0k")
+    with TestClient(app) as tc:
+        assert tc.post("/mcp", json={}).status_code == 401
+        r = tc.post("/mcp", headers={"Authorization": "Bearer t0k", "Accept": "application/json, text/event-stream"},
                     json={"jsonrpc": "2.0", "id": 1, "method": "tools/list"})
         assert r.status_code == 200 and "run_all" in r.text
 

@@ -123,7 +123,7 @@ def me(user=Depends(current_user)):
 @router.post("/intake/upload")
 def upload(file: UploadFile = File(...), auto_review: bool = True, session=Depends(get_session),
            user=Depends(current_user)):
-    c = intake.create_case_from_bytes(session, file.filename, file.file.read(), "upload", user.username)
+    c = intake.create_case_from_upload(session, file.filename, file.file.read(), user.username)
     if auto_review:
         review.review_case(session, c.id, user.username)
     return cases.summary(session, c)

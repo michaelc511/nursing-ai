@@ -62,10 +62,15 @@ TOOLS = [
 def _case_brief(session: Session, case_id: int) -> dict:
     d = cases.detail(session, case_id)
     res = d.get("ai_review") or {}
-    return {"case_id": case_id, "doc_id": d.get("doc_id"), "status": d.get("status"), "cpt": d.get("cpt"),
-            "description": d.get("description"), "ai_tier": res.get("tier"), "ai_label": d.get("ai_label"),
+    policy_info = d.get("policy") or {}
+    return {"case_id": case_id, "doc_id": d.get("doc_id"), "status": d.get("status"), "cpt": policy_info.get("cpt"),
+            "policy": policy_info, "description": d.get("description"), "ai_tier": res.get("tier"), "ai_label": d.get("ai_label"),
             "summary": res.get("summary"), "missing": [m.get("item") for m in res.get("missing") or []],
-            "criteria": [{"criterion": c.get("criterion"), "result": c.get("result")} for c in res.get("criteria") or []]}
+            "missing_details": [{"item": m.get("item"), "why": m.get("why"), "policy_page": m.get("policy_page")}
+                                for m in res.get("missing") or []],
+            "criteria": [{"criterion": c.get("criterion"), "result": c.get("result"),
+                          "policy_page": (c.get("policy_evidence") or {}).get("page")}
+                         for c in res.get("criteria") or []]}
 
 
 def run_tool(session: Session, name: str, args: dict, query_rewrite=None) -> tuple[object, list]:
