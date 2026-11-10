@@ -24,8 +24,10 @@ def demo_login_hint():
 @router.get("/ai/mode")
 def ai_mode():
     """Public: lets every screen say whether AI answers are mocked (AI-MK) or real."""
+    from app.config import settings
     eng = review.engine()
-    return {"mode": "mock" if eng.label == "AI-MK" else "claude", "label": eng.label}
+    return {"mode": "mock" if eng.label == "AI-MK" else "claude", "label": eng.label,
+            "demo": settings.demo_mode}  # the ?icons=ai preview is allowed only in demo mode
 
 
 @router.get("/auth/me")
