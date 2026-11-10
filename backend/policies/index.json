@@ -1,0 +1,29 @@
+[
+  {
+    "cpt": "72148",
+    "title": "MRI lumbar spine",
+    "number": "RHP-IMG-014",
+    "version": "3.2",
+    "effective": "2026-07-01",
+    "file": "72148.pdf",
+    "codes": "72148 (without contrast)"
+  },
+  {
+    "cpt": "73721",
+    "title": "MRI knee",
+    "number": "RHP-IMG-022",
+    "version": "2.1",
+    "effective": "2026-04-01",
+    "file": "73721.pdf",
+    "codes": "73721 (lower extremity joint, without contrast)"
+  },
+  {
+    "cpt": "70551",
+    "title": "MRI brain",
+    "number": "RHP-IMG-005",
+    "version": "4.0",
+    "effective": "2026-01-01",
+    "file": "70551.pdf",
+    "codes": "70551 (without contrast)"
+  }
+]
