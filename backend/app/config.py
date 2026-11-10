@@ -39,6 +39,11 @@ class Settings:
         return _get("DEMO_MODE").lower() in {"1", "true", "yes"}
 
     @property
+    def demo_autofill(self) -> bool:
+        """Local demos only: the login screen fills in DEMO_PASSWORD. Never set this on a public site."""
+        return _get("DEMO_AUTOFILL").lower() in {"1", "true", "yes"}
+
+    @property
     def ai_mode(self) -> str:
         """mock (AI-MK, prepared answers) | claude (Phase 3)."""
         return (_get("AI_MODE") or "mock").lower()

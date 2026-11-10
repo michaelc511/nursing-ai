@@ -39,9 +39,9 @@ def seed_reviewers(session: Session) -> int:
 
 
 def demo_hint() -> dict:
-    if not settings.demo_mode or not settings.demo_password:
+    if not settings.demo_mode or not settings.demo_autofill or not settings.demo_password:
         from app.errors import NotFound
-        raise NotFound("Not in demo mode")
+        raise NotFound("Password auto-fill is off")
     return {"password": settings.demo_password}
 
 

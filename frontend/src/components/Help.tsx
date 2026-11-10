@@ -6,7 +6,7 @@ export type Screen = "login" | "queue" | "case";
 export const STEPS: Record<Screen, { title: string; steps: string[] }> = {
   login: { title: "Sign in", steps: [
     "Pick a user: nurse1 / nurse2 (Nurse), meddir (Medical Director), intake1 (Intake Coordinator).",
-    "The demo password is filled in. Click Sign in.",
+    "Enter the demo password (local demos fill it in). Click Sign in.",
   ]},
   queue: { title: "Case queue", steps: [
     "Click Check inbox: new requests become cases and the AI (AI-MK) reviews them. Run AI review handles any left.",

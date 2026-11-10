@@ -88,9 +88,12 @@ def test_unknown_case_404(client):
     assert client.get("/api/cases/999", headers=login(client)).status_code == 404
 
 
-def test_demo_password_hint_only_in_demo_mode(client, monkeypatch):
+def test_demo_password_hint_needs_demo_mode_and_autofill(client, monkeypatch):
+    monkeypatch.delenv("DEMO_AUTOFILL", raising=False)
     assert client.get("/api/auth/demo").status_code == 404
     monkeypatch.setenv("DEMO_MODE", "true")
+    assert client.get("/api/auth/demo").status_code == 404     # public demo: never handed out
+    monkeypatch.setenv("DEMO_AUTOFILL", "true")
     assert client.get("/api/auth/demo").json() == {"password": "test-pass"}
 
 
