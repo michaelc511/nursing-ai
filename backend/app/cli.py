@@ -98,7 +98,9 @@ def reset_demo(yes: bool = typer.Option(False, "--yes", help="confirm wiping all
         raise typer.Exit(1)
     with session_scope() as s:
         r = demo.reset_demo(s)
-    typer.echo(f"Demo reset. Inbox: {r['inbox']}")
+    s = r["summary"]
+    typer.echo(f"Demo reset: {s['new']} case(s) loaded and reviewed ({s['engine']}), "
+               f"{len(s['incomplete'])} incomplete.")
 
 
 if __name__ == "__main__":

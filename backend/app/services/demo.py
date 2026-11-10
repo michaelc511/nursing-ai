@@ -43,6 +43,8 @@ def reset_demo(session: Session, actor: str = "cli") -> dict:
         for f in sorted(settings.samples_dir.glob("*.pdf")):
             shutil.copyfile(f, inbox / f.name)
             copied.append(f.name)
-    from app.services import audit
+    from app.services import audit, review
     audit.log(session, actor, "demo_reset", inbox=copied)
-    return {"cleared": True, "inbox": copied}
+    session.flush()
+    summary = review.run_all(session, actor=actor, trigger=f"demo reset ({actor})")  # fill the queue
+    return {"cleared": True, "inbox": copied, "summary": summary}

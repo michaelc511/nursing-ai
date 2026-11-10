@@ -4,6 +4,7 @@ import { HelpButton } from "../components/Help";
 import { Intro } from "../components/Intro";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { startTour } from "../components/HelpChat";
+import { AISwitch } from "../components/AISwitch";
 
 export function Login({ onLogin }: { onLogin: (u: User) => void }) {
   const [username, setUsername] = useState("nurse1");
@@ -22,7 +23,7 @@ export function Login({ onLogin }: { onLogin: (u: User) => void }) {
 
   return (
     <main className="login">
-      <div className="login-top"><button type="button" className="theme-btn" onClick={startTour}>AI Assist</button> <ThemeToggle /></div>
+      <div className="login-top"><button type="button" className="theme-btn" onClick={startTour}>AI Assist</button> <AISwitch signedIn={false} /> <ThemeToggle /></div>
       <form onSubmit={submit} className="card" data-tour="login">
         <div className="toolbar"><img src="/nurse.svg" alt="" width={44} height={44} /><h1>NurseOps Now</h1><HelpButton screen="login" /></div>
         <p className="muted">AI-assisted prior authorization · synthetic demo data</p>

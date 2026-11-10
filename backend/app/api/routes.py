@@ -25,9 +25,17 @@ def demo_login_hint():
 def ai_mode():
     """Public: lets every screen say whether AI answers are mocked (AI-MK) or real."""
     from app.config import settings
+    from app.services import ai_mode as mode_svc
     eng = review.engine()
     return {"mode": "mock" if eng.label == "AI-MK" else "claude", "label": eng.label,
-            "demo": settings.demo_mode}  # the ?icons=ai preview is allowed only in demo mode
+            "demo": settings.demo_mode,  # the ?icons=ai preview + the switch are demo-mode only
+            "switchable": settings.demo_mode, "claude_available": mode_svc.claude_available()}
+
+
+@router.post("/ai/mode")
+def set_ai_mode(body: dict, session=Depends(get_session), user=Depends(current_user)):
+    from app.services import ai_mode as mode_svc
+    return {"mode": mode_svc.set_mode(session, str(body.get("mode", "")), user.username)}
 
 
 @router.get("/auth/me")

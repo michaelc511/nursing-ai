@@ -41,12 +41,15 @@ def decide(client, h, cid, action, rationale="reason"):
 
 
 def check_inbox(client):
-    assert client.post("/api/demo/reset", headers=login(client, "meddir")).status_code == 200
+    """Reset fills the queue: the 3 requests arrive and get their AI-MK review."""
+    r = client.post("/api/demo/reset", headers=login(client, "meddir"))
+    assert r.status_code == 200
+    summary = r.json()["summary"]
+    assert summary["new"] == 3 and summary["engine"] == "AI-MK"
     intake = login(client, "intake1")
-    r = client.post("/api/intake/poll", headers=intake).json()
-    assert r["created"] == 3 and r["summary"]["engine"] == "AI-MK"
+    assert client.post("/api/intake/poll", headers=intake).json()["created"] == 0   # nothing left in the inbox
     ids = {c["filename"]: c["id"] for c in client.get("/api/cases", headers=intake).json()}
-    return intake, ids, r["summary"]
+    return intake, ids, summary
 
 
 def test_w1_complete_request_to_decision(client):

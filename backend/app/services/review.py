@@ -48,13 +48,15 @@ class MockEngine:
 class ClaudeEngine:
     label = "AI"
     version = "claude-v1"
+    ready = False  # set True once the Claude call is implemented (Phase 3)
 
     def review(self, case: Case, docs: list[Path], policy_info: dict | None) -> dict:
         raise AppError("Claude review is not connected yet (Phase 3). Set AI_MODE=mock.")
 
 
 def engine():
-    return ClaudeEngine() if settings.ai_mode == "claude" else MockEngine()
+    from app.services import ai_mode
+    return ClaudeEngine() if ai_mode.current() == "claude" else MockEngine()
 
 
 # ---------------------------------------------------------------- helpers
