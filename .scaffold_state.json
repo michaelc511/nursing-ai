@@ -1,6 +1,6 @@
 {
   "project": "nursing-ai",
-  "current_phase": 8,
+  "current_phase": 9,
   "updated": "2026-11-10",
   "requirements_file": "README.md",
   "stack": {
@@ -225,13 +225,26 @@
       "note": "answer check = review verify node + assist check node (Phase 5/6)"
     },
     "8": {
-      "status": "pending",
+      "status": "built",
       "answers": {
         "tracing": "both: local trace table in SQLite (always) + LangSmith (env toggle, off without LANGSMITH_API_KEY)",
         "auth_rbac": "already built in 2.5 (logins + roles)",
         "limits": "yes: per-user AI calls/min + daily cost cap from env, 429, audited",
         "N4_online_monitoring": "yes (prod): nurse thumbs up/down + override rate, live grounding checks, drift + cost alerts, failures -> golden set"
-      }
+      },
+      "started": "2026-11-10 15:50",
+      "finished": "2026-11-10 16:15",
+      "minutes": 25,
+      "features": [
+        "F9",
+        "F21",
+        "S5",
+        "N4"
+      ],
+      "tests": {
+        "pytest": 120
+      },
+      "note": "LangSmith content hidden by default (PHI); 429 audit written in its own session"
     },
     "9": {
       "status": "pending",

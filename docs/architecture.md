@@ -103,6 +103,12 @@ Demo logins per role: `nurse1`, `nurse2` (nurse), `meddir` (medical director), `
 - Memory (F7, F16): LangGraph `SqliteSaver` in `backend/data/assist_memory.db` (git-ignored), one thread per user and case; last `ASSIST_TURNS` (10) turns go to Claude; survives restarts; `DELETE /api/assist/history` clears it (audited).
 - API: `POST /api/assist/chat {message, case_id?}`, `GET/DELETE /api/assist/history?case_id=`.
 
+## Observability and security (Phase 8)
+- Traces (F9): `traces` table, one row per review run or AI Assist turn: node timings, LLM calls, tokens, cost, outcome. No content. `GET /api/ai/traces?case_id=`. LangSmith only with `LANGSMITH_API_KEY` + `LANGSMITH_TRACING=true`; inputs and outputs are hidden unless `LANGSMITH_SHOW_CONTENT=true` (synthetic demo only).
+- PII (S5): `backend/app/pii.py` redacts SSN, dates, phone, email, member IDs, NPI, addresses and the case's member/provider names from application logs (log filter), AI Assist memory and feedback text. Case documents and the AI review stay complete (staff-only, audited).
+- Limits (F21): per-user `AI_CALLS_PER_MINUTE` (20) on Check inbox, Run AI review, Re-run and AI Assist; app-wide `DAILY_COST_CAP_USD` ($10, UTC day). Over a limit → 429 with a plain message, audited (`ai_limit_hit`). Logins and roles: Phase 2.5.
+- Online quality (N4): thumbs up/down (`POST /api/ai/feedback`), `GET /api/ai/quality` (thumbs, override rate, unverified-quote rate, AI-unavailable reviews, cost today vs cap, latency) with alerts; CLI `quality`; `export-feedback` writes thumbs-down items to `evaluation/candidates.jsonl` for a person to turn into golden cases.
+
 ## Demo tools (Claude, Phase 2.5)
 - `mark <case_id> ready|incomplete` (test-only CLI) moves a case until AI review exists.
 - Reset (needs `DEMO_MODE=true`): CLI `reset-demo --yes`, or the hidden area right after the "Now" title in the header (confirm popup). Wipes cases and reloads the 3 samples. Never exposed via MCP.

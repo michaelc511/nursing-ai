@@ -106,6 +106,16 @@ class Settings:
         return _get("QUERY_REWRITE", "true").lower() in {"1", "true", "yes"}
 
     @property
+    def ai_calls_per_minute(self) -> int:
+        """F21: AI requests per user per minute (review runs, AI Assist)."""
+        return int(_get("AI_CALLS_PER_MINUTE") or 20)
+
+    @property
+    def daily_cost_cap_usd(self) -> float:
+        """F21: AI spend cap per day (UTC) for the whole app; then AI pauses and people review."""
+        return float(_get("DAILY_COST_CAP_USD") or 10)
+
+    @property
     def chroma_dir(self) -> Path:
         """Policy RAG index (Chroma). Rebuild with: python -m app.cli index-policies."""
         return Path(_get("CHROMA_DIR") or BACKEND / "data" / "chroma")

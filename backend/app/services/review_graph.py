@@ -141,7 +141,12 @@ def build(session: Session):
 def run(session: Session, case_id: int, actor: str = "system"):
     if repo.get_case(session, case_id) is None:
         raise NotFound(f"Case {case_id} not found")
+    from app.models import AIReview, utcnow
+    from app.services import observability
+    since = utcnow()
     out = build(session).invoke({"case_id": case_id, "actor": actor, "attempts": 0, "steps": []},
                                 config={"recursion_limit": STEP_CAP})
-    from app.models import AIReview
-    return session.get(AIReview, out["review_id"])
+    r = session.get(AIReview, out["review_id"])
+    observability.record_trace(session, kind="review", case_id=case_id, actor=actor, engine=r.result.get("engine"),
+                               steps=r.result["pipeline"]["steps"], since=since, outcome=r.tier)
+    return r

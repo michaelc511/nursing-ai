@@ -3,6 +3,13 @@ from fastapi import APIRouter, Depends, File, Query, UploadFile
 from fastapi.responses import FileResponse
 
 from app.api.deps import current_user, get_session
+
+
+def ai_limit(session=Depends(get_session), user=Depends(current_user)):
+    """F21: per-user AI rate limit + daily cost cap (429)."""
+    from app.services import observability
+    observability.check_ai_limits(session, user.username)
+    return user
 from app.schemas.api import DecisionIn, DecisionOut, LoginIn, LoginOut
 from app.services import auth, cases, decision, demo, intake, policy, review
 
@@ -61,7 +68,7 @@ def ai_usage(case_id: int | None = None, session=Depends(get_session), user=Depe
 
 
 @router.post("/assist/chat")
-def assist_chat(body: dict, session=Depends(get_session), user=Depends(current_user)):
+def assist_chat(body: dict, session=Depends(get_session), user=Depends(ai_limit)):
     """AI Assist (Phase 6): Claude with read-only tools + RAG; AI-MK without a key."""
     from app.services import assist
     cid = body.get("case_id")
@@ -81,6 +88,32 @@ def assist_clear(case_id: int | None = None, session=Depends(get_session), user=
     return {"cleared": True}
 
 
+@router.post("/ai/feedback")
+def ai_feedback(body: dict, session=Depends(get_session), user=Depends(current_user)):
+    """N4: thumbs up/down on an AI review or AI Assist answer."""
+    from app.services import observability
+    cid = body.get("case_id")
+    fb = observability.add_feedback(session, kind=str(body.get("kind", "")), case_id=int(cid) if cid else None,
+                                    rating=int(body.get("rating", 0)), actor=user.username,
+                                    comment=body.get("comment"), question=body.get("question"))
+    return {"id": fb.id}
+
+
+@router.get("/ai/quality")
+def ai_quality(days: int = 7, session=Depends(get_session), user=Depends(current_user)):
+    """N4: online quality (thumbs, override, unverified quotes, cost, latency) + alerts."""
+    from app.services import observability
+    return observability.quality(session, days)
+
+
+@router.get("/ai/traces")
+def ai_traces(case_id: int | None = None, limit: int = Query(20, le=100), session=Depends(get_session),
+              user=Depends(current_user)):
+    """F9: recent AI runs with node timings, tokens and cost (no content)."""
+    from app.services import observability
+    return observability.traces(session, case_id, limit)
+
+
 @router.get("/auth/me")
 def me(user=Depends(current_user)):
     return {"username": user.username, "full_name": user.full_name, "role": user.role}
@@ -96,7 +129,7 @@ def upload(file: UploadFile = File(...), auto_review: bool = True, session=Depen
 
 
 @router.post("/intake/poll")
-def poll(auto_review: bool = True, session=Depends(get_session), user=Depends(current_user)):
+def poll(auto_review: bool = True, session=Depends(get_session), user=Depends(ai_limit)):
     """Check inbox. With auto_review (default) this is the same run_all Cowork uses."""
     if auto_review:
         s = review.run_all(session, user.username, trigger=f"web: Check inbox ({user.username})")
@@ -106,7 +139,7 @@ def poll(auto_review: bool = True, session=Depends(get_session), user=Depends(cu
 
 
 @router.post("/review/run")
-def run_reviews(session=Depends(get_session), user=Depends(current_user)):
+def run_reviews(session=Depends(get_session), user=Depends(ai_limit)):
     """'Run AI review (N new)': reviews every Received case."""
     ids = review.review_received(session, user.username)
     s = review.summarize(session, [], ids, trigger=f"web: Run AI review ({user.username})")
@@ -116,7 +149,7 @@ def run_reviews(session=Depends(get_session), user=Depends(current_user)):
 
 
 @router.post("/cases/{case_id}/review")
-def review_one(case_id: int, session=Depends(get_session), user=Depends(current_user)):
+def review_one(case_id: int, session=Depends(get_session), user=Depends(ai_limit)):
     r = review.review_case(session, case_id, user.username)
     return {"tier": r.tier, "status": cases.get_case(session, case_id).status}
 

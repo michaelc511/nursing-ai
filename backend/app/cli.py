@@ -126,5 +126,24 @@ def search_policies_cmd(query: str, cpt: str = typer.Option(None, help="search o
                    f"{c['section_title']} (page {c['page']})\n{c['quote']}")
 
 
+@app.command("export-feedback")
+def export_feedback_cmd(out: str = typer.Option("../evaluation/candidates.jsonl", help="output file")):
+    """N4: thumbs-down answers -> candidate golden cases for a person to complete."""
+    from pathlib import Path
+    from app.services import observability
+    with session_scope() as s:
+        rows = observability.golden_candidates(s)
+    Path(out).write_text("".join(json.dumps(r) + "\n" for r in rows))
+    typer.echo(f"{len(rows)} candidate(s) written to {out}")
+
+
+@app.command("quality")
+def quality_cmd(days: int = 7):
+    """N4: online quality summary + alerts."""
+    from app.services import observability
+    with session_scope() as s:
+        typer.echo(json.dumps(observability.quality(s, days), indent=2))
+
+
 if __name__ == "__main__":
     app()

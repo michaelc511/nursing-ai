@@ -232,7 +232,10 @@ def build(session: Session):
         return {}
 
     def finish(s):
-        return {"history": [{"role": "user", "text": s["question"]}, {"role": "assistant", "text": s["answer"]}]}
+        from app import pii                                      # S5: memory keeps no member names/IDs
+        names = pii.case_names(session, s.get("case_id"))
+        return {"history": [{"role": "user", "text": pii.redact(s["question"], names)},
+                            {"role": "assistant", "text": pii.redact(s["answer"], names)}]}
 
     g = StateGraph(AssistState)
     g.add_node("gate", gate)
@@ -249,10 +252,18 @@ def build(session: Session):
 
 def ask(session: Session, user: str, question: str, case_id: int | None = None) -> dict:
     from app.services import audit
+    import time
+    from app.models import utcnow
+    from app.services import observability
     question = (question or "").strip()[:2000]
     cfg = {"configurable": {"thread_id": thread_id(user, case_id)}, "recursion_limit": 10}
+    since, t0 = utcnow(), time.monotonic()
     out = build(session).invoke({"question": question, "case_id": case_id, "user": user, "answer": "",
                                  "sources": [], "blocked": None, "rewritten": None, "tools_used": []}, cfg)
+    observability.record_trace(session, kind="assist", case_id=case_id, actor=user, engine=out.get("engine"),
+                               steps=[{"node": "assist", "ms": int((time.monotonic() - t0) * 1000),
+                                       "tools": out.get("tools_used", [])}],
+                               since=since, outcome=out.get("blocked") or "answered")
     audit.log(session, user, "assist_question", case_id, engine=out.get("engine"), blocked=out.get("blocked"),
               tools=out.get("tools_used"))
     return {"answer": out["answer"], "sources": out.get("sources", []), "engine": out.get("engine"),

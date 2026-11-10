@@ -15,6 +15,8 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setenv("ASSIST_DB", str(tmp_path / "assist.db"))
     from app.services import assist
     assist.reset_saver()
+    from app.services import observability
+    observability.reset_limits()
     from app.rag import index
     index.set_embedder(index.HashEmbedder())   # offline, no model download in tests
     index.set_reranker(None)                   # no cross-encoder download in tests

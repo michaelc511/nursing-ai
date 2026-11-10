@@ -15,7 +15,11 @@ from app.mcp_server import mcp
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    from app import pii
+    from app.services import observability
     init_db()
+    pii.install_log_filter()                      # S5: no PII in application logs
+    observability.configure_langsmith()           # F9: LangSmith only if configured, content hidden
     mcp._session_manager = None                   # fresh session manager per app start (tests restart it)
     mcp_guard.inner = mcp.streamable_http_app()
     async with mcp.session_manager.run():

@@ -107,3 +107,34 @@ class LLMCache(Base):
     model: Mapped[str] = mapped_column(String(60))
     value: Mapped[dict] = mapped_column(JSON)
     at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class Trace(Base):
+    """F9: one row per AI run (review graph or AI Assist turn): node timings, tokens, cost. No content."""
+    __tablename__ = "traces"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    kind: Mapped[str] = mapped_column(String(20))                  # review | assist
+    case_id: Mapped[int | None] = mapped_column(ForeignKey("cases.id"), nullable=True)
+    actor: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    engine: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    steps: Mapped[list] = mapped_column(JSON, default=list)        # [{"node", "ms"}]
+    total_ms: Mapped[int] = mapped_column(Integer, default=0)
+    llm_calls: Mapped[int] = mapped_column(Integer, default=0)
+    input_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    cost_usd: Mapped[float] = mapped_column(default=0.0)
+    outcome: Mapped[str | None] = mapped_column(String(40), nullable=True)   # tier, blocked reason ...
+    at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class Feedback(Base):
+    """N4: staff thumbs up/down on an AI review or an AI Assist answer."""
+    __tablename__ = "feedback"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    kind: Mapped[str] = mapped_column(String(20))                  # review | assist
+    case_id: Mapped[int | None] = mapped_column(ForeignKey("cases.id"), nullable=True)
+    rating: Mapped[int] = mapped_column(Integer)                   # +1 | -1
+    comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    question: Mapped[str | None] = mapped_column(Text, nullable=True)   # assist only, PII-redacted
+    actor: Mapped[str] = mapped_column(String(100))
+    at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
