@@ -140,3 +140,15 @@ test("real AI mode shows the AI icon instead of AI-MK", async () => {
   expect(screen.queryByText(/AI-MK/)).toBeNull();
   spy.mockRestore();
 });
+
+test("icon preview is ignored outside demo mode", async () => {
+  const api = await import("./api");
+  const { MK } = await import("./components/MK");
+  const { vi } = await import("vitest");
+  const spy = vi.spyOn(api, "aiMode").mockResolvedValue({ mode: "mock", label: "AI-MK", demo: false });
+  window.history.pushState({}, "", "/?icons=ai");
+  render(<MK />);
+  expect(await screen.findByText("AI-MK")).toBeTruthy();
+  window.history.pushState({}, "", "/");
+  spy.mockRestore();
+});

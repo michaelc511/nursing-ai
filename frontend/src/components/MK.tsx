@@ -4,9 +4,22 @@ import { aiMode, AIMode } from "../api";
 // "AI-MK" = mocked AI: prepared, simulated answers, NOT real AI. Used on every AI feature and the chat.
 export const MK_TEXT = "AI-MK = mocked, not real AI";
 
+/** Display-only preview: add ?icons=ai to the URL to see the real-AI icon styling.
+ *  Only when the server runs with DEMO_MODE=true (never in production).
+ *  It never changes which AI runs (that's AI_MODE on the server). Remembered for the browser tab. */
+function previewIcons(demo: boolean | undefined): boolean {
+  if (!demo) return false;
+  try {
+    const q = new URLSearchParams(location.search).get("icons");
+    if (q === "ai") sessionStorage.setItem("nurseopsnow.icons", "ai");
+    if (q === "off") sessionStorage.removeItem("nurseopsnow.icons");
+    return sessionStorage.getItem("nurseopsnow.icons") === "ai";
+  } catch { return false; }
+}
+
 export function useAIMode(): AIMode | null {
   const [m, setM] = useState<AIMode | null>(null);
-  useEffect(() => { aiMode().then(setM); }, []);
+  useEffect(() => { aiMode().then((x) => setM(previewIcons(x.demo) ? { ...x, mode: "claude", label: "AI" } : x)); }, []);
   return m;
 }
 
@@ -34,6 +47,15 @@ export function MK({ busy = false }: { long?: boolean; busy?: boolean }) {
 /** Banner at the top of every screen in mock mode. */
 export function MockBanner() {
   const m = useAIMode();
+  const [real, setReal] = useState<AIMode | null>(null);
+  useEffect(() => { aiMode().then(setReal); }, []);
+  if (real?.mode === "mock" && m?.mode !== "mock") {
+    return (
+      <div className="mk-banner" role="note">
+        <b>Icon preview only.</b> Showing the real-AI icon, but the answers are still <span className="mk">AI-MK</span>: mocked, <b>not real AI</b>.
+        {" "}<a href="?icons=off">Turn preview off</a>
+      </div>);
+  }
   if (m?.mode !== "mock") return null;
   return (
     <div className="mk-banner" role="note">

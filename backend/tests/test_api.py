@@ -97,5 +97,7 @@ def test_request_download_is_audited(client):
     assert client.get(f"/api/cases/{cid}/document?download=true").status_code == 401
 
 
-def test_ai_mode_is_public_and_mock_by_default(client):
-    assert client.get("/api/ai/mode").json() == {"mode": "mock", "label": "AI-MK"}
+def test_ai_mode_is_public_and_mock_by_default(client, monkeypatch):
+    assert client.get("/api/ai/mode").json() == {"mode": "mock", "label": "AI-MK", "demo": False}
+    monkeypatch.setenv("DEMO_MODE", "true")
+    assert client.get("/api/ai/mode").json()["demo"] is True

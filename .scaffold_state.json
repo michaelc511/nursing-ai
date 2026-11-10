@@ -141,7 +141,8 @@
     "[TODO] ANTHROPIC_API_KEY in .env (Mike) before Phase 3 live calls",
     "[TODO] Demo run of show: 15 min (problem+3 opportunities, architecture, live demo 4 steps, extensibility, compliance) + backup recording",
     "[PLAN Layer 2] Run order: #2a read CPT (python regex, Claude fallback) before #3 policy lookup, then #2b full review",
-    "[DONE 2026-11-10] Mock AI (AI-MK) for all AI features + Run AI review buttons; labels '(AI-MK)' everywhere"
+    "[DONE 2026-11-10] Mock AI (AI-MK) for all AI features + Run AI review buttons; labels '(AI-MK)' everywhere",
+    "[DONE] Icon preview ?icons=ai (demo mode only); prod = one Fly app, AI_MODE=claude, no mock fallback (case -> needs review); optional staging app with AI_MODE=mock"
   ],
   "app_name": "NurseOps Now",
   "layers": {
@@ -155,6 +156,7 @@
     "remote": "git@github.com:michaelc511/nursing-ai.git",
     "last_ship": "2026-11-10",
     "main": "727d31d",
-    "commit": "2e96252"
+    "commit": "2e96252",
+    "previous_main": "727d31d"
   }
 }
