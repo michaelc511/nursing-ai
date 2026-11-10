@@ -7,7 +7,7 @@ import pathlib
 import re
 
 DOCS = pathlib.Path(__file__).resolve().parents[2] / "docs"
-FILES = ["requirements", "architecture"]
+FILES = ["requirements", "architecture", "features"]
 
 CSS = """
 :root{--bg:#fff;--fg:#1c1f23;--muted:#5b6470;--line:#dde1e6;--code:#f3f5f7;--accent:#0b6e8a}
@@ -20,6 +20,17 @@ pre{padding:12px;overflow-x:auto}table{border-collapse:collapse;width:100%;displ
 th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}blockquote{border-left:3px solid var(--accent);margin:0;padding-left:12px;color:var(--muted)}
 """
 
+# features page only: green = Y, yellow = To Do, red = N/A
+STATUS_CSS = """
+:root{--y-bg:#d6f3df;--y-fg:#125c2c;--todo-bg:#fff0b3;--todo-fg:#634b00;--na-bg:#fddcd9;--na-fg:#951b1b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--y-bg:#14432a;--y-fg:#8fe8ad;--todo-bg:#4a3a08;--todo-fg:#f7d96b;--na-bg:#521d1d;--na-fg:#ffb0aa}}
+:root[data-theme="dark"]{--y-bg:#14432a;--y-fg:#8fe8ad;--todo-bg:#4a3a08;--todo-fg:#f7d96b;--na-bg:#521d1d;--na-fg:#ffb0aa}
+.st{border-radius:4px;padding:1px 7px;font-weight:600;font-size:.9em}
+.st-y{background:var(--y-bg);color:var(--y-fg)}.st-todo{background:var(--todo-bg);color:var(--todo-fg)}.st-na{background:var(--na-bg);color:var(--na-fg)}
+"""
+STATUS = re.compile(r"^(.*?: )(Y|To Do When LLM is ready|N/A - Optional)(?=$| )(.*)$")
+STATUS_CLASS = {"Y": "st-y", "To Do When LLM is ready": "st-todo", "N/A - Optional": "st-na"}
+
 
 def inline(text: str) -> str:
     t = html.escape(text)
@@ -30,7 +41,15 @@ def inline(text: str) -> str:
     return t
 
 
-def convert(md: str) -> tuple[str, str]:
+def status_item(text: str) -> str:
+    """A features.md line: color its status word."""
+    m = STATUS.match(text)
+    if not m:
+        return inline(text)
+    return f'{inline(m[1])}<span class="st {STATUS_CLASS[m[2]]}">{html.escape(m[2])}</span>{inline(m[3])}'
+
+
+def convert(md: str, bullet=inline) -> tuple[str, str]:
     out, title, lines, i = [], "", md.splitlines(), 0
     while i < len(lines):
         line = lines[i]
@@ -54,7 +73,7 @@ def convert(md: str) -> tuple[str, str]:
         elif line.startswith("- "):
             items = []
             while i < len(lines) and lines[i].startswith("- "):
-                items.append(f"<li>{inline(lines[i][2:])}</li>")
+                items.append(f"<li>{bullet(lines[i][2:])}</li>")
                 i += 1
             i -= 1
             out.append("<ul>" + "".join(items) + "</ul>")
@@ -83,10 +102,12 @@ def main() -> None:
         src = DOCS / f"{name}.md"
         if not src.exists():
             continue
-        title, body = convert(src.read_text())
+        features = name == "features"
+        title, body = convert(src.read_text(), status_item if features else inline)
+        css = CSS + STATUS_CSS if features else CSS
         page = (f'<!doctype html><html lang="en"><head><meta charset="utf-8">'
                 f'<meta name="viewport" content="width=device-width,initial-scale=1">'
-                f"<title>{html.escape(title)}</title><style>{CSS}</style></head>"
+                f"<title>{html.escape(title)}</title><style>{css}</style></head>"
                 f"<body><main>{body}</main></body></html>\n")
         (DOCS / f"{name}.html").write_text(page)
         print(f"wrote docs/{name}.html")

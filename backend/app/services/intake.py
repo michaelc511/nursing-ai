@@ -11,6 +11,9 @@ from app.repositories.blob import get_blob_storage
 from app.services import audit, state
 
 ALLOWED_TYPES = {".pdf", ".png", ".jpg", ".jpeg", ".tif", ".tiff"}
+_TIFF = (b"II*\x00", b"MM\x00*")
+SIGNATURES = {".pdf": (b"%PDF",), ".png": (b"\x89PNG\r\n\x1a\n",), ".jpg": (b"\xff\xd8\xff",),
+              ".jpeg": (b"\xff\xd8\xff",), ".tif": _TIFF, ".tiff": _TIFF}
 CHANNELS = {"fax", "portal", "upload"}
 
 
@@ -30,6 +33,17 @@ def _sample_info(filename: str) -> tuple[str, str | None]:
 def _check_type(name: str) -> None:
     if Path(name).suffix.lower() not in ALLOWED_TYPES:
         raise AppError(f"Unsupported file type: {name} (allowed: {', '.join(sorted(ALLOWED_TYPES))})")
+
+
+def _content_matches(name: str, data: bytes) -> bool:
+    """The bytes must really be the type the extension claims (a renamed file never reaches a nurse)."""
+    return data.startswith(SIGNATURES.get(Path(name).suffix.lower(), ()))
+
+
+def _check_file(name: str, data: bytes) -> None:
+    _check_type(name)
+    if not _content_matches(name, data):
+        raise AppError(f"{name} is empty, damaged or not really a {Path(name).suffix.lower()} file")
 
 
 def _arrival_order(f: Path) -> tuple[int, str]:
@@ -52,6 +66,12 @@ def create_case_from_bytes(session: Session, filename: str, data: bytes, source:
     return case
 
 
+def create_case_from_upload(session: Session, filename: str, data: bytes, actor: str = "system") -> Case:
+    """Web upload: the sender is present, so a bad file is refused. Inbox files (faxes) still go to a human."""
+    _check_file(filename, data)
+    return create_case_from_bytes(session, filename, data, "upload", actor)
+
+
 def poll_inbox(session: Session, actor: str = "system") -> list[Case]:
     """Scan the inbox, create one case per supported file, remove the file from the inbox."""
     inbox = settings.inbox_dir
@@ -71,7 +91,7 @@ def poll_inbox(session: Session, actor: str = "system") -> list[Case]:
 def add_documents(session: Session, case_id: int, filename: str, data: bytes,
                   actor: str = "system") -> Case:
     """New docs for an Incomplete case: store them and move Incomplete -> Received."""
-    _check_type(filename)
+    _check_file(filename, data)
     case = repo.get_case(session, case_id)
     if case is None:
         raise NotFound(f"Case {case_id} not found")

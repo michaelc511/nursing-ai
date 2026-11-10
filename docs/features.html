@@ -1,0 +1,43 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NurseOps Now features</title><style>
+:root{--bg:#fff;--fg:#1c1f23;--muted:#5b6470;--line:#dde1e6;--code:#f3f5f7;--accent:#0b6e8a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3238;--code:#1e2328;--accent:#5cc3df}}
+:root[data-theme="dark"]{--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3238;--code:#1e2328;--accent:#5cc3df}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:860px;margin:0 auto}h1,h2{line-height:1.25}h2{border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:2em}
+a{color:var(--accent)}code,pre{background:var(--code);border-radius:4px;font-size:.9em}code{padding:1px 4px}
+pre{padding:12px;overflow-x:auto}table{border-collapse:collapse;width:100%;display:block;overflow-x:auto}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}blockquote{border-left:3px solid var(--accent);margin:0;padding-left:12px;color:var(--muted)}
+
+:root{--y-bg:#d6f3df;--y-fg:#125c2c;--todo-bg:#fff0b3;--todo-fg:#634b00;--na-bg:#fddcd9;--na-fg:#951b1b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--y-bg:#14432a;--y-fg:#8fe8ad;--todo-bg:#4a3a08;--todo-fg:#f7d96b;--na-bg:#521d1d;--na-fg:#ffb0aa}}
+:root[data-theme="dark"]{--y-bg:#14432a;--y-fg:#8fe8ad;--todo-bg:#4a3a08;--todo-fg:#f7d96b;--na-bg:#521d1d;--na-fg:#ffb0aa}
+.st{border-radius:4px;padding:1px 7px;font-weight:600;font-size:.9em}
+.st-y{background:var(--y-bg);color:var(--y-fg)}.st-todo{background:var(--todo-bg);color:var(--todo-fg)}.st-na{background:var(--na-bg);color:var(--na-fg)}
+</style></head><body><main><h1>NurseOps Now features</h1>
+<p>Status of all 42 features from <code>claude-config/new-project/super-features.html</code> for this app (decided 2026-11-10, AI features checked on real Claude 2026-11-10).</p>
+<p><b>Y</b> = built; AI features also checked on real Claude unless noted · <b>To Do When LLM is ready</b> = still needs the GitHub secret or Phase 11 · <b>N/A - Optional</b> = optional, skipped. ← new = production / enterprise feature added 2026-11-10.</p>
+<p>Totals: 35 Y · 3 To Do When LLM is ready · 4 N/A - Optional.</p>
+<h2>Scope &amp; Foundation</h2>
+<ul><li>F0 App Idea &amp; Scope Design: <span class="st st-y">Y</span></li><li>F1 Prototype Execution: <span class="st st-y">Y</span></li><li>F4/S16 FastAPI Backend: <span class="st st-y">Y</span></li><li>F12 Engine Strategy Factory: <span class="st st-y">Y</span></li><li>F12.1 Parallel Entry Point: <span class="st st-y">Y</span> ← new (AI-MK engine frozen as a baseline next to LangGraph)</li></ul>
+<h2>Ingestion &amp; Indexing</h2>
+<ul><li>F3 Semantic RAG &amp; Vector Store: <span class="st st-y">Y</span></li><li>S14 Clause-Aware Chunking: <span class="st st-y">Y</span></li><li>S4 Metadata Extraction: <span class="st st-y">Y</span></li><li>N1 Document Parsing (OCR/tables): <span class="st st-y">Y</span> ← new</li><li>N2 Incremental Re-index + Versioning: <span class="st st-y">Y</span></li></ul>
+<h2>Retrieval Quality</h2>
+<ul><li>F18/S9 Hybrid Search: <span class="st st-y">Y</span></li><li>F10/S10 Cross-Encoder Re-ranking: <span class="st st-y">Y</span></li><li>S8 Query Rewriting: <span class="st st-y">Y</span></li></ul>
+<h2>Prompting &amp; Generation</h2>
+<ul><li>F3.1 System Prompt &amp; Persona: <span class="st st-y">Y</span></li><li>F2 Dynamic LLM Selector: <span class="st st-y">Y</span> ← new</li><li>N3 Semantic Cache + Model Fallback: <span class="st st-y">Y</span> ← new (cache checked live; fallback tested with mocks. Claude down -&gt; needs review, never a silent mock in prod)</li></ul>
+<h2>Agents &amp; Tools</h2>
+<ul><li>F13/S17 LangGraph Engines: <span class="st st-y">Y</span></li><li>F13.1 LangGraph State Machine: <span class="st st-y">Y</span></li><li>F13.2 Agentic RAG: <span class="st st-y">Y</span></li><li>F11 Text-to-SQL: <span class="st st-na">N/A - Optional</span> (optional; agent tools call services/)</li><li>F8 FastMCP Server: <span class="st st-y">Y</span></li><li>F14 CrewAI: <span class="st st-na">N/A - Optional</span> (optional)</li><li>F15 AutoGen: <span class="st st-na">N/A - Optional</span> (optional)</li></ul>
+<h2>Memory</h2>
+<ul><li>F7 Chat Memory: <span class="st st-y">Y</span></li><li>F16 Persistent Checkpointing: <span class="st st-y">Y</span></li></ul>
+<h2>Safety, Security &amp; Privacy</h2>
+<ul><li>F22 Prompt-Injection Defense: <span class="st st-y">Y</span></li><li>F19 Intent Gating: <span class="st st-y">Y</span></li><li>S5 PII Sanitization: <span class="st st-y">Y</span> ← new (logs, traces, chat history)</li><li>F21/S21 Auth, Rate Limiting &amp; RBAC: <span class="st st-y">Y</span></li><li>N5 Red Teaming: <span class="st st-y">Y</span> ← new (44 attacks on real Claude, 0 failed)</li></ul>
+<h2>Evaluation &amp; QA</h2>
+<ul><li>F17 RAG Evals Harness: <span class="st st-y">Y</span> (live baseline saved)</li><li>F20 CI Eval Gate: <span class="st st-todo">To Do When LLM is ready</span> (offline gate works; live gate needs the GitHub secret)</li><li>F23 Unit Tests: <span class="st st-y">Y</span></li></ul>
+<h2>Observability &amp; Cost</h2>
+<ul><li>F9 Tracing: <span class="st st-y">Y</span></li><li>F6 Token &amp; Cost Accounting: <span class="st st-y">Y</span></li><li>N4 Online Quality Monitoring: <span class="st st-y">Y</span> ← new</li></ul>
+<h2>Interfaces &amp; Deployment</h2>
+<ul><li>F5 Web Interfaces: <span class="st st-y">Y</span></li><li>F24 Deploy: <span class="st st-todo">To Do When LLM is ready</span> (Phase 11)</li><li>N8 Production Ops &amp; Compliance: <span class="st st-todo">To Do When LLM is ready</span> ← new (Phase 11)</li></ul>
+<h2>Governance &amp; Process</h2>
+<ul><li>N6 AI Governance: <span class="st st-y">Y</span> ← new (Phase 11)</li><li>F25 Retro &amp; Memory: <span class="st st-y">Y</span></li></ul>
+<h2>Emerging</h2>
+<ul><li>N7 GraphRAG / Multimodal: <span class="st st-na">N/A - Optional</span> (optional)</li></ul></main></body></html>

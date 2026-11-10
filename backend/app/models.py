@@ -78,3 +78,63 @@ class AuditLog(Base):
     action: Mapped[str] = mapped_column(String(50))
     details: Mapped[dict] = mapped_column(JSON, default=dict)
     at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class LLMCall(Base):
+    """F6: one row per AI call (Claude or AI-MK): tokens, cost, latency. Never stores prompt text."""
+    __tablename__ = "llm_calls"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    case_id: Mapped[int | None] = mapped_column(ForeignKey("cases.id"), nullable=True)
+    purpose: Mapped[str] = mapped_column(String(40))          # review | rewrite | chat | judge ...
+    engine: Mapped[str] = mapped_column(String(20))           # AI-MK | AI
+    model: Mapped[str] = mapped_column(String(60))
+    input_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    cache_read_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    cost_usd: Mapped[float] = mapped_column(default=0.0)
+    latency_ms: Mapped[int] = mapped_column(Integer, default=0)
+    cached: Mapped[bool] = mapped_column(Boolean, default=False)   # N3: answered from the cache
+    status: Mapped[str] = mapped_column(String(20), default="ok")  # ok | refused | error | fallback
+    actor: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class LLMCache(Base):
+    """N3: exact-input cache (same documents + policy version + prompt + model -> same answer)."""
+    __tablename__ = "llm_cache"
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    purpose: Mapped[str] = mapped_column(String(40))
+    model: Mapped[str] = mapped_column(String(60))
+    value: Mapped[dict] = mapped_column(JSON)
+    at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class Trace(Base):
+    """F9: one row per AI run (review graph or AI Assist turn): node timings, tokens, cost. No content."""
+    __tablename__ = "traces"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    kind: Mapped[str] = mapped_column(String(20))                  # review | assist
+    case_id: Mapped[int | None] = mapped_column(ForeignKey("cases.id"), nullable=True)
+    actor: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    engine: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    steps: Mapped[list] = mapped_column(JSON, default=list)        # [{"node", "ms"}]
+    total_ms: Mapped[int] = mapped_column(Integer, default=0)
+    llm_calls: Mapped[int] = mapped_column(Integer, default=0)
+    input_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    output_tokens: Mapped[int] = mapped_column(Integer, default=0)
+    cost_usd: Mapped[float] = mapped_column(default=0.0)
+    outcome: Mapped[str | None] = mapped_column(String(40), nullable=True)   # tier, blocked reason ...
+    at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class Feedback(Base):
+    """N4: staff thumbs up/down on an AI review or an AI Assist answer."""
+    __tablename__ = "feedback"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    kind: Mapped[str] = mapped_column(String(20))                  # review | assist
+    case_id: Mapped[int | None] = mapped_column(ForeignKey("cases.id"), nullable=True)
+    rating: Mapped[int] = mapped_column(Integer)                   # +1 | -1
+    comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    question: Mapped[str | None] = mapped_column(Text, nullable=True)   # assist only, PII-redacted
+    actor: Mapped[str] = mapped_column(String(100))
+    at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)

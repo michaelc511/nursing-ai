@@ -4,6 +4,8 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def env(tmp_path, monkeypatch):
+    for secret in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN"):  # a real key in .env must never reach a test
+        monkeypatch.delenv(secret, raising=False)
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path / 'test.db'}")
     monkeypatch.setenv("STORAGE_DIR", str(tmp_path / "storage"))
     monkeypatch.setenv("INBOX_DIR", str(tmp_path / "inbox"))
@@ -11,6 +13,16 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setenv("DEMO_PASSWORD", "test-pass")
     monkeypatch.setenv("DEMO_MODE", "")
     monkeypatch.setenv("SECRET_KEY", "test-secret-key-at-least-32-bytes-long")
+    monkeypatch.setenv("CHROMA_DIR", str(tmp_path / "chroma"))
+    monkeypatch.setenv("ASSIST_DB", str(tmp_path / "assist.db"))
+    from app.services import assist
+    assist.reset_saver()
+    from app.services import observability
+    observability.reset_limits()
+    from app.rag import index
+    index.set_embedder(index.HashEmbedder())   # offline, no model download in tests
+    index.set_reranker(None)                   # no cross-encoder download in tests
+    index.reset_client()
     (tmp_path / "inbox").mkdir()
     (tmp_path / "samples").mkdir()
     from app import db
@@ -18,6 +30,7 @@ def env(tmp_path, monkeypatch):
     db.init_db()
     yield tmp_path
     db.reset_engine()
+    index.reset_client()
 
 
 @pytest.fixture

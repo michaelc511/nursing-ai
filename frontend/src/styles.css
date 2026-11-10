@@ -170,10 +170,7 @@ html, body { overflow-x:hidden; }
 @media (prefers-reduced-motion: reduce) { .ai-icon.busy svg, .mk.busy { animation:none; } }
 .chat-launcher .ai-icon, button:not(.theme-btn):not(.link):not(.chip) .ai-icon { background:#fff; color:var(--accent); }
 .ai-icon { padding:2px; gap:0; width:24px; height:24px; justify-content:center; border-radius:50%; }
-.ai-switch { display:inline-flex; align-items:center; gap:2px; border:1px solid var(--line); border-radius:999px; padding:2px 4px 2px 8px; }
-.ai-switch .seg { background:none; color:var(--fg); padding:3px 10px; border-radius:999px; font-size:12px; }
-.ai-switch .seg.active { background:var(--accent); color:var(--accent-fg); }
-.ai-switch .seg:disabled:not(.active) { opacity:.45; }
+.hidden-toggle { cursor:default; }
 /* More breathing room: Case queue + Medical policies */
 section > .toolbar { gap:14px; margin:20px 0 14px; row-gap:10px; }
 section > .toolbar h2 { margin:0 8px 0 0; }
@@ -190,5 +187,17 @@ th, td { padding:10px 14px; }
 /* Case queue border: lighter, and a hairline on Retina screens */
 .table-wrap { border:1px solid color-mix(in srgb, var(--line) 60%, transparent); }
 @media (min-resolution: 2dppx) { .table-wrap { border-width:0.5px; } }
-.ai-switch .seg.active:disabled { opacity:1; }
 .login-top { align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+
+/* Phase 10: AI Assist sources, feedback, debug, loading */
+.bubble.pending .bubble-text { opacity: .7; font-style: italic; }
+.sources { margin: 6px 0 0; padding-left: 16px; color: var(--muted, #5b6470); }
+.feedback { display: inline-flex; gap: 6px; align-items: center; margin-top: 4px; }
+.feedback .link { padding: 0 2px; font-size: 1rem; }
+.review-feedback { margin-top: 12px; }
+.policy-chunks { margin: 10px 0; }
+.policy-chunks summary { cursor: pointer; }
+.debug { margin-top: 12px; border-style: dashed; }
+.debug table { border-collapse: collapse; margin: 6px 0; }
+.debug th, .debug td { border: 1px solid var(--line, #dde1e6); padding: 2px 6px; text-align: left; }
+.debug-line { margin-top: 4px; word-break: break-word; }

@@ -3,6 +3,13 @@ from fastapi import APIRouter, Depends, File, Query, UploadFile
 from fastapi.responses import FileResponse
 
 from app.api.deps import current_user, get_session
+
+
+def ai_limit(session=Depends(get_session), user=Depends(current_user)):
+    """F21: per-user AI rate limit + daily cost cap (429)."""
+    from app.services import observability
+    observability.check_ai_limits(session, user.username)
+    return user
 from app.schemas.api import DecisionIn, DecisionOut, LoginIn, LoginOut
 from app.services import auth, cases, decision, demo, intake, policy, review
 
@@ -29,13 +36,83 @@ def ai_mode():
     eng = review.engine()
     return {"mode": "mock" if eng.label == "AI-MK" else "claude", "label": eng.label,
             "demo": settings.demo_mode,  # the ?icons=ai preview + the switch are demo-mode only
-            "switchable": settings.demo_mode, "claude_available": mode_svc.claude_available()}
+            "switchable": settings.demo_mode, "claude_available": mode_svc.claude_available(),
+            "debug": settings.debug_ui}
 
 
 @router.post("/ai/mode")
 def set_ai_mode(body: dict, session=Depends(get_session), user=Depends(current_user)):
     from app.services import ai_mode as mode_svc
     return {"mode": mode_svc.set_mode(session, str(body.get("mode", "")), user.username)}
+
+
+@router.get("/ai/model")
+def ai_model(session=Depends(get_session), user=Depends(current_user)):
+    """F2: current Claude model + the allowed list (switchable in demo mode)."""
+    from app.config import settings
+    from app.llm import client as llm
+    return {"model": llm.current_model(session), "models": settings.claude_models,
+            "fallback": settings.claude_fallback_model, "switchable": settings.demo_mode}
+
+
+@router.post("/ai/model")
+def set_ai_model(body: dict, session=Depends(get_session), user=Depends(current_user)):
+    from app.llm import client as llm
+    return {"model": llm.set_model(session, str(body.get("model", "")), user.username)}
+
+
+@router.get("/ai/usage")
+def ai_usage(case_id: int | None = None, session=Depends(get_session), user=Depends(current_user)):
+    """F6: AI calls, tokens, cost and average latency (all time, or one case)."""
+    from app.llm import client as llm
+    return llm.totals(session, case_id=case_id)
+
+
+@router.post("/assist/chat")
+def assist_chat(body: dict, session=Depends(get_session), user=Depends(ai_limit)):
+    """AI Assist (Phase 6): Claude with read-only tools + RAG; AI-MK without a key."""
+    from app.services import assist
+    cid = body.get("case_id")
+    return assist.ask(session, user.username, str(body.get("message", "")), int(cid) if cid else None)
+
+
+@router.get("/assist/history")
+def assist_history(case_id: int | None = None, user=Depends(current_user)):
+    from app.services import assist
+    return assist.history(user.username, case_id)
+
+
+@router.delete("/assist/history")
+def assist_clear(case_id: int | None = None, session=Depends(get_session), user=Depends(current_user)):
+    from app.services import assist
+    assist.clear(session, user.username, case_id)
+    return {"cleared": True}
+
+
+@router.post("/ai/feedback")
+def ai_feedback(body: dict, session=Depends(get_session), user=Depends(current_user)):
+    """N4: thumbs up/down on an AI review or AI Assist answer."""
+    from app.services import observability
+    cid = body.get("case_id")
+    fb = observability.add_feedback(session, kind=str(body.get("kind", "")), case_id=int(cid) if cid else None,
+                                    rating=int(body.get("rating", 0)), actor=user.username,
+                                    comment=body.get("comment"), question=body.get("question"))
+    return {"id": fb.id}
+
+
+@router.get("/ai/quality")
+def ai_quality(days: int = 7, session=Depends(get_session), user=Depends(current_user)):
+    """N4: online quality (thumbs, override, unverified quotes, cost, latency) + alerts."""
+    from app.services import observability
+    return observability.quality(session, days)
+
+
+@router.get("/ai/traces")
+def ai_traces(case_id: int | None = None, limit: int = Query(20, le=100), session=Depends(get_session),
+              user=Depends(current_user)):
+    """F9: recent AI runs with node timings, tokens and cost (no content)."""
+    from app.services import observability
+    return observability.traces(session, case_id, limit)
 
 
 @router.get("/auth/me")
@@ -46,14 +123,14 @@ def me(user=Depends(current_user)):
 @router.post("/intake/upload")
 def upload(file: UploadFile = File(...), auto_review: bool = True, session=Depends(get_session),
            user=Depends(current_user)):
-    c = intake.create_case_from_bytes(session, file.filename, file.file.read(), "upload", user.username)
+    c = intake.create_case_from_upload(session, file.filename, file.file.read(), user.username)
     if auto_review:
         review.review_case(session, c.id, user.username)
     return cases.summary(session, c)
 
 
 @router.post("/intake/poll")
-def poll(auto_review: bool = True, session=Depends(get_session), user=Depends(current_user)):
+def poll(auto_review: bool = True, session=Depends(get_session), user=Depends(ai_limit)):
     """Check inbox. With auto_review (default) this is the same run_all Cowork uses."""
     if auto_review:
         s = review.run_all(session, user.username, trigger=f"web: Check inbox ({user.username})")
@@ -63,7 +140,7 @@ def poll(auto_review: bool = True, session=Depends(get_session), user=Depends(cu
 
 
 @router.post("/review/run")
-def run_reviews(session=Depends(get_session), user=Depends(current_user)):
+def run_reviews(session=Depends(get_session), user=Depends(ai_limit)):
     """'Run AI review (N new)': reviews every Received case."""
     ids = review.review_received(session, user.username)
     s = review.summarize(session, [], ids, trigger=f"web: Run AI review ({user.username})")
@@ -73,7 +150,7 @@ def run_reviews(session=Depends(get_session), user=Depends(current_user)):
 
 
 @router.post("/cases/{case_id}/review")
-def review_one(case_id: int, session=Depends(get_session), user=Depends(current_user)):
+def review_one(case_id: int, session=Depends(get_session), user=Depends(ai_limit)):
     r = review.review_case(session, case_id, user.username)
     return {"tier": r.tier, "status": cases.get_case(session, case_id).status}
 
@@ -125,6 +202,17 @@ def reset_demo(session=Depends(get_session), user=Depends(current_user)):
 @router.get("/policies")
 def list_policies(user=Depends(current_user)):
     return policy.list_policies()
+
+
+@router.get("/policies/{cpt}/search")
+def policy_search(cpt: str, q: str = Query(..., min_length=2), k: int = Query(4, ge=1, le=10),
+                  user=Depends(current_user)):
+    return policy.search(q, cpt=cpt, k=k)
+
+
+@router.get("/policies/{cpt}/chunks")
+def policy_chunks(cpt: str, user=Depends(current_user)):
+    return policy.chunks(cpt)
 
 
 @router.get("/policies/{cpt}/document")

@@ -65,10 +65,62 @@ Demo logins per role: `nurse1`, `nurse2` (nurse), `meddir` (medical director), `
 (intake coordinator: intake + add documents, can't decide → 403); one shared
 `DEMO_PASSWORD` from `.env`. Production: SSO + role-based access (HIPAA).
 
-## AI engines (Phase 3)
+## AI engines (Phase 3-4)
 - `AI_MODE=mock` → **AI-MK**: prepared answers for the demo requests, same `ReviewResult` schema as Claude; every output labeled (AI-MK).
-- `AI_MODE=claude` → real Claude (`anthropic` SDK, PDF input, structured output), next.
+- `AI_MODE=claude` → real Claude: request PDFs sent natively + the RAG policy chunks inside `<policy_chunks>`, prompt `backend/app/prompts/review_v2.md`, structured output validated against `ReviewResult` (`client.beta.messages.parse`), effort `high`, server-side refusal fallback on.
+- LLM layer `backend/app/llm/`: model from `CLAUDE_MODEL` (default `claude-opus-5-5`), allowed list `CLAUDE_MODELS`, switchable in demo mode (F2, `GET/POST /api/ai/model`); every call written to `llm_calls` with tokens, cost and latency, prompts never stored (F6, `GET /api/ai/usage`); exact-input cache in `llm_cache` and a fallback model `CLAUDE_FALLBACK_MODEL` (N3). If every model fails, the case goes to a person (Ready for review, needs review, warning "AI unavailable"); production never shows mock answers.
+- Guardrails `backend/app/guard.py` (F22): instruction-like text in a document is flagged and forces needs_review; outputs that leak the prompt or a key are blocked; chat input checks + topic gate (F19) are used by AI Assist (Phase 6).
+- Parsing `backend/app/services/parsing.py` (N1): text per page with local OCR (RapidOCR) for scanned faxes, so CPT regex, quote checks and the injection scan work on scans.
+- MCP (F8, Dev Phase 2): `backend/app/mcp_server.py` (FastMCP) with 7 tools over services/ and no decision tool; Streamable HTTP at `/mcp`, bearer `MCP_TOKEN` (off if unset), allowed hosts `MCP_ALLOWED_HOSTS`. Local: `python -m app.mcp_server` (stdio).
+- Live check (key needed, costs money): `AI_MODE=claude python ../evaluation/ask_live.py` from `backend/`.
 - Either way Python reads the CPT (#2a), verifies quotes against the PDF text, and forces needs_review on any mismatch.
+
+## Policy RAG (Phase 3, Layer 3)
+- `backend/app/rag/chunker.py`: policy PDF → clause-aware chunks (S14), one per criterion (§2.A…) or section, each with a header `[policy v<version> | title | CPT | §label section | page]`; page furniture dropped; recursive split above 1,200 chars; injection-like text flagged and kept out of the index.
+- `backend/app/rag/index.py`: sentence-transformers `all-MiniLM-L6-v2` (Claude never embeds) → Chroma collection `policies` in `backend/data/chroma/` (git-ignored). Metadata per chunk (S4): cpt, policy number, version, section, criterion, page.
+- Search is always filtered to the CPT's policy. Re-index replaces a policy's old chunks (N2: versioned). The index builds itself on first search.
+- The AI review gets the top 6 chunks of the case's policy and saves them with the review (`policy_chunks`), so every citation can point to its clause.
+- CLI `index-policies`, `search-policies "<question>" --cpt <code>`; API `GET /api/policies/{cpt}/search?q=`, `GET /api/policies/{cpt}/chunks`.
+- Retrieval eval: `evaluation/golden.jsonl` + `python ../evaluation/run_retrieval.py` (from `backend/`). Baseline 2026-11-10: hit@1 8/9 (89%); off-topic scores ≈ 0.
+
+## Retrieval quality (Phase 7)
+- Hybrid search (F18): every chunk in the CPT's policy is scored by vector cosine and by BM25 (keywords + section title), fused with Reciprocal Rank Fusion (k=60). `HYBRID_SEARCH=false` turns BM25 off.
+- Re-ranking (F10): cross-encoder `cross-encoder/ms-marco-MiniLM-L-6-v2` re-orders the top 10 (`RERANK=false` off). `score` stays the vector cosine (used for "I don't know"), `rerank` is the cross-encoder score.
+- Query rewriting (S8): in Claude mode, `backend/app/services/query_rewrite.py` (prompt `rewrite_v1.md`, effort low) restates the chat question or the request's first page in policy wording, with personal details removed; original + rewritten results are fused. Review graph node `rewrite_query`; AI Assist shows the rewritten query (debug). AI-MK keeps the original query.
+- Retrieval eval 2026-11-10 (real models): hit@1 8/9 (89%), hit@3 9/9 (100%), up from 89% hit@3 in Phase 3.
+
+## Review pipeline (Phase 5, LangGraph)
+- `backend/app/services/review_graph.py`: `read_form → rewrite_query → retrieve_policy → ai_review → verify → route`. Only `ai_review` calls the AI; the other nodes are Python (CPT regex, CPT → policy + RAG chunks, quote/CPT/injection checks, save + status move).
+- `verify → ai_review` retries once (Claude only) with the failed checks as feedback, while the case is under `MAX_CASE_COST_USD` (default $0.50). Step cap 8. Still failing → needs_review for a person.
+- No node can approve, pend or deny. Node timings are saved with each review (`pipeline.steps`).
+- F12.1 baseline: `REVIEW_PIPELINE=linear` runs the original one-pass review (frozen); tests check both give the same tier and status on the demo cases.
+
+## AI Assist (Phase 6)
+- `backend/app/services/assist.py`, LangGraph `gate → agent → check → finish`, prompt `backend/app/prompts/assist_v1.md`.
+- gate (code, no LLM): injection check (F22) + topic gate (F19) → polite refusal.
+- agent (F13.2 agentic RAG): Claude picks read-only tools that call services/: `get_case`, `list_cases`, `stuck_cases`, `metrics`, `search_policy` (policy RAG), `search_guide` (RAG over `backend/knowledge/guide_me.pdf`, Chroma collection `guide`). Max 4 tool rounds. No SQL, no decisions. Without a key or with `AI_MODE=mock`, a rule router answers from the same tools (AI-MK).
+- check: blocks prompt/key leaks; answers without a source get a "please check" note.
+- Memory (F7, F16): LangGraph `SqliteSaver` in `backend/data/assist_memory.db` (git-ignored), one thread per user and case; last `ASSIST_TURNS` (10) turns go to Claude; survives restarts; `DELETE /api/assist/history` clears it (audited).
+- API: `POST /api/assist/chat {message, case_id?}`, `GET/DELETE /api/assist/history?case_id=`.
+
+## Observability and security (Phase 8)
+- Traces (F9): `traces` table, one row per review run or AI Assist turn: node timings, LLM calls, tokens, cost, outcome. No content. `GET /api/ai/traces?case_id=`. LangSmith only with `LANGSMITH_API_KEY` + `LANGSMITH_TRACING=true`; inputs and outputs are hidden unless `LANGSMITH_SHOW_CONTENT=true` (synthetic demo only).
+- PII (S5): `backend/app/pii.py` redacts SSN, dates, phone, email, member IDs, NPI, addresses and the case's member/provider names from application logs (log filter), AI Assist memory and feedback text. Case documents and the AI review stay complete (staff-only, audited).
+- Limits (F21): per-user `AI_CALLS_PER_MINUTE` (20) on Check inbox, Run AI review, Re-run and AI Assist; app-wide `DAILY_COST_CAP_USD` ($10, UTC day). Over a limit → 429 with a plain message, audited (`ai_limit_hit`). Logins and roles: Phase 2.5.
+- Online quality (N4): thumbs up/down (`POST /api/ai/feedback`), `GET /api/ai/quality` (thumbs, override rate, unverified-quote rate, AI-unavailable reviews, cost today vs cap, latency) with alerts; CLI `quality`; `export-feedback` writes thumbs-down items to `evaluation/candidates.jsonl` for a person to turn into golden cases.
+
+## QA and evals (Phase 9)
+- Unit tests (F23): `pytest --cov=app` (all mocked, offline): 120 tests, 90% coverage on 2026-11-10.
+- Eval harness (F17): `evaluation/run_evals.py` over `evaluation/golden.jsonl` (20 cases: 9 retrieval, 3 reviews, 4 AI Assist, 4 safety). Offline (AI-MK + real local models): exact Python checks. `--live` (Claude): + LLM judge (`JUDGE_MODEL`, default claude-opus-5-5: faithfulness, citations, never-decides) + RAGAS (`evaluation/ragas_eval.py`: faithfulness, answer relevancy, context precision; extras in `evaluation/requirements.txt`). Prints tokens and cost.
+- Baselines: `evaluation/baseline_mock.json` (2026-11-10: retrieval 1.0, review 1.0, assist 1.0, safety 1.0, hit@1 0.889, hit@3 1.0). Save the live baseline once with `--live --save-baseline`.
+- Gate (F20): `--gate` fails on any safety failure or any score > 0.05 below baseline. GitHub Actions `.github/workflows/ci.yml`: backend tests + coverage, frontend tests + build, offline eval gate + red team; live eval gate only when the `ANTHROPIC_API_KEY` repo secret is set.
+- Red team (N5): `evaluation/redteam.py`: 44 generated attacks (injection variants, prompt extraction, fake authority, decision requests, off-topic); pass = blocked or no decision/leak and no case status change. 44/44 offline.
+
+## UI for the AI features (Phase 10, React Vite)
+- Case → AI review: "Policy sections the AI read" (the RAG chunks, collapsible), code-check warnings, and 👍/👎 "Helpful?" (N4).
+- AI Assist (bottom right): typed questions go to `POST /api/assist/chat` (Claude with tools, or AI-MK), with the sources listed under each answer, a "Thinking…" state, 👍/👎, and Clear (also deletes the saved chat memory). The chips and Guide me stay scripted and instant; if the server can't answer, the chat says so and shows the built-in guide.
+- Errors: a stopped backend shows "Can't reach the server…"; a 429 shows the limit message.
+- Debug panel (`DEBUG_UI=true` only, not for nurses): tokens, cost and latency per case, pipeline steps and timings, rewritten query, raw vector/re-rank scores, last runs, today's cost vs cap, quality alerts; in AI Assist, the tools used and the rewritten query.
 
 ## Demo tools (Claude, Phase 2.5)
 - `mark <case_id> ready|incomplete` (test-only CLI) moves a case until AI review exists.

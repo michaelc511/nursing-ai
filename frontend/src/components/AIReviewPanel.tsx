@@ -1,5 +1,6 @@
 import { AIReview, Evidence } from "../api";
 import { Badge } from "./Badge";
+import { Feedback } from "./Feedback";
 import { MK } from "./MK";
 
 // Shows the AI review. Anything from the mock engine is labeled (AI-MK) in the wording.
@@ -15,7 +16,7 @@ function Quote({ e, where }: { e: Evidence; where: string }) {
   );
 }
 
-export function AIReviewPanel({ r, label }: { r: AIReview; label: string }) {
+export function AIReviewPanel({ r, label, caseId = null }: { r: AIReview; label: string; caseId?: number | null }) {
   const mocked = label === "AI-MK";
   const tag = mocked ? "(AI-MK)" : "(AI)";
   const f = r.fields || {};
@@ -49,6 +50,13 @@ export function AIReviewPanel({ r, label }: { r: AIReview; label: string }) {
         <ul className="retrieved">{r.retrieved_criteria.map((c) => <li key={c.text}><span className="muted small">policy page {c.page}:</span> {c.text}</li>)}</ul>
       </>)}
 
+      {r.policy_chunks && r.policy_chunks.length > 0 && (
+        <details className="policy-chunks">
+          <summary><b>Policy sections the AI read</b> <span className="muted small">({r.policy_chunks.length}, found by search in this request's policy)</span></summary>
+          <ul className="retrieved">{r.policy_chunks.map((c) => (
+            <li key={c.id}><span className="muted small">{c.label} {c.section_title} · page {c.page}:</span> {c.quote}</li>))}</ul>
+        </details>)}
+
       {r.criteria?.length > 0 && (<>
         <h4>Criteria check {tag}</h4>
         {r.criteria.map((c) => (
@@ -58,6 +66,7 @@ export function AIReviewPanel({ r, label }: { r: AIReview; label: string }) {
             {c.policy_evidence && <Quote e={c.policy_evidence} where="policy" />}
           </div>))}
       </>)}
+      <p className="review-feedback"><Feedback kind="review" caseId={caseId} /></p>
     </div>
   );
 }

@@ -33,6 +33,36 @@ def test_bad_login(client):
     assert client.post("/api/auth/login", json={"username": "nurse1", "password": "x"}).status_code == 401
 
 
+@pytest.mark.parametrize("name,data", [("fake.pdf", b"not a pdf"), ("empty.pdf", b""), ("fake.png", b"%PDF-1.4"),
+                                       ("fake.jpg", b"plain text"), ("fake.tif", b"plain text")])
+def test_upload_rejects_file_that_is_not_its_type(client, name, data):
+    h = login(client)
+    r = client.post("/api/intake/upload", headers=h, files={"file": (name, data, "application/octet-stream")})
+    assert r.status_code == 400 and "not really" in r.json()["detail"]
+    assert client.get("/api/cases", headers=h).json() == []
+
+
+def test_add_documents_rejects_fake_file_and_keeps_status(client):
+    h = login(client)
+    cid = client.post("/api/intake/upload?auto_review=false", headers=h,
+                      files={"file": ("a.pdf", b"%PDF-1.4 x", "application/pdf")}).json()["id"]
+    from app.db import new_session
+    from app.services import demo
+    s = new_session(); demo.mark(s, cid, "incomplete"); s.commit(); s.close()
+    r = client.post(f"/api/cases/{cid}/documents", headers=h, files={"file": ("pt.pdf", b"junk", "application/pdf")})
+    assert r.status_code == 400
+    assert client.get(f"/api/cases/{cid}", headers=h).json()["status"] == "Incomplete"
+
+
+def test_inbox_file_that_is_damaged_still_reaches_a_human(client, env):
+    h = login(client)
+    (env / "inbox" / "bad.pdf").write_bytes(b"junk")
+    (env / "inbox" / "good.pdf").write_bytes(b"%PDF-1.4 ok")
+    r = client.post("/api/intake/poll?auto_review=false", headers=h)
+    assert r.status_code == 200 and r.json()["created"] == 2
+    assert not (env / "inbox" / "bad.pdf").exists()
+
+
 def test_upload_view_and_decide_flow(client):
     h = login(client)
     r = client.post("/api/intake/upload?auto_review=false", headers=h,

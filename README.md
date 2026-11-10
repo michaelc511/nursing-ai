@@ -42,19 +42,19 @@ The Intake Coordinator's **Check inbox** can replace Cowork's scheduled start.
 **Layers** (build status updated every phase)
 
 1. Intake and storage (Python + API + CLI) - Built
-2. AI review (Claude API + Python) - Built with mock AI (AI-MK); real Claude next
+2. AI review (Claude API + Python) - Built: Claude engine (AI_MODE=claude, needs the API key) + mock AI (AI-MK)
 3. Policy lookup and PDFs (Python + API + React) - Built
-4. Policy RAG (Python + Chroma) - Not built
+4. Policy RAG (Python + Chroma) - Built (Phase 3)
 5. Nurse decision (React + API) - Built
 6. Systems of record (Python, mocked) - Built
-7. Cowork operator (Cowork + MCP) - Not built
+7. Cowork operator (Cowork + MCP) - MCP server built (Phase 4); Cowork setup at deploy
 
 **In the order it runs** (#n = layer above)
 
 1. **#7** Cowork operator starts the run on a schedule - Not built
 2. **#1** Intake and storage turns each new document into a case - Built
 3. **#3** Policy lookup and PDFs picks the policy by CPT - Built
-4. **#4** Policy RAG finds the criteria that matter - Not built
+4. **#4** Policy RAG finds the criteria that matter - Built (Phase 3)
 5. **#2** AI review reads, checks, cites and suggests - Built with mock AI (AI-MK)
 6. **#6** Systems of record sends the provider request if something is missing - Built
 7. **#7** Cowork operator reports what needs people - Not built
@@ -97,11 +97,11 @@ Then sign in on the web (see How to use) and decide cases 1 and 3.
 
 ### Logins (seeded by `python -m app.cli init-db`)
 All demo logins share one password: the value of **`DEMO_PASSWORD`** in `.env`.
-With `DEMO_MODE=true` the login screen fills the password in for you. Click **?** on any screen for short steps, or open **✦ AI Assist** (bottom right) and tap **Guide me**: it reads who is signed in and where each case stands, then says the next step in plain words (including when to sign out and who to sign in as). AI Assist is the one place for all AI help: scripted today, Claude answers about cases (with RAG) later.
+With `DEMO_MODE=true` the login screen fills the password in for you. Click **?** on any screen for short steps, or open **✦ AI Assist** (bottom right) and tap **Guide me**: it reads who is signed in and where each case stands, then says the next step in plain words (including when to sign out and who to sign in as). AI Assist is the one place for all AI help: typed questions are answered by Claude (or AI-MK without a key) from the cases, the policies and the guide, with sources; the chips and Guide me are scripted.
 **AI-MK = mocked, not real AI.** Icon preview (demo mode only): `?icons=ai` shows the real-AI ✦ icon while answers stay AI-MK; `?icons=off` turns it off. In production (`DEMO_MODE` off, `AI_MODE=claude`) the preview is ignored. In mock mode a yellow banner on every screen says so, and every AI answer (review panel, queue tier, last run, AI Assist chat) carries an **AI-MK** tag.
 **AI review (AI-MK):** with `AI_MODE=mock` (default) the AI review uses prepared answers for the 3 demo requests, in exactly the shape Claude will return. Everything it produces is labeled **(AI-MK)**. Python still reads the CPT from the PDF, checks every quote against the PDF text, and forces *needs review* on any mismatch. **Check inbox** runs intake + AI review in one go (the same `run_all` Cowork will use); **Run AI review (N new)** and **Run / Re-run AI review** on a case run it on demand. `AI_MODE=claude` switches to real Claude in Phase 3.
 **Presenter reset:** click the blank space just right of the "NurseOps Now" title in the header → confirm popup → all cases cleared, then the 3 sample requests are loaded and reviewed (AI-MK), so the queue is full (demo mode only).
-**AI switch (demo mode only):** the header has **AI: AI-MK | Claude**. It switches which engine runs, with no restart, and is audited. Claude stays greyed out until the Claude engine and `ANTHROPIC_API_KEY` exist. In production (`DEMO_MODE` off) the switch is hidden and `AI_MODE` decides.
+**Hidden presenter switches (demo mode only):** after signing in, click the footer words **Synthetic data only** to flip AI-MK and Claude (no restart, audited, needs `ANTHROPIC_API_KEY` for Claude), or **Medical Directors** to flip debug mode for this browser tab. Nothing marks them on screen; the Mock AI and Debug mode banners say when each mode is on. In production (`DEMO_MODE` off) both do nothing, `AI_MODE` decides the engine and `DEBUG_UI` decides debug.
 _Before a public deploy, turn `DEMO_MODE` off (or accept that anyone with the URL can sign in)._
 
 | Login | Name | Role |

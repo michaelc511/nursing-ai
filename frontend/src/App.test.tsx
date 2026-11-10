@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import App from "./App";
 import { Badge } from "./components/Badge";
 
@@ -153,13 +153,96 @@ test("icon preview is ignored outside demo mode", async () => {
   spy.mockRestore();
 });
 
-test("AI switch shows in demo mode with Claude greyed out until it's connected", async () => {
+async function renderFooter(mode: object) {
   const api = await import("./api");
-  const { AISwitch } = await import("./components/AISwitch");
+  const { DemoFooter } = await import("./components/DemoFooter");
+  const { DebugBanner } = await import("./components/DebugMode");
   const { vi } = await import("vitest");
-  const spy = vi.spyOn(api, "aiMode").mockResolvedValue({ mode: "mock", label: "AI-MK", demo: true, switchable: true, claude_available: false });
-  render(<AISwitch />);
-  expect((await screen.findByRole("button", { name: "AI-MK" })).getAttribute("aria-pressed")).toBe("true");
-  expect((screen.getByRole("button", { name: "Claude" }) as HTMLButtonElement).disabled).toBe(true);
-  spy.mockRestore();
+  const { act } = await import("@testing-library/react");
+  sessionStorage.clear();
+  const modeSpy = vi.spyOn(api, "aiMode").mockResolvedValue({ label: "AI-MK", ...mode } as never);
+  const setSpy = vi.spyOn(api, "setAIMode").mockResolvedValue({ mode: "claude" });
+  render(<><DebugBanner /><DemoFooter /></>);
+  await act(async () => { await Promise.resolve(); });
+  return { setSpy, restore: () => { modeSpy.mockRestore(); setSpy.mockRestore(); } };
+}
+
+test("Synthetic data only is an invisible AI switch in demo mode", async () => {
+  const { setSpy, restore } = await renderFooter({ mode: "mock", demo: true, switchable: true, claude_available: true });
+  expect(screen.queryByRole("button")).toBeNull();
+  fireEvent.click(screen.getByText("Synthetic data only"));
+  expect(setSpy).toHaveBeenCalledWith("claude");
+  restore();
+});
+
+test("the hidden AI switch says so when Claude isn't connected", async () => {
+  const { setSpy, restore } = await renderFooter({ mode: "mock", demo: true, switchable: true, claude_available: false });
+  fireEvent.click(screen.getByText("Synthetic data only"));
+  expect(setSpy).not.toHaveBeenCalled();
+  expect(screen.getByRole("alert").textContent).toMatch(/not connected/);
+  restore();
+});
+
+test("Medical Directors toggles debug mode and a banner announces it", async () => {
+  const { restore } = await renderFooter({ mode: "claude", demo: true, switchable: true, claude_available: true });
+  expect(screen.queryByText(/Debug mode on/)).toBeNull();
+  fireEvent.click(screen.getByText("Medical Directors"));
+  expect(await screen.findByText(/Debug mode on/)).toBeTruthy();
+  fireEvent.click(screen.getByText("Medical Directors"));
+  await waitFor(() => expect(screen.queryByText(/Debug mode on/)).toBeNull());
+  restore();
+});
+
+test("the hidden switches do nothing outside demo mode", async () => {
+  const { setSpy, restore } = await renderFooter({ mode: "claude", demo: false, switchable: false });
+  fireEvent.click(screen.getByText("Synthetic data only"));
+  fireEvent.click(screen.getByText("Medical Directors"));
+  expect(setSpy).not.toHaveBeenCalled();
+  expect(screen.queryByText(/Debug mode on/)).toBeNull();
+  restore();
+});
+
+// ---------------------------------------------------------------- Phase 10
+test("typed question goes to AI Assist and shows sources", async () => {
+  const { HelpChat } = await import("./components/HelpChat");
+  const { fireEvent, waitFor } = await import("@testing-library/react");
+  sessionStorage.clear();
+  globalThis.fetch = (async (url: string) => {
+    if (String(url).includes("/api/assist/chat")) return new Response(JSON.stringify({
+      answer: "Case 2 is Incomplete: PT notes are missing.", engine: "AI", blocked: null, rewritten: null,
+      tools_used: ["get_case"], sources: [{ type: "case", label: "Case 2 (PRT-20261110-0002)", case_id: 2 }] }), { status: 200 });
+    return new Response(JSON.stringify({ mode: "claude", label: "AI" }), { status: 200 });
+  }) as typeof fetch;
+  render(<HelpChat screen="queue" role="nurse" />);
+  fireEvent.click(screen.getByRole("button", { name: /AI Assist/ }));
+  fireEvent.change(screen.getByLabelText("Ask a help question"), { target: { value: "What is missing on case 2?" } });
+  fireEvent.click(screen.getByRole("button", { name: "Send" }));
+  await waitFor(() => expect(screen.getByText(/PT notes are missing/)).toBeTruthy());
+  expect(screen.getByText("Case 2 (PRT-20261110-0002)")).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Helpful" })).toBeTruthy();
+});
+
+test("AI Assist falls back to the built-in guide when the server is down", async () => {
+  const { HelpChat } = await import("./components/HelpChat");
+  const { fireEvent, waitFor } = await import("@testing-library/react");
+  sessionStorage.clear();
+  globalThis.fetch = (async () => { throw new TypeError("network"); }) as unknown as typeof fetch;
+  render(<HelpChat screen="queue" role="nurse" />);
+  fireEvent.click(screen.getByRole("button", { name: /AI Assist/ }));
+  fireEvent.change(screen.getByLabelText("Ask a help question"), { target: { value: "what are the rules" } });
+  fireEvent.click(screen.getByRole("button", { name: "Send" }));
+  await waitFor(() => expect(screen.getByText(/Can't reach the server/)).toBeTruthy());
+  expect(screen.getByText(/AI never decides/)).toBeTruthy();
+});
+
+test("review panel lists the policy sections the AI read; debug stays hidden", async () => {
+  const { AIReviewPanel } = await import("./components/AIReviewPanel");
+  const r = { engine: "AI", fields: {}, documents_found: [], missing: [], complete: true, retrieved_criteria: [],
+    criteria: [], tier: "likely_approve", summary: "ok", draft_provider_request: null, warnings: [],
+    policy_chunks: [{ id: "72148-v3.2-2.A", label: "§2.A", section_title: "Covered when", page: 1, quote: "Low back pain 6 weeks", score: 0.6 }],
+    pipeline: { name: "graph", steps: [{ node: "read_form", ms: 3 }], rewritten_query: "low back pain conservative therapy" } };
+  render(<AIReviewPanel r={r as never} label="AI" caseId={1} />);
+  expect(screen.getByText(/Policy sections the AI read/)).toBeTruthy();
+  expect(screen.getByText(/Low back pain 6 weeks/)).toBeTruthy();
+  expect(screen.queryByText(/Rewritten search query/)).toBeNull();
 });

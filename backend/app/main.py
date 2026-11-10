@@ -10,14 +10,60 @@ from app.config import ROOT
 from app.db import init_db
 from app.errors import AppError
 
+from app.mcp_server import mcp
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    from app import pii
+    from app.services import observability
     init_db()
-    yield
+    pii.install_log_filter()                      # S5: no PII in application logs
+    observability.configure_langsmith()           # F9: LangSmith only if configured, content hidden
+    mcp._session_manager = None                   # fresh session manager per app start (tests restart it)
+    mcp_guard.inner = mcp.streamable_http_app()
+    async with mcp.session_manager.run():
+        yield
 
 
-app = FastAPI(title="NurseOps Now API", version="0.2.5", lifespan=lifespan)
+app = FastAPI(title="NurseOps Now API", version="0.4.0", lifespan=lifespan)
 app.include_router(router)
+
+
+class BearerGuard:
+    """Dev Phase 2: simple bearer-token auth for /mcp (MCP_TOKEN in .env). No token set -> MCP off."""
+
+    def __init__(self, inner):
+        self.inner = inner
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            import hmac
+            import os
+            token = os.environ.get("MCP_TOKEN", "")
+            got = dict(scope.get("headers") or []).get(b"authorization", b"").decode()
+            if not token or not hmac.compare_digest(got, f"Bearer {token}"):
+                res = JSONResponse(status_code=503 if not token else 401,
+                                   content={"detail": "MCP disabled (set MCP_TOKEN)" if not token else "Bad MCP token"})
+                return await res(scope, receive, send)
+        return await self.inner(scope, receive, send)
+
+
+class McpPathSlash:
+    """Accept /mcp as well as /mcp/ (a mount only matches the slash form; the SPA route would answer 405)."""
+
+    def __init__(self, inner):
+        self.inner = inner
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http" and scope["path"] == "/mcp":
+            scope = {**scope, "path": "/mcp/", "raw_path": b"/mcp/"}
+        await self.inner(scope, receive, send)
+
+
+mcp_guard = BearerGuard(None)
+app.mount("/mcp", mcp_guard)
+app.add_middleware(McpPathSlash)
 
 
 @app.exception_handler(AppError)
