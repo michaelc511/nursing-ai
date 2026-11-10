@@ -83,6 +83,12 @@ Demo logins per role: `nurse1`, `nurse2` (nurse), `meddir` (medical director), `
 - CLI `index-policies`, `search-policies "<question>" --cpt <code>`; API `GET /api/policies/{cpt}/search?q=`, `GET /api/policies/{cpt}/chunks`.
 - Retrieval eval: `evaluation/golden.jsonl` + `python ../evaluation/run_retrieval.py` (from `backend/`). Baseline 2026-11-10: hit@1 8/9 (89%); off-topic scores ≈ 0.
 
+## Review pipeline (Phase 5, LangGraph)
+- `backend/app/services/review_graph.py`: `read_form → retrieve_policy → ai_review → verify → route`. Only `ai_review` calls the AI; the other nodes are Python (CPT regex, CPT → policy + RAG chunks, quote/CPT/injection checks, save + status move).
+- `verify → ai_review` retries once (Claude only) with the failed checks as feedback, while the case is under `MAX_CASE_COST_USD` (default $0.50). Step cap 8. Still failing → needs_review for a person.
+- No node can approve, pend or deny. Node timings are saved with each review (`pipeline.steps`).
+- F12.1 baseline: `REVIEW_PIPELINE=linear` runs the original one-pass review (frozen); tests check both give the same tier and status on the demo cases.
+
 ## Demo tools (Claude, Phase 2.5)
 - `mark <case_id> ready|incomplete` (test-only CLI) moves a case until AI review exists.
 - Reset (needs `DEMO_MODE=true`): CLI `reset-demo --yes`, or the hidden area right after the "Now" title in the header (confirm popup). Wipes cases and reloads the 3 samples. Never exposed via MCP.

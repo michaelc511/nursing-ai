@@ -1,6 +1,6 @@
 {
   "project": "nursing-ai",
-  "current_phase": 5,
+  "current_phase": 6,
   "updated": "2026-11-10",
   "requirements_file": "README.md",
   "stack": {
@@ -156,7 +156,7 @@
       "note": "Claude engine via beta.messages.parse + fallbacks=default (not yet run live: no key); mcp pinned <2 for FastMCP; FastAPI upgraded 0.162 for starlette 1.x; N1 OCR via RapidOCR (tesseract not installed)"
     },
     "5": {
-      "status": "pending",
+      "status": "built",
       "answers": {
         "agents": "yes, LangGraph (Mike's choice; differs from PROMPT_DEVPHASE1 single call)",
         "design": "review graph: read_form(Python) -> retrieve_policy(RAG) -> claude_review -> verify(Python, 1 retry) -> route; step cap 6, cost cap per case, never Approve/Deny",
@@ -165,7 +165,19 @@
         "tool_review": "own MCP server not used as an agent tool (self-loop)",
         "F12.1_parallel_entry": "yes (enterprise): AI-MK single-call engine frozen as baseline next to LangGraph engine, side-by-side compare",
         "F14_F15": "no (optional; LangGraph chosen)"
-      }
+      },
+      "started": "2026-11-10 14:25",
+      "finished": "2026-11-10 14:45",
+      "minutes": 20,
+      "features": [
+        "F13",
+        "F13.1",
+        "F12.1"
+      ],
+      "tests": {
+        "pytest": 96
+      },
+      "note": "review graph built; AI Assist agentic graph (F13.2) built with Phase 6 memory"
     },
     "6": {
       "status": "pending",

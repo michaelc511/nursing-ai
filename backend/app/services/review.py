@@ -34,7 +34,7 @@ class MockEngine:
     version = "mock-v1"
 
     def review(self, case: Case, docs: list[Path], policy_info: dict | None, session: Session | None = None,
-               actor: str | None = None) -> dict:
+               actor: str | None = None, feedback: str | None = None) -> dict:
         folder = settings.samples_dir / "mock_reviews"
         stem = Path(case.filename).stem
         candidates = ([folder / f"{stem}.with_docs.json"] if len(docs) > 1 else []) + [folder / f"{stem}.json"]
@@ -58,7 +58,7 @@ class ClaudeEngine:
     ready = True
 
     def review(self, case: Case, docs: list[Path], policy_info: dict | None, session: Session | None = None,
-               actor: str | None = None) -> dict:
+               actor: str | None = None, feedback: str | None = None) -> dict:
         import base64
         from app.llm import client as llm
         from app.prompts import load
@@ -75,11 +75,16 @@ class ClaudeEngine:
             f"<cpt_read_by_code>{case.cpt or 'not found'}</cpt_read_by_code>\n"
             f"<policy_chunks>\n{pol_text}\n</policy_chunks>\n"
             "Review this prior authorization request against the policy and return the JSON.")})
+        if feedback:   # retry from the verify node: tell Claude exactly which checks failed
+            content.append({"type": "text", "text": f"<code_check_failures>\n{feedback}\n</code_check_failures>\n"
+                            "Your previous answer failed these code checks. Copy quotes exactly from the documents, "
+                            "or mark the criterion unclear."})
         try:
             out = llm.parse(session, purpose="review", system=system, content=content, schema=ReviewResult,
                             case_id=case.id, actor=actor,
-                            cache_parts=[llm.cache_key(*blobs), (policy_info or {}).get("version"),
-                                         [c["id"] for c in chunks], llm.current_model(session), self.version])
+                            cache_parts=None if feedback else [
+                                llm.cache_key(*blobs), (policy_info or {}).get("version"),
+                                [c["id"] for c in chunks], llm.current_model(session), self.version])
         except llm.LLMUnavailable as e:
             return unavailable_result(str(e))
         return out.model_dump()
@@ -172,6 +177,37 @@ def guard_check(result: ReviewResult, docs: list[Path]) -> ReviewResult:
 # ---------------------------------------------------------------- service
 
 def review_case(session: Session, case_id: int, actor: str = "system") -> AIReview:
+    """Entry point (REST, CLI, MCP, run_all). REVIEW_PIPELINE=graph (default, LangGraph) | linear (baseline)."""
+    if settings.review_pipeline == "linear":
+        return review_case_linear(session, case_id, actor)
+    from app.services import review_graph
+    return review_graph.run(session, case_id, actor)
+
+
+def save_review(session: Session, case: Case, eng, result: ReviewResult, pol: dict | None, chunks: list,
+                actor: str, pipeline: str, steps: list | None = None) -> AIReview:
+    """Persist the review and move Received -> Ready / Incomplete (never a decision)."""
+    if result.fields.cpt and not case.cpt:
+        case.cpt = result.fields.cpt
+    if result.fields.diagnosis:
+        case.diagnosis = f"{result.fields.diagnosis} ({result.fields.icd10})" if result.fields.icd10 else result.fields.diagnosis
+    pol_meta = {k: v for k, v in pol.items() if k != "chunks"} if pol else None
+    rag = [{k: c[k] for k in ("id", "label", "section_title", "page", "score", "quote")} for c in chunks]
+    data = {**result.model_dump(), "engine": eng.label, "policy": pol_meta, "policy_chunks": rag,
+            "pipeline": {"name": pipeline, "steps": steps or []}}
+    review = repo.add(session, AIReview(case_id=case.id, result=data, tier=result.tier, prompt_version=eng.version))
+    audit.log(session, eng.label, "ai_review", case.id, tier=result.tier, complete=result.complete,
+              warnings=len(result.warnings), requested_by=actor)
+    if case.status == state.RECEIVED:
+        target = state.READY if result.complete else state.INCOMPLETE
+        state.transition(session, case, target, eng.label, reason=f"{eng.label} review: {result.tier}")
+        if target == state.INCOMPLETE:
+            sync.send_provider_request(session, case, actor=eng.label)
+    return review
+
+
+def review_case_linear(session: Session, case_id: int, actor: str = "system") -> AIReview:
+    """F12.1 baseline: the original one-pass review, kept frozen next to the LangGraph pipeline."""
     case = repo.get_case(session, case_id)
     if case is None:
         raise NotFound(f"Case {case_id} not found")
@@ -199,22 +235,7 @@ def review_case(session: Session, case_id: int, actor: str = "system") -> AIRevi
             raise AppError(f"{eng.label} returned an invalid review: {e.error_count()} problem(s)")
     result = verify(result, docs, pol_pdf, cpt_read)
     result = guard_check(result, docs)                             # F22
-    if result.fields.cpt and not case.cpt:
-        case.cpt = result.fields.cpt
-    if result.fields.diagnosis:
-        case.diagnosis = f"{result.fields.diagnosis} ({result.fields.icd10})" if result.fields.icd10 else result.fields.diagnosis
-    pol_meta = {k: v for k, v in pol.items() if k != "chunks"} if pol else None
-    rag = [{k: c[k] for k in ("id", "label", "section_title", "page", "score", "quote")} for c in chunks]
-    data = {**result.model_dump(), "engine": eng.label, "policy": pol_meta, "policy_chunks": rag}
-    review = repo.add(session, AIReview(case_id=case.id, result=data, tier=result.tier, prompt_version=eng.version))
-    audit.log(session, eng.label, "ai_review", case.id, tier=result.tier, complete=result.complete,
-              warnings=len(result.warnings), requested_by=actor)
-    if case.status == state.RECEIVED:
-        target = state.READY if result.complete else state.INCOMPLETE
-        state.transition(session, case, target, eng.label, reason=f"{eng.label} review: {result.tier}")
-        if target == state.INCOMPLETE:
-            sync.send_provider_request(session, case, actor=eng.label)
-    return review
+    return save_review(session, case, eng, result, pol, chunks, actor, pipeline="linear")
 
 
 def review_received(session: Session, actor: str) -> list[int]:

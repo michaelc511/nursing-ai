@@ -68,6 +68,16 @@ class Settings:
         return _get("LLM_CACHE", "true").lower() in {"1", "true", "yes"}
 
     @property
+    def review_pipeline(self) -> str:
+        """graph (LangGraph, Phase 5) | linear (F12.1 frozen baseline)."""
+        return (_get("REVIEW_PIPELINE") or "graph").lower()
+
+    @property
+    def max_case_cost_usd(self) -> float:
+        """Per-case AI cost cap: no retries once a case has cost this much."""
+        return float(_get("MAX_CASE_COST_USD") or 0.50)
+
+    @property
     def chroma_dir(self) -> Path:
         """Policy RAG index (Chroma). Rebuild with: python -m app.cli index-policies."""
         return Path(_get("CHROMA_DIR") or BACKEND / "data" / "chroma")

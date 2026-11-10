@@ -1,6 +1,6 @@
 # NurseOps Now features
 
-Status of all 42 features from `claude-config/super-features.html` for this app (decided 2026-11-10).
+Status of all 42 features from `claude-config/new-project/super-features.html` for this app (decided 2026-11-10).
 **Y** = built, or built on "go" without an AI key · **To Do When LLM is ready** = needs the AI key (or Phase 11) · **N/A - Optional** = optional, skipped. ← new = production / enterprise feature added 2026-11-10.
 
 Totals: 23 Y · 15 To Do When LLM is ready · 4 N/A - Optional.
