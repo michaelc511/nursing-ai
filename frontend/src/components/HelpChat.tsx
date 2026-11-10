@@ -1,18 +1,21 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { CaseSummary, listCases } from "../api";
+import { assistChat, assistClear, CaseSummary, listCases, Source } from "../api";
+import { Feedback } from "./Feedback";
 import { nextStep } from "../guide";
 import { ABOUT, Screen, STEPS, WORKFLOW } from "./Help";
 import { roleName } from "../roles";
-import { MK } from "./MK";
+import { MK, useAIMode } from "./MK";
 
-// AI Assist, bottom-right: the one place for all AI help (app guide now; Claude case Q&A + RAG later).
-// Today the answers are scripted (no LLM). "Guide me" reads who you are + where the cases stand.
-type Msg = { from: "bot" | "me"; text: string; who?: string };
+// AI Assist, bottom-right: the one place for all AI help.
+// Typed questions (signed in) go to the backend agent: Claude with read-only tools + policy/guide RAG
+// (AI-MK rule router without a key). Chips and "Guide me" stay scripted and instant (the fallback too).
+type Msg = { from: "bot" | "me"; text: string; who?: string; sources?: Source[]; engine?: string;
+             q?: string; debug?: string; pending?: boolean };
 type State = { open: boolean; msgs: Msg[]; guiding: boolean; target?: string };
 
 const KEY = "nurseopsnow.helpchat";
 const EVENT = "nurseopsnow-helpchat";
-const HELLO: Msg = { from: "bot", text: "Hi! I'm AI Assist. Tap Guide me and I'll tell you what to do next, step by step. My answers are AI-MK: mocked (scripted), not real AI yet. Claude answers are coming." };
+const HELLO: Msg = { from: "bot", text: "Hi! I'm AI Assist. Ask me about a case, a policy or this app, or tap Guide me for the next step. Answers say where they come from (AI = Claude, AI-MK = prepared answers)." };
 
 function load(): State {
   try { const v = sessionStorage.getItem(KEY); if (v) return JSON.parse(v); } catch { /* ignore */ }
@@ -51,6 +54,7 @@ export function HelpChat({ screen, role, openId = null, refreshKey = 0 }:
   const [cases, setCases] = useState<CaseSummary[] | null>(null);
   const [input, setInput] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
+  const mode = useAIMode();
   const update = (fn: (s: State) => State) => setSt((s) => { const n = fn(s); save(n); return n; });
 
   useEffect(() => {
@@ -92,9 +96,23 @@ export function HelpChat({ screen, role, openId = null, refreshKey = 0 }:
     return () => { window.clearInterval(timer); document.querySelectorAll(".tour-target").forEach((el) => el.classList.remove("tour-target")); };
   }, [st.guiding, st.target]);
 
-  const ask = (q: string) => {
-    if (/guide|walk|tour|next|start/i.test(q)) return update((s) => ({ ...s, guiding: true, msgs: [...s.msgs, { from: "me", text: q }] }));
+  const scripted = (q: string) => {
+    if (/guide|walk|tour|next step|start/i.test(q)) return update((s) => ({ ...s, guiding: true, msgs: [...s.msgs, { from: "me", text: q }] }));
     update((s) => ({ ...s, msgs: [...s.msgs, { from: "me", text: q }, ...answer(q, screen, role)] }));
+  };
+  const ask = async (q: string) => {
+    if (!role || /^(guide me|walk me|start)$/i.test(q)) return scripted(q);
+    update((s) => ({ ...s, msgs: [...s.msgs, { from: "me", text: q }, { from: "bot", text: "Thinking…", pending: true }] }));
+    let reply: Msg[];
+    try {
+      const r = await assistChat(q, openId);
+      const debug = mode?.debug ? `tools: ${r.tools_used.join(", ") || "none"}${r.rewritten ? ` · rewritten: ${r.rewritten}` : ""}${r.blocked ? ` · blocked: ${r.blocked}` : ""}` : undefined;
+      reply = [{ from: "bot", text: r.answer, sources: r.sources, engine: r.engine, q, debug }];
+    } catch (e) {
+      reply = [{ from: "bot", text: `AI Assist couldn't answer (${(e as Error).message}). Here's the built-in guide instead:` },
+               ...answer(q, screen, role)];
+    }
+    update((s) => ({ ...s, msgs: [...s.msgs.filter((m) => !m.pending), ...reply] }));
   };
   const stop = () => update((s) => ({ ...s, guiding: false, target: undefined,
     msgs: [...s.msgs, { from: "me", text: "Stop guiding" }, { from: "bot", text: "OK, guide stopped. Tap Guide me any time." }] }));
@@ -106,16 +124,24 @@ export function HelpChat({ screen, role, openId = null, refreshKey = 0 }:
       <div className="chat-head">
         <b>AI Assist <MK />{st.guiding && <span className="muted"> · guiding</span>}</b>
         <span>
-          <button type="button" className="link" onClick={() => update(() => ({ open: true, msgs: [HELLO], guiding: false }))}>Clear</button>
+          <button type="button" className="link" onClick={() => {
+            if (role) assistClear(openId).catch(() => undefined);   // clears the saved chat memory too
+            update(() => ({ open: true, msgs: [HELLO], guiding: false }));
+          }}>Clear</button>
           <button type="button" className="link" aria-label="Close help chat" onClick={() => update((s) => ({ ...s, open: false }))}>×</button>
         </span>
       </div>
       <div className="chat-body">
         {st.msgs.map((m, i) => (
-          <div key={i} className={`bubble ${m.from}`}>
-            {m.from === "bot" && <div className="bubble-mk"><MK /></div>}
+          <div key={i} className={`bubble ${m.from}${m.pending ? " pending" : ""}`} aria-busy={m.pending || undefined}>
+            {m.from === "bot" && <div className="bubble-mk">{m.engine === "AI" ? <span className="muted small">AI</span>
+              : m.engine === "guard" ? <span className="muted small">safety check</span> : <MK busy={m.pending} />}</div>}
             {m.who && <div className="bubble-who">{m.who}</div>}
-            {m.text}
+            <span className="bubble-text">{m.text}</span>
+            {m.sources && m.sources.length > 0 && (
+              <ul className="sources small">{m.sources.map((s, j) => <li key={j}>{s.label}</li>)}</ul>)}
+            {m.debug && <div className="muted small debug-line">{m.debug}</div>}
+            {m.q && m.engine !== "guard" && <Feedback kind="assist" caseId={openId} question={m.q} />}
           </div>
         ))}
         <div ref={endRef} />
@@ -123,14 +149,14 @@ export function HelpChat({ screen, role, openId = null, refreshKey = 0 }:
       <div className="chips">
         {st.guiding
           ? <button type="button" className="chip" onClick={stop}>Stop guiding</button>
-          : <button type="button" className="chip primary" onClick={() => ask("Guide me")}>Guide me</button>}
-        <button type="button" className="chip" onClick={() => ask("What does my role do?")}>My role</button>
-        <button type="button" className="chip" onClick={() => ask("What do I do on this screen?")}>This screen</button>
-        <button type="button" className="chip" onClick={() => ask("What are the rules?")}>Rules</button>
-        <button type="button" className="chip" onClick={() => ask("What is NurseOps Now?")}>About</button>
+          : <button type="button" className="chip primary" onClick={() => scripted("Guide me")}>Guide me</button>}
+        <button type="button" className="chip" onClick={() => scripted("What does my role do?")}>My role</button>
+        <button type="button" className="chip" onClick={() => scripted("What do I do on this screen?")}>This screen</button>
+        <button type="button" className="chip" onClick={() => scripted("What are the rules?")}>Rules</button>
+        <button type="button" className="chip" onClick={() => scripted("What is NurseOps Now?")}>About</button>
       </div>
       <form className="chat-input" onSubmit={submit}>
-        <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask about this app…" aria-label="Ask a help question" />
+        <input value={input} onChange={(e) => setInput(e.target.value)} placeholder={role ? (openId ? `Ask about case ${openId}, a policy or the app…` : "Ask about a case, a policy or the app…") : "Ask about this app…"} aria-label="Ask a help question" />
         <button>Send</button>
       </form>
     </aside>

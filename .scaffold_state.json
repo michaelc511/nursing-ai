@@ -1,6 +1,6 @@
 {
   "project": "nursing-ai",
-  "current_phase": 10,
+  "current_phase": 11,
   "updated": "2026-11-10",
   "requirements_file": "README.md",
   "stack": {
@@ -282,7 +282,7 @@
       "note": "RAGAS needs langchain-community<0.4 (eval-only requirements); live judge/RAGAS not run yet (no key); CI live job needs ANTHROPIC_API_KEY GitHub secret (Mike)"
     },
     "10": {
-      "status": "pending",
+      "status": "built",
       "answers": {
         "ui": "keep React Vite (Dev Rec)",
         "features": [
@@ -292,7 +292,18 @@
           "loading/error/empty states"
         ],
         "debug_mode": "Mike: features not for nurses (tokens/cost/latency, trace, raw chunks, rewritten query) show only in debug mode (DEBUG_UI=true)"
-      }
+      },
+      "started": "2026-11-10 17:00",
+      "finished": "2026-11-10 17:40",
+      "minutes": 40,
+      "features": [
+        "F5"
+      ],
+      "tests": {
+        "pytest": 120,
+        "vitest": 19
+      },
+      "note": "AI features added to the existing React screens; debug-only items behind DEBUG_UI (Mike's rule)"
     },
     "11": {
       "status": "pending",

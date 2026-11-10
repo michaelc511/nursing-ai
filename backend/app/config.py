@@ -116,6 +116,11 @@ class Settings:
         return float(_get("DAILY_COST_CAP_USD") or 10)
 
     @property
+    def debug_ui(self) -> bool:
+        """Phase 10: show tokens/cost/latency, traces, raw chunk scores and rewritten queries (not for nurses)."""
+        return _get("DEBUG_UI").lower() in {"1", "true", "yes"}
+
+    @property
     def chroma_dir(self) -> Path:
         """Policy RAG index (Chroma). Rebuild with: python -m app.cli index-policies."""
         return Path(_get("CHROMA_DIR") or BACKEND / "data" / "chroma")

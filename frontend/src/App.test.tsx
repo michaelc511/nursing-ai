@@ -163,3 +163,48 @@ test("AI switch shows in demo mode with Claude greyed out until it's connected",
   expect((screen.getByRole("button", { name: "Claude" }) as HTMLButtonElement).disabled).toBe(true);
   spy.mockRestore();
 });
+
+// ---------------------------------------------------------------- Phase 10
+test("typed question goes to AI Assist and shows sources", async () => {
+  const { HelpChat } = await import("./components/HelpChat");
+  const { fireEvent, waitFor } = await import("@testing-library/react");
+  sessionStorage.clear();
+  globalThis.fetch = (async (url: string) => {
+    if (String(url).includes("/api/assist/chat")) return new Response(JSON.stringify({
+      answer: "Case 2 is Incomplete: PT notes are missing.", engine: "AI", blocked: null, rewritten: null,
+      tools_used: ["get_case"], sources: [{ type: "case", label: "Case 2 (PRT-20261110-0002)", case_id: 2 }] }), { status: 200 });
+    return new Response(JSON.stringify({ mode: "claude", label: "AI" }), { status: 200 });
+  }) as typeof fetch;
+  render(<HelpChat screen="queue" role="nurse" />);
+  fireEvent.click(screen.getByRole("button", { name: /AI Assist/ }));
+  fireEvent.change(screen.getByLabelText("Ask a help question"), { target: { value: "What is missing on case 2?" } });
+  fireEvent.click(screen.getByRole("button", { name: "Send" }));
+  await waitFor(() => expect(screen.getByText(/PT notes are missing/)).toBeTruthy());
+  expect(screen.getByText("Case 2 (PRT-20261110-0002)")).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Helpful" })).toBeTruthy();
+});
+
+test("AI Assist falls back to the built-in guide when the server is down", async () => {
+  const { HelpChat } = await import("./components/HelpChat");
+  const { fireEvent, waitFor } = await import("@testing-library/react");
+  sessionStorage.clear();
+  globalThis.fetch = (async () => { throw new TypeError("network"); }) as unknown as typeof fetch;
+  render(<HelpChat screen="queue" role="nurse" />);
+  fireEvent.click(screen.getByRole("button", { name: /AI Assist/ }));
+  fireEvent.change(screen.getByLabelText("Ask a help question"), { target: { value: "what are the rules" } });
+  fireEvent.click(screen.getByRole("button", { name: "Send" }));
+  await waitFor(() => expect(screen.getByText(/Can't reach the server/)).toBeTruthy());
+  expect(screen.getByText(/AI never decides/)).toBeTruthy();
+});
+
+test("review panel lists the policy sections the AI read; debug stays hidden", async () => {
+  const { AIReviewPanel } = await import("./components/AIReviewPanel");
+  const r = { engine: "AI", fields: {}, documents_found: [], missing: [], complete: true, retrieved_criteria: [],
+    criteria: [], tier: "likely_approve", summary: "ok", draft_provider_request: null, warnings: [],
+    policy_chunks: [{ id: "72148-v3.2-2.A", label: "§2.A", section_title: "Covered when", page: 1, quote: "Low back pain 6 weeks", score: 0.6 }],
+    pipeline: { name: "graph", steps: [{ node: "read_form", ms: 3 }], rewritten_query: "low back pain conservative therapy" } };
+  render(<AIReviewPanel r={r as never} label="AI" caseId={1} />);
+  expect(screen.getByText(/Policy sections the AI read/)).toBeTruthy();
+  expect(screen.getByText(/Low back pain 6 weeks/)).toBeTruthy();
+  expect(screen.queryByText(/Rewritten search query/)).toBeNull();
+});

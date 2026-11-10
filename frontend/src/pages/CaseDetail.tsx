@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { addDocuments, CaseDetail as Detail, decide, documentUrl, downloadDocument, downloadPolicy, getCase, getSession, policyUrl, reviewCase } from "../api";
 import { AIReviewPanel } from "../components/AIReviewPanel";
+import { DebugPanel } from "../components/DebugPanel";
 import { MK } from "../components/MK";
 import { Badge } from "../components/Badge";
 import { roleName } from "../roles";
@@ -98,8 +99,9 @@ export function CaseDetail({ id, onBack, onChange }: { id: number; onBack: () =>
             {reviewing && <p className="muted"><MK busy /> Reviewing: reading the request, checking it against the policy…</p>}
             {!reviewing && c.ai_review && <>
               <p className="muted small">Reviewed {new Date(c.ai_reviewed_at + "Z").toLocaleString()}</p>
-              <AIReviewPanel r={c.ai_review} label={c.ai_label ?? "AI"} />
+              <AIReviewPanel r={c.ai_review} label={c.ai_label ?? "AI"} caseId={c.id} />
             </>}
+            {!reviewing && <DebugPanel caseId={c.id} review={c.ai_review} refreshKey={c.ai_reviewed_at ? 1 : 0} />}
             {!reviewing && !c.ai_review && <p className="muted">No AI review yet. Click Run AI review. The Nurse decides either way.</p>}
           </div>
           <div className="card">

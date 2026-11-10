@@ -17,7 +17,11 @@ export type AIReview = {
   summary: string;
   draft_provider_request: string | null;
   warnings: string[];
+  policy_chunks?: PolicyChunk[];
+  pipeline?: { name: string; steps: { node: string; ms: number }[]; rewritten_query?: string | null };
 };
+export type PolicyChunk = { id: string; label: string; section_title: string; page: number; quote: string;
+                            score?: number; rerank?: number | null };
 export type RunSummary = {
   trigger: string; engine: string; new: number; reviewed: number;
   incomplete: { id: number; doc_id: string; missing: string }[];
@@ -60,7 +64,9 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
   if (memorySession) headers.set("Authorization", `Bearer ${memorySession.token}`);
   if (init.body && !(init.body instanceof FormData)) headers.set("Content-Type", "application/json");
-  const res = await fetch(path, { ...init, headers });
+  let res: Response;
+  try { res = await fetch(path, { ...init, headers }); }
+  catch { throw new Error("Can't reach the server. Check that the backend is running, then try again."); }
   if (res.status === 401 && memorySession) { logout(); location.reload(); }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -78,7 +84,8 @@ export async function login(username: string, password: string): Promise<User> {
   return user;
 }
 
-export type AIMode = { mode: "mock" | "claude"; label: string; demo?: boolean; switchable?: boolean; claude_available?: boolean };
+export type AIMode = { mode: "mock" | "claude"; label: string; demo?: boolean; switchable?: boolean;
+                       claude_available?: boolean; debug?: boolean };
 let modeCache: Promise<AIMode> | null = null;
 export const aiMode = (): Promise<AIMode> =>
   (modeCache ??= fetch("/api/ai/mode").then((r) => r.json()).catch(() => ({ mode: "mock", label: "AI-MK", demo: false })));
@@ -147,3 +154,25 @@ export async function documentUrl(id: number, index = 0): Promise<string> {
   if (!res.ok) throw new Error("Could not load document");
   return URL.createObjectURL(await res.blob());
 }
+
+// ---------------------------------------------------------------- Phase 6-10: AI Assist, usage, traces, feedback
+export type Source = { type: string; label: string; case_id?: number; cpt?: string; page?: number; quote?: string };
+export type AssistReply = { answer: string; sources: Source[]; engine: string; blocked: string | null;
+                            tools_used: string[]; rewritten: string | null };
+export const assistChat = (message: string, caseId?: number | null) =>
+  call<AssistReply>("/api/assist/chat", { method: "POST", body: JSON.stringify({ message, case_id: caseId ?? null }) });
+export const assistClear = (caseId?: number | null) =>
+  call<{ cleared: boolean }>(`/api/assist/history${caseId ? `?case_id=${caseId}` : ""}`, { method: "DELETE" });
+
+export type Usage = { calls: number; input_tokens: number; output_tokens: number; cost_usd: number; avg_latency_ms: number };
+export const aiUsage = (caseId?: number) => call<Usage>(`/api/ai/usage${caseId ? `?case_id=${caseId}` : ""}`);
+export type TraceRow = { id: number; kind: string; engine: string | null; steps: { node: string; ms: number }[];
+                         total_ms: number; llm_calls: number; input_tokens: number; output_tokens: number;
+                         cost_usd: number; outcome: string | null; at: string };
+export const aiTraces = (caseId?: number) => call<TraceRow[]>(`/api/ai/traces${caseId ? `?case_id=${caseId}` : ""}`);
+export type Quality = { thumbs_up: number; thumbs_down: number; override_rate: number; unverified_quote_rate: number;
+                        cost_today_usd: number; daily_cap_usd: number; avg_latency_ms: number; alerts: string[] };
+export const aiQuality = () => call<Quality>("/api/ai/quality");
+export const sendFeedback = (kind: "review" | "assist", caseId: number | null, rating: 1 | -1, question?: string) =>
+  call<{ id: number }>("/api/ai/feedback", { method: "POST",
+    body: JSON.stringify({ kind, case_id: caseId, rating, question }) });

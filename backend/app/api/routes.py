@@ -36,7 +36,8 @@ def ai_mode():
     eng = review.engine()
     return {"mode": "mock" if eng.label == "AI-MK" else "claude", "label": eng.label,
             "demo": settings.demo_mode,  # the ?icons=ai preview + the switch are demo-mode only
-            "switchable": settings.demo_mode, "claude_available": mode_svc.claude_available()}
+            "switchable": settings.demo_mode, "claude_available": mode_svc.claude_available(),
+            "debug": settings.debug_ui}
 
 
 @router.post("/ai/mode")

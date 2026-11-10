@@ -116,6 +116,12 @@ Demo logins per role: `nurse1`, `nurse2` (nurse), `meddir` (medical director), `
 - Gate (F20): `--gate` fails on any safety failure or any score > 0.05 below baseline. GitHub Actions `.github/workflows/ci.yml`: backend tests + coverage, frontend tests + build, offline eval gate + red team; live eval gate only when the `ANTHROPIC_API_KEY` repo secret is set.
 - Red team (N5): `evaluation/redteam.py`: 44 generated attacks (injection variants, prompt extraction, fake authority, decision requests, off-topic); pass = blocked or no decision/leak and no case status change. 44/44 offline.
 
+## UI for the AI features (Phase 10, React Vite)
+- Case → AI review: "Policy sections the AI read" (the RAG chunks, collapsible), code-check warnings, and 👍/👎 "Helpful?" (N4).
+- AI Assist (bottom right): typed questions go to `POST /api/assist/chat` (Claude with tools, or AI-MK), with the sources listed under each answer, a "Thinking…" state, 👍/👎, and Clear (also deletes the saved chat memory). The chips and Guide me stay scripted and instant; if the server can't answer, the chat says so and shows the built-in guide.
+- Errors: a stopped backend shows "Can't reach the server…"; a 429 shows the limit message.
+- Debug panel (`DEBUG_UI=true` only, not for nurses): tokens, cost and latency per case, pipeline steps and timings, rewritten query, raw vector/re-rank scores, last runs, today's cost vs cap, quality alerts; in AI Assist, the tools used and the rewritten query.
+
 ## Demo tools (Claude, Phase 2.5)
 - `mark <case_id> ready|incomplete` (test-only CLI) moves a case until AI review exists.
 - Reset (needs `DEMO_MODE=true`): CLI `reset-demo --yes`, or the hidden area right after the "Now" title in the header (confirm popup). Wipes cases and reloads the 3 samples. Never exposed via MCP.
