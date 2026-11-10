@@ -1,6 +1,6 @@
 {
   "project": "nursing-ai",
-  "current_phase": 11,
+  "current_phase": 12,
   "updated": "2026-11-10",
   "requirements_file": "README.md",
   "stack": {
@@ -306,12 +306,15 @@
       "note": "AI features added to the existing React screens; debug-only items behind DEBUG_UI (Mike's rule)"
     },
     "11": {
-      "status": "pending",
+      "status": "built",
       "answers": {
         "N6_governance": "yes (prod): prompt/model versioning, eval-gated change approval, model card, risk register, data-use policy",
         "N8_prod_ops": "yes (prod): SSO plan, secrets manager, SLOs + alerts, load test, backups/DR, retention, runbooks",
-        "F24": "Fly (from earlier plan; ask at Phase 11)"
-      }
+        "F24": "Fly.io",
+        "public_login": "demo mode on, no password auto-fill"
+      },
+      "finished": "2026-11-10",
+      "note": "Fly.io live at https://nurseops-now.fly.dev; live checks pass. Cowork connector and phone check pending; F20 live gate and further N8 skipped for now by Mike."
     },
     "12": {
       "status": "pending"

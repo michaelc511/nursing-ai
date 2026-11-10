@@ -3,7 +3,7 @@
 Status of all 42 features from `claude-config/new-project/super-features.html` for this app (decided 2026-11-10, AI features checked on real Claude 2026-11-10).
 **Y** = built; AI features also checked on real Claude unless noted · **To Do When LLM is ready** = still needs the GitHub secret or Phase 11 · **N/A - Optional** = optional, skipped. ← new = production / enterprise feature added 2026-11-10.
 
-Totals: 35 Y · 3 To Do When LLM is ready · 4 N/A - Optional.
+Totals: 36 Y · 2 To Do When LLM is ready · 4 N/A - Optional.
 
 ## Scope & Foundation
 - F0 App Idea & Scope Design: Y
@@ -61,7 +61,7 @@ Totals: 35 Y · 3 To Do When LLM is ready · 4 N/A - Optional.
 
 ## Interfaces & Deployment
 - F5 Web Interfaces: Y
-- F24 Deploy: To Do When LLM is ready (Phase 11)
+- F24 Deploy: Y (live on Fly.io)
 - N8 Production Ops & Compliance: To Do When LLM is ready ← new (Phase 11)
 
 ## Governance & Process
