@@ -32,7 +32,8 @@ Built so far (updated every phase):
   override flag, audit log, mocked UM sync + provider notice, queue + case detail with PDF viewer,
   Add documents for Incomplete cases, metrics header, CLI (`init-db`, `poll`, `list`, `status`, `stuck`, test-only `mark`, `reset-demo`).
 - 3 synthetic MRI requests in `data/samples/`: A lumbar spine (72148), B knee (73721), C brain (70551), (`python scripts/make_samples.py`); `data/samples/manifest.json` sets each one's intake channel (A fax, B provider portal, C provider upload) and the diagnosis shown in the queue description (Claude reads these from the document from Phase 3).
-- Next: Phase 3 policy + AI review (Claude).
+- **AI review with mock AI (AI-MK):** form reading, completeness, drafted provider request, policy criteria used, criteria with verified quotes, suggested tier, Run / Re-run AI review buttons, Last run card (Cowork preview), AI assistant placeholder (right). CLI `review <id>`, `run-all`.
+- Next: real Claude (`AI_MODE=claude`), MCP + Cowork.
 
 ## How it works
 Python does every rule, check, status change and log entry; Claude reads and suggests; Cowork triggers and reports; people decide.
@@ -41,11 +42,11 @@ The Intake Coordinator's **Check inbox** can replace Cowork's scheduled start.
 **Layers** (build status updated every phase)
 
 1. Intake and storage (Python + API + CLI) - Built
-2. AI review (Claude API + Python) - Not built
+2. AI review (Claude API + Python) - Built with mock AI (AI-MK); real Claude next
 3. Policy lookup and PDFs (Python + API + React) - Built
 4. Policy RAG (Python + Chroma) - Not built
-5. Nurse decision (React + API) - Built (AI review panel waits on #2)
-6. Systems of record (Python, mocked) - Built (drafted request waits on #2)
+5. Nurse decision (React + API) - Built
+6. Systems of record (Python, mocked) - Built
 7. Cowork operator (Cowork + MCP) - Not built
 
 **In the order it runs** (#n = layer above)
@@ -54,10 +55,10 @@ The Intake Coordinator's **Check inbox** can replace Cowork's scheduled start.
 2. **#1** Intake and storage turns each new document into a case - Built
 3. **#3** Policy lookup and PDFs picks the policy by CPT - Built
 4. **#4** Policy RAG finds the criteria that matter - Not built
-5. **#2** AI review reads, checks, cites and suggests - Not built
-6. **#6** Systems of record sends the provider request if something is missing - Built (drafted request waits on #2)
+5. **#2** AI review reads, checks, cites and suggests - Built with mock AI (AI-MK)
+6. **#6** Systems of record sends the provider request if something is missing - Built
 7. **#7** Cowork operator reports what needs people - Not built
-8. **#5** Nurse decision: Nurse approves or pends, Medical Director denies - Built (AI review panel waits on #2)
+8. **#5** Nurse decision: Nurse approves or pends, Medical Director denies - Built
 9. **#6** Systems of record syncs the decision and notifies the provider - Built
 10. **#7** Cowork operator answers status questions (stuck cases, override rate) - Not built
 
@@ -96,8 +97,9 @@ Then sign in on the web (see How to use) and decide cases 1 and 3.
 
 ### Logins (seeded by `python -m app.cli init-db`)
 All demo logins share one password: the value of **`DEMO_PASSWORD`** in `.env`.
-With `DEMO_MODE=true` the login screen fills the password in for you. Click **?** on any screen for short steps, or open **💬 Guide Me** (bottom left) and tap **Guide me**: it reads who is signed in and where each case stands, then says the next step in plain words (including when to sign out and who to sign in as). Scripted, no AI; the AI chat will sit on the right in a later phase.
-In demo mode, Received cases show a **Simulated AI check** (Check passed / Missing info) until Claude reviews cases in Phase 3.
+With `DEMO_MODE=true` the login screen fills the password in for you. Click **?** on any screen for short steps, or open **✦ AI Assist** (bottom right) and tap **Guide me**: it reads who is signed in and where each case stands, then says the next step in plain words (including when to sign out and who to sign in as). AI Assist is the one place for all AI help: scripted today, Claude answers about cases (with RAG) later.
+**AI-MK = mocked, not real AI.** In mock mode a yellow banner on every screen says so, and every AI answer (review panel, queue tier, last run, AI Assist chat) carries an **AI-MK** tag.
+**AI review (AI-MK):** with `AI_MODE=mock` (default) the AI review uses prepared answers for the 3 demo requests, in exactly the shape Claude will return. Everything it produces is labeled **(AI-MK)**. Python still reads the CPT from the PDF, checks every quote against the PDF text, and forces *needs review* on any mismatch. **Check inbox** runs intake + AI review in one go (the same `run_all` Cowork will use); **Run AI review (N new)** and **Run / Re-run AI review** on a case run it on demand. `AI_MODE=claude` switches to real Claude in Phase 3.
 **Presenter reset:** click the blank space just right of the "NurseOps Now" title in the header → confirm popup → all cases cleared and the 3 sample faxes back in the inbox (demo mode only).
 _Before a public deploy, turn `DEMO_MODE` off (or accept that anyone with the URL can sign in)._
 
@@ -129,7 +131,7 @@ _Before a public deploy, turn `DEMO_MODE` off (or accept that anyone with the UR
 - **Incomplete** cases send a provider request; when new documents arrive the case goes back to **Received**.
 - **Override flag** is set when the decision disagrees with the AI tier (from Phase 3).
 - Every change writes an **audit log** row (who, what, when); downloading a request PDF is logged too. All PDFs need a staff login.
-- Until Phase 3, the test-only CLI `mark <id> ready|incomplete` stands in for the AI review.
+- The AI review (AI-MK for now) moves Received cases to Ready for review or Incomplete; it can never approve, pend or deny. The test-only CLI `mark <id> ready|incomplete` still exists for tests.
 
 ### Handoff scripts
 **W1: Complete request → decision** (samples A lumbar MRI and C brain MRI)
@@ -158,7 +160,7 @@ _Before a public deploy, turn `DEMO_MODE` off (or accept that anyone with the UR
 - Alternate (provider doesn't respond): case 2 stays Incomplete; after 2 days it appears in `stuck --days 2`.
 - Negative: deciding the Incomplete case → **409**; `intake1` deciding after step 5 → **403**.
 
-_Full reference (terms like FAX / PRT / UPL, roles, rules, statuses, workflows, how Guide Me picks the next step): `backend/knowledge/guide_me.pdf`, generated by `python scripts/make_guide.py`. It is the source Guide Me will use for RAG + LLM later._
+_Full reference (terms like FAX / PRT / UPL, roles, rules, statuses, workflows, how AI Assist picks the next step): `backend/knowledge/guide_me.pdf`, generated by `python scripts/make_guide.py`. It is the source AI Assist will use for RAG + LLM later._
 
 _Each script has a matching mocked test in `backend/tests/test_handoffs.py`. The AI-override script comes in Phase 3._
 

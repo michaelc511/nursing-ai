@@ -3,15 +3,16 @@ import { CaseSummary, listCases } from "../api";
 import { nextStep } from "../guide";
 import { ABOUT, Screen, STEPS, WORKFLOW } from "./Help";
 import { roleName } from "../roles";
+import { MK } from "./MK";
 
-// Help chat, bottom-left (the right side is kept for the AI chat later). Scripted, no LLM.
-// "Guide me" reads who you are + where the cases stand and says your next step in plain words.
+// AI Assist, bottom-right: the one place for all AI help (app guide now; Claude case Q&A + RAG later).
+// Today the answers are scripted (no LLM). "Guide me" reads who you are + where the cases stand.
 type Msg = { from: "bot" | "me"; text: string; who?: string };
 type State = { open: boolean; msgs: Msg[]; guiding: boolean; target?: string };
 
 const KEY = "nurseopsnow.helpchat";
 const EVENT = "nurseopsnow-helpchat";
-const HELLO: Msg = { from: "bot", text: "Hi! I'm the NurseOps Now guide. Tap Guide me and I'll tell you what to do next, step by step." };
+const HELLO: Msg = { from: "bot", text: "Hi! I'm AI Assist. Tap Guide me and I'll tell you what to do next, step by step. My answers are AI-MK: mocked (scripted), not real AI yet. Claude answers are coming." };
 
 function load(): State {
   try { const v = sessionStorage.getItem(KEY); if (v) return JSON.parse(v); } catch { /* ignore */ }
@@ -37,10 +38,11 @@ function answer(q: string, screen: Screen, role?: string): Msg[] {
     return [bot(`You are the ${roleName(role)}.`), ...WORKFLOW.filter((w) => w.role === role).map((w) => bot(w.does))];
   }
   if (/screen|here|page/.test(t)) return [bot(`On this screen (${STEPS[screen].title}):`), ...STEPS[screen].steps.map(bot)];
-  if (/rule|deny|approve|reason/.test(t)) return RULES.map(bot);
+  if (/rule|reason/.test(t)) return RULES.map(bot);
   if (/about|what is|why|goal/.test(t)) return ABOUT.map(bot);
   if (/password|login|sign/.test(t)) return [bot("Pick a user and click Sign in; the demo password is filled in. Users: intake1 (Intake Coordinator), nurse1 and nurse2 (Nurse), meddir (Medical Director).")];
-  return [bot("I can guide you through the app. Tap Guide me, or ask about your role, this screen or the rules. Questions about a patient's case will go to the AI assistant on the right later.")];
+  if (/case|why|missing|deny|approve|tier|quote/.test(t)) return [bot("Questions about a specific case will be answered by Claude here, with quotes from the request and the policy (coming next phase). For now, open the case and read its AI review (AI-MK).")];
+  return [bot("I can guide you through the app. Tap Guide me, or ask about your role, this screen or the rules.")];
 }
 
 export function HelpChat({ screen, role, openId = null, refreshKey = 0 }:
@@ -98,11 +100,11 @@ export function HelpChat({ screen, role, openId = null, refreshKey = 0 }:
     msgs: [...s.msgs, { from: "me", text: "Stop guiding" }, { from: "bot", text: "OK, guide stopped. Tap Guide me any time." }] }));
   const submit = (e: FormEvent) => { e.preventDefault(); if (input.trim()) { ask(input.trim()); setInput(""); } };
 
-  if (!st.open) return <button type="button" className="chat-launcher" onClick={() => update((s) => ({ ...s, open: true }))}>💬 Guide Me</button>;
+  if (!st.open) return <button type="button" className="chat-launcher" onClick={() => update((s) => ({ ...s, open: true }))}>AI Assist <MK /></button>;
   return (
     <aside className="chat card" aria-label="Help chat">
       <div className="chat-head">
-        <b>Guide Me{st.guiding && <span className="muted"> · guiding</span>}</b>
+        <b>AI Assist <MK />{st.guiding && <span className="muted"> · guiding</span>}</b>
         <span>
           <button type="button" className="link" onClick={() => update(() => ({ open: true, msgs: [HELLO], guiding: false }))}>Clear</button>
           <button type="button" className="link" aria-label="Close help chat" onClick={() => update((s) => ({ ...s, open: false }))}>×</button>
@@ -111,6 +113,7 @@ export function HelpChat({ screen, role, openId = null, refreshKey = 0 }:
       <div className="chat-body">
         {st.msgs.map((m, i) => (
           <div key={i} className={`bubble ${m.from}`}>
+            {m.from === "bot" && <div className="bubble-mk"><MK /></div>}
             {m.who && <div className="bubble-who">{m.who}</div>}
             {m.text}
           </div>

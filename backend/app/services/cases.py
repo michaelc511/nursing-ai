@@ -31,9 +31,10 @@ def _tier(session: Session, case: Case) -> str | None:
 
 
 def summary(session: Session, case: Case) -> dict:
-    return {"id": case.id, "doc_id": doc_id(case), "description": description(case),
+    r = repo.latest_review(session, case.id)
+    return {"ai_engine": (r.result or {}).get("engine") if r else None,"id": case.id, "doc_id": doc_id(case), "description": description(case),
             "source": case.source, "filename": case.filename, "status": case.status,
-            "tier": _tier(session, case), "received_at": case.received_at.isoformat(),
+            "tier": r.tier if r else None, "received_at": case.received_at.isoformat(),
             "status_changed_at": case.status_changed_at.isoformat(), "sync_status": case.sync_status}
 
 
@@ -50,13 +51,16 @@ def get_case(session: Session, case_id: int) -> Case:
 
 
 def detail(session: Session, case_id: int) -> dict:
+    from app.services import review as review_svc
     case = get_case(session, case_id)
     review = repo.latest_review(session, case.id)
     return {**summary(session, case),
+            "ai_label": (review.result or {}).get("engine") if review else review_svc.engine().label,
             "sync_detail": case.sync_detail,
             "policy": policy.policy_for_case(case),
             "extra_documents": [d["filename"] for d in (case.extra_documents or [])],
             "ai_review": review.result if review else None,
+            "ai_reviewed_at": review.created_at.isoformat() if review else None,
             "decisions": [{"decision": d.decision, "rationale": d.rationale, "override": d.override,
                            "ai_tier": d.ai_tier, "reviewer": d.reviewer.full_name,
                            "role": d.reviewer.role, "at": d.created_at.isoformat()}

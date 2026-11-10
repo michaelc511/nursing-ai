@@ -1,15 +1,37 @@
 // The only place the UI talks to the backend. Adds the login token to every call.
 export type User = { username: string; full_name: string; role: string };
 export type CaseSummary = {
-  id: number; doc_id: string; description: string; source: string; filename: string; status: string; tier: string | null;
+  id: number; doc_id: string; description: string; source: string; filename: string; ai_engine: string | null; status: string; tier: string | null;
   received_at: string; status_changed_at: string; sync_status: string | null;
 };
+export type Evidence = { quote: string; doc?: number; page: number; verified?: boolean | null };
+export type AIReview = {
+  engine: string;
+  fields: Record<string, string | null>;
+  documents_found: { name: string; doc: number; page: number }[];
+  missing: { item: string; why: string; policy_page?: number | null }[];
+  complete: boolean;
+  retrieved_criteria: { page: number; text: string }[];
+  criteria: { criterion: string; result: "met" | "not_met" | "unclear"; request_evidence: Evidence[]; policy_evidence: Evidence | null }[];
+  tier: string;
+  summary: string;
+  draft_provider_request: string | null;
+  warnings: string[];
+};
+export type RunSummary = {
+  trigger: string; engine: string; new: number; reviewed: number;
+  incomplete: { id: number; doc_id: string; missing: string }[];
+  ready_by_tier: Record<string, number>; stuck: number; at?: string;
+};
+
 export type Policy = { cpt: string; title: string; number: string; version: string; effective: string; codes?: string };
 export type CaseDetail = CaseSummary & {
   sync_detail: string | null;
   policy: Policy | null;
   extra_documents: string[];
-  ai_review: Record<string, unknown> | null;
+  ai_review: AIReview | null;
+  ai_label: string | null;
+  ai_reviewed_at: string | null;
   decisions: { decision: string; rationale: string; override: boolean; ai_tier: string | null;
                reviewer: string; role: string; at: string }[];
   audit: { actor: string; action: string; details: Record<string, unknown>; at: string }[];
@@ -56,6 +78,11 @@ export async function login(username: string, password: string): Promise<User> {
   return user;
 }
 
+export type AIMode = { mode: "mock" | "claude"; label: string };
+let modeCache: Promise<AIMode> | null = null;
+export const aiMode = (): Promise<AIMode> =>
+  (modeCache ??= fetch("/api/ai/mode").then((r) => r.json()).catch(() => ({ mode: "mock", label: "AI-MK" })));
+
 export async function demoPassword(): Promise<string | null> {
   try { const r = await fetch("/api/auth/demo"); return r.ok ? (await r.json()).password : null; }
   catch { return null; }
@@ -69,7 +96,10 @@ export const listCases = (status?: string, tier?: string) => {
 };
 export const getCase = (id: number) => call<CaseDetail>(`/api/cases/${id}`);
 export const getMetrics = () => call<Metrics>("/api/metrics");
-export const pollInbox = () => call<{ created: number[] }>("/api/intake/poll", { method: "POST" });
+export const pollInbox = () => call<{ created: number; summary: RunSummary | null }>("/api/intake/poll", { method: "POST" });
+export const runReviews = () => call<RunSummary>("/api/review/run", { method: "POST" });
+export const reviewCase = (id: number) => call<{ tier: string; status: string }>(`/api/cases/${id}/review`, { method: "POST" });
+export const lastRun = () => call<RunSummary | null>("/api/runs/last");
 export const decide = (id: number, action: string, rationale: string) =>
   call<{ status: string; override: boolean }>(`/api/cases/${id}/decision`, {
     method: "POST", body: JSON.stringify({ action, rationale }) });
@@ -79,9 +109,6 @@ export const addDocuments = (id: number, file: File) => {
   form.append("file", file);
   return call<CaseSummary>(`/api/cases/${id}/documents`, { method: "POST", body: form });
 };
-
-export const simulateCheck = (id: number, result: "ready" | "incomplete") =>
-  call<{ status: string }>(`/api/demo/cases/${id}/check?result=${result}`, { method: "POST" });
 
 export const resetDemo = () => call<{ inbox: string[] }>("/api/demo/reset", { method: "POST" });
 

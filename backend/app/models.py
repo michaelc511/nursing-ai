@@ -27,7 +27,8 @@ class Case(Base):
     filename: Mapped[str] = mapped_column(String(255))
     blob_path: Mapped[str] = mapped_column(String(500))  # main document (pointer into blob storage)
     extra_documents: Mapped[list] = mapped_column(JSON, default=list)  # later docs (e.g. PT notes)
-    diagnosis: Mapped[str | None] = mapped_column(String(200), nullable=True)  # from Claude in Phase 3
+    diagnosis: Mapped[str | None] = mapped_column(String(200), nullable=True)  # from the AI review
+    cpt: Mapped[str | None] = mapped_column(String(5), nullable=True)  # read from the form (#2a)
     status: Mapped[str] = mapped_column(String(30), default="Received")
     received_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     status_changed_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)

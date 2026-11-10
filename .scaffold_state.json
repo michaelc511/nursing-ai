@@ -77,8 +77,8 @@
       "finished": "2026-11-10 08:30",
       "minutes": 20,
       "tests": {
-        "pytest": 51,
-        "vitest": 11
+        "pytest": 58,
+        "vitest": 12
       },
       "note": "typer 0.12 + click 8.5 broke --yes flag (fixed: typer>=0.15, CLI test added); manual 'mark' stands in for AI review until Phase 3",
       "user_guide": {
@@ -96,7 +96,8 @@
       }
     },
     "3": {
-      "status": "pending"
+      "status": "pending",
+      "note": "Layer 2 built with mock engine first (Mike's choice: mimic AI on the web, label AI-MK); real Claude engine + policy RAG decision pending"
     },
     "4": {
       "status": "pending"
@@ -137,16 +138,23 @@
     "[LATER] Guide Me chat -> RAG over backend/knowledge/guide_me.pdf + LLM (keep scripted guide as fallback); regenerate the PDF whenever roles/rules/workflows change",
     "[DECIDE] Layer 3 for demo: keep RAG (CLAUDE.md) or whole policy in prompt + RAG on the scale slide",
     "[DECIDE] Layer 2 hybrid: Python cross-check (regex CPT/ICD, quote verification) + rules fallback if API down",
-    "[TODO] ship (nothing committed yet)",
     "[TODO] ANTHROPIC_API_KEY in .env (Mike) before Phase 3 live calls",
-    "[TODO] Demo run of show: 15 min (problem+3 opportunities, architecture, live demo 4 steps, extensibility, compliance) + backup recording"
+    "[TODO] Demo run of show: 15 min (problem+3 opportunities, architecture, live demo 4 steps, extensibility, compliance) + backup recording",
+    "[PLAN Layer 2] Run order: #2a read CPT (python regex, Claude fallback) before #3 policy lookup, then #2b full review",
+    "[DONE 2026-11-10] Mock AI (AI-MK) for all AI features + Run AI review buttons; labels '(AI-MK)' everywhere"
   ],
   "app_name": "NurseOps Now",
   "layers": {
     "1_intake_storage": "built (plain code)",
-    "2_ai_review": "NOT built - Simulated AI check + manifest stand in; next: one Claude call (opus-5-5, PDF document block, messages.parse + Pydantic), hybrid python cross-check (regex CPT/ICD, quote verification, fallback)",
+    "2_ai_review": "built with mock engine (AI-MK, AI_MODE=mock): schema-validated, CPT read by Python (#2a), quote verification, run_all; next: ClaudeEngine (AI_MODE=claude)",
     "3_policy_knowledge": "partly built - CPT lookup, 3 versioned policy PDFs, view/download; RAG (chunks + sentence-transformers + Chroma) not built",
-    "4_nurse_decision": "built - waits on Layer 2 for AI review panel + override flag",
-    "5_systems_of_record": "built (mocked) - provider request uses generic text until Layer 2 drafts it"
+    "4_nurse_decision": "built",
+    "5_systems_of_record": "built (mocked); drafted provider request from the AI review"
+  },
+  "repo": {
+    "remote": "git@github.com:michaelc511/nursing-ai.git",
+    "last_ship": "2026-11-10",
+    "main": "727d31d",
+    "commit": "2e96252"
   }
 }

@@ -61,9 +61,8 @@ def poll_inbox(session: Session, actor: str = "system") -> list[Case]:
     for f in sorted(inbox.iterdir(), key=_arrival_order):
         if not f.is_file() or f.suffix.lower() not in ALLOWED_TYPES:
             continue
-        channel, diagnosis = _sample_info(f.name)
+        channel, _ = _sample_info(f.name)
         case = create_case_from_bytes(session, f.name, f.read_bytes(), source=channel, actor=actor)
-        case.diagnosis = diagnosis
         f.unlink()
         created.append(case)
     return created

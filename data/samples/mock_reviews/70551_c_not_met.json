@@ -1,0 +1,28 @@
+{
+  "fields": {"member_name": "Taylor Brooks", "member_id": "RHP-100512", "dob": "11/19/1990",
+             "provider_name": "Dr. Priya Shah, MD", "provider_npi": "1999999903",
+             "service": "MRI brain without contrast", "cpt": "70551",
+             "icd10": "G44.209", "diagnosis": "Tension-type headache", "urgency": "Standard"},
+  "documents_found": [
+    {"name": "Prior authorization request form", "doc": 0, "page": 1},
+    {"name": "Clinical note (office visit 10/29/2026)", "doc": 0, "page": 2}],
+  "missing": [],
+  "complete": true,
+  "retrieved_criteria": [
+    {"page": 1, "text": "Covered for headache when ONE red flag is documented"},
+    {"page": 2, "text": "Tension-type or migraine headache with a normal neurological exam and no red flags"}],
+  "criteria": [
+    {"criterion": "At least one headache red flag documented", "result": "not_met",
+     "request_evidence": [{"quote": "No sudden 'worst headache', no new neurological symptoms, no seizures, no fever,", "doc": 0, "page": 2},
+                          {"quote": "No change in pattern.", "doc": 0, "page": 2}],
+     "policy_evidence": {"quote": "2. Covered for headache when ONE red flag is documented", "page": 1}},
+    {"criterion": "Not an excluded case (tension-type headache, normal exam)", "result": "not_met",
+     "request_evidence": [{"quote": "Neurological exam normal, including fundi, cranial nerves, strength and gait.", "doc": 0, "page": 2}],
+     "policy_evidence": {"quote": "- Tension-type or migraine headache with a normal neurological exam and no red flags", "page": 2}},
+    {"criterion": "Imaging not for reassurance only", "result": "not_met",
+     "request_evidence": [{"quote": "Patient requests an MRI", "doc": 0, "page": 1}],
+     "policy_evidence": {"quote": "- Imaging requested for reassurance only", "page": 2}}],
+  "tier": "likely_deny",
+  "summary": "Complete request, but criteria not met: tension-type headache with a normal neurological exam and no red flags, requested for reassurance. Needs Medical Director review; AI does not deny.",
+  "draft_provider_request": null
+}

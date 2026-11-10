@@ -1,0 +1,31 @@
+{
+  "fields": {"member_name": "Casey Morgan", "member_id": "RHP-100377", "dob": "07/02/1985",
+             "provider_name": "Dr. Ben Okafor, MD", "provider_npi": "1999999902",
+             "service": "MRI knee (right) without contrast", "cpt": "73721",
+             "icd10": "M25.561", "diagnosis": "Pain in right knee, suspected meniscus tear", "urgency": "Standard"},
+  "documents_found": [
+    {"name": "Prior authorization request form", "doc": 0, "page": 1},
+    {"name": "Clinical note (office visit 10/28/2026) with X-ray result", "doc": 0, "page": 2}],
+  "missing": [
+    {"item": "Physical therapy records (dates and response)",
+     "why": "Policy requires failure of at least 4–6 weeks of conservative care, documented with PT notes. The note says PT was 'for several weeks' and records are not yet received.",
+     "policy_page": 2}],
+  "complete": false,
+  "retrieved_criteria": [
+    {"page": 1, "text": "Suspected meniscus or ligament tear with mechanical symptoms ... AND a knee X-ray, AND failure of at least 4–6 weeks of conservative care"},
+    {"page": 2, "text": "Records of conservative care (PT notes with dates and response)"}],
+  "criteria": [
+    {"criterion": "Mechanical symptoms or positive exam test", "result": "met",
+     "request_evidence": [{"quote": "McMurray test positive medially.", "doc": 0, "page": 2},
+                          {"quote": "Reports catching and intermittent swelling.", "doc": 0, "page": 2}],
+     "policy_evidence": {"quote": "A. Suspected meniscus or ligament tear with mechanical symptoms (locking, catching,", "page": 1}},
+    {"criterion": "Knee X-ray done", "result": "met",
+     "request_evidence": [{"quote": "Right knee X-ray 09/05/2026: no fracture, joint spaces preserved.", "doc": 0, "page": 2}],
+     "policy_evidence": {"quote": "Knee X-ray report", "page": 2}},
+    {"criterion": "At least 4–6 weeks of conservative care failed (PT notes)", "result": "unclear",
+     "request_evidence": [{"quote": "PT records requested from outside clinic; not yet received.", "doc": 0, "page": 2}],
+     "policy_evidence": {"quote": "Records of conservative care (PT notes with dates and response)", "page": 2}}],
+  "tier": "needs_review",
+  "summary": "Incomplete. Exam and X-ray support a suspected meniscus tear, but the required PT records are missing, so conservative care can't be confirmed. Provider asked for PT notes.",
+  "draft_provider_request": "Dear Dr. Okafor: to review the MRI knee request for Casey Morgan (Member ID RHP-100377), please send the physical therapy records showing visit dates, number of weeks and the patient's response. Policy RHP-IMG-022 requires at least 4–6 weeks of conservative care. Thank you."
+}

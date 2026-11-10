@@ -1,5 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
-import { addDocuments, CaseDetail as Detail, decide, demoPassword, documentUrl, downloadDocument, downloadPolicy, getCase, getSession, policyUrl, simulateCheck } from "../api";
+import { addDocuments, CaseDetail as Detail, decide, documentUrl, downloadDocument, downloadPolicy, getCase, getSession, policyUrl, reviewCase } from "../api";
+import { AIReviewPanel } from "../components/AIReviewPanel";
+import { MK } from "../components/MK";
 import { Badge } from "../components/Badge";
 import { roleName } from "../roles";
 
@@ -13,14 +15,13 @@ export function CaseDetail({ id, onBack, onChange }: { id: number; onBack: () =>
   const [busy, setBusy] = useState(false);
 
   const role = getSession()?.user.role;
-  const [demo, setDemo] = useState(false);
-  useEffect(() => { demoPassword().then((p) => setDemo(p !== null)); }, []);
+  const [reviewing, setReviewing] = useState(false);
 
-  async function check(result: "ready" | "incomplete") {
-    setBusy(true); setError(null);
-    try { await simulateCheck(id, result); await load(); onChange(); }
+  async function runReview() {
+    setReviewing(true); setError(null);
+    try { await reviewCase(id); await load(); onChange(); }
     catch (err) { setError((err as Error).message); }
-    finally { setBusy(false); }
+    finally { setReviewing(false); }
   }
   const canDecide = role === "nurse" || role === "medical_director";
 
@@ -87,19 +88,19 @@ export function CaseDetail({ id, onBack, onChange }: { id: number; onBack: () =>
             <iframe title={docIndex === -1 ? "Policy document" : "Case document"} src={docUrl} /></> : <p>Loading document…</p>}
         </div>
         <div>
-          {demo && c.status === "Received" && (
-            <div className="card" data-tour="demo-check">
-              <h3>Simulated AI check (demo)</h3>
-              <p className="muted">Claude will do this check in the next phase. For now, pick the result:</p>
-              <div className="choices">
-                <button type="button" disabled={busy} onClick={() => check("ready")}>Check passed</button>
-                <button type="button" className="theme-btn" disabled={busy} onClick={() => check("incomplete")}>Missing info</button>
-              </div>
-            </div>)}
-          <div className="card">
-            <h3>AI review</h3>
-            {c.ai_review ? <pre>{JSON.stringify(c.ai_review, null, 2)}</pre>
-              : <p className="muted">No AI review yet (added in Phase 3). The Nurse decides either way.</p>}
+          <div className="card" data-tour="ai-review">
+            <div className="toolbar">
+              <h3>AI review <MK busy={reviewing} /></h3>
+              <button type="button" data-tour="run-review" className={c.ai_review ? "theme-btn" : undefined}
+                disabled={reviewing} onClick={runReview}>
+                {reviewing ? "Reviewing…" : c.ai_review ? "Re-run AI review" : "Run AI review"}</button>
+            </div>
+            {reviewing && <p className="muted"><MK busy /> Reviewing: reading the request, checking it against the policy…</p>}
+            {!reviewing && c.ai_review && <>
+              <p className="muted small">Reviewed {new Date(c.ai_reviewed_at + "Z").toLocaleString()}</p>
+              <AIReviewPanel r={c.ai_review} label={c.ai_label ?? "AI"} />
+            </>}
+            {!reviewing && !c.ai_review && <p className="muted">No AI review yet. Click Run AI review. The Nurse decides either way.</p>}
           </div>
           <div className="card">
             <h3>Decision</h3>
