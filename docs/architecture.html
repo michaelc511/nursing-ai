@@ -1,0 +1,50 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NurseOps Now architecture</title><style>
+:root{--bg:#fff;--fg:#1c1f23;--muted:#5b6470;--line:#dde1e6;--code:#f3f5f7;--accent:#0b6e8a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3238;--code:#1e2328;--accent:#5cc3df}}
+:root[data-theme="dark"]{--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3238;--code:#1e2328;--accent:#5cc3df}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:860px;margin:0 auto}h1,h2{line-height:1.25}h2{border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:2em}
+a{color:var(--accent)}code,pre{background:var(--code);border-radius:4px;font-size:.9em}code{padding:1px 4px}
+pre{padding:12px;overflow-x:auto}table{border-collapse:collapse;width:100%;display:block;overflow-x:auto}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}blockquote{border-left:3px solid var(--accent);margin:0;padding-left:12px;color:var(--muted)}
+</style></head><body><main><h1>NurseOps Now architecture</h1>
+<p><em>Source: Mike&#x27;s CLAUDE.md (architecture = &quot;Mike describes it&quot;). Items marked (Claude) are additions agreed in Phase 2.5.</em></p>
+<h2>Overview</h2>
+<p>NurseOps Now helps prior authorization nurses at a regional health plan review MRI requests faster.</p>
+<p>AI reads the clinical documents, checks completeness against policy, and prepares a cited summary.</p>
+<p><b>Only a human nurse or medical director approves or denies.</b> Every step is audited.</p>
+<h2>Components</h2>
+<table><thead><tr><th>Layer</th><th>What it does</th><th>Prototype</th><th>Production</th></tr></thead><tbody><tr><td>1. Intake &amp; storage</td><td>Stores each fax/PDF whole; creates a case row with a pointer</td><td><code>./storage</code> + SQLite</td><td>S3/Azure Blob + Postgres</td></tr><tr><td>2. AI review</td><td>Claude reads the case file + policy criteria; returns validated JSON (fields, missing items, criteria with page + quote, tier, draft provider request)</td><td>Claude API (Phase 3–4)</td><td>same</td></tr><tr><td>3. Policy knowledge</td><td>CPT code selects the policy PDF (lumbar 72148, knee 73721, brain 70551); view/download in UI now, RAG finds the criteria chunks from Phase 3</td><td><code>backend/policies/*.pdf</code> + Chroma (Phase 3)</td><td>pgvector</td></tr><tr><td>4. Nurse decision</td><td>Login, queue, case detail with PDF viewer (Claude), Approve / Deny / Pend with rationale</td><td>React + FastAPI</td><td>same</td></tr><tr><td>5. Systems of record</td><td>Pushes decisions to UM platform, notifies provider</td><td>mocked</td><td>real integrations</td></tr></tbody></table>
+<p><b>Clients are thin adapters over one service layer (<code>backend/app/services/</code>):</b></p>
+<p>REST (FastAPI) → React web UI · CLI (Typer) → ops and cron · MCP server (Dev Phase 2) → Claude Cowork.</p>
+<p>MCP never calls REST.</p>
+<h2>How it works (layers and run order)</h2>
+<p>Build status lives in README → How it works.</p>
+<p><b>Layers</b></p>
+<ol><li>Intake and storage (Python + API + CLI)</li><li>AI review (Claude API + Python)</li><li>Policy lookup and PDFs (Python + API + React)</li><li>Policy RAG (Python + Chroma)</li><li>Nurse decision (React + API)</li><li>Systems of record (Python, mocked)</li><li>Cowork operator (Cowork + MCP)</li></ol>
+<p><b>In the order it runs</b> (#n = layer above)</p>
+<ol><li><b>#7</b> Cowork operator starts the run on a schedule</li><li><b>#1</b> Intake and storage turns each new document into a case</li><li><b>#3</b> Policy lookup and PDFs picks the policy by CPT</li><li><b>#4</b> Policy RAG finds the criteria that matter</li><li><b>#2</b> AI review reads, checks, cites and suggests</li><li><b>#6</b> Systems of record sends the provider request if something is missing</li><li><b>#7</b> Cowork operator reports what needs people</li><li><b>#5</b> Nurse decision: Nurse approves or pends, Medical Director denies</li><li><b>#6</b> Systems of record syncs the decision and notifies the provider</li><li><b>#7</b> Cowork operator answers status questions (stuck cases, override rate)</li></ol>
+<h2>Case status state machine</h2>
+<pre>Received -&gt; Incomplete | ReadyForReview
+Incomplete -&gt; Received            (new docs arrive)
+ReadyForReview -&gt; Approved | Denied | Pended   (human only)
+Pended -&gt; ReadyForReview
+Approved | Denied -&gt; Synced</pre>
+<p>Enforced in <code>services/</code>; anything else is rejected.</p>
+<h2>Data flow</h2>
+<p>Intake → blob (file) + SQL row (blob_path) → Claude reads blob + policy chunks → JSON to SQL →</p>
+<p>nurse reviews in React → decision to SQL → sync to UM/provider → status back to SQL → visible in React.</p>
+<h2>Users (Claude, Phase 2.5)</h2>
+<p>Demo logins per role: <code>nurse1</code>, <code>nurse2</code> (nurse), <code>meddir</code> (medical director), <code>intake1</code></p>
+<p>(intake coordinator: intake + add documents, can&#x27;t decide → 403); one shared</p>
+<p><code>DEMO_PASSWORD</code> from <code>.env</code>. Production: SSO + role-based access (HIPAA).</p>
+<h2>Demo tools (Claude, Phase 2.5)</h2>
+<ul><li><code>mark &lt;case_id&gt; ready|incomplete</code> (test-only CLI) moves a case until AI review exists.</li><li>Reset (needs <code>DEMO_MODE=true</code>): CLI <code>reset-demo --yes</code>, or the hidden area right after the &quot;Now&quot; title in the header (confirm popup). Wipes cases and reloads the 3 samples. Never exposed via MCP.</li><li>Simulated AI check (demo mode, web): Check passed / Missing info on Received cases, until Phase 3.</li></ul>
+<h2>Built so far</h2>
+<ul><li>Phase 2.5 (no AI): Layers 1, 4, 5 + state machine, login, CLI, React UI with PDF viewer. 42 pytest + 2 vitest; handoff scripts W1/W2 in README.</li><li>Code map: <code>backend/app/services/</code> (state, intake, decision, sync, cases, auth, demo, audit),</li></ul>
+<p>  <code>backend/app/repositories/</code> (cases, blob), <code>backend/app/api/routes.py</code>, <code>backend/app/cli.py</code>, <code>frontend/src/</code>.</p>
+<h2>External services</h2>
+<ul><li>Anthropic Claude API (<code>ANTHROPIC_API_KEY</code>, <code>CLAUDE_MODEL</code>)</li><li>Fly.io (deploy, Phase 11) · Claude Cowork via MCP custom connector (Dev Phase 3)</li></ul>
+<h2>Non-negotiables</h2>
+<p>AI never denies · every AI claim cites page + quote · full audit trail · synthetic data only, no PHI ·</p>
+<p>designed for HIPAA in production (encryption, access control, BAA).</p></main></body></html>
