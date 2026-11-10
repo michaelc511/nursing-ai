@@ -149,8 +149,9 @@ def test_reset_demo_wipes_and_reloads(session, env, monkeypatch):
     (env / "samples" / "72148_a_complete.pdf").write_bytes(b"%PDF a")
     intake.create_case_from_bytes(session, "x.pdf", b"%PDF")
     r = demo.reset_demo(session)
-    assert repo.list_cases(session) == [] and r["inbox"] == ["72148_a_complete.pdf"]
-    assert (env / "inbox" / "72148_a_complete.pdf").exists()
+    assert r["inbox"] == ["72148_a_complete.pdf"] and r["summary"]["new"] == 1   # reset fills the queue
+    assert [c.filename for c in repo.list_cases(session)] == ["72148_a_complete.pdf"]
+    assert not (env / "inbox" / "72148_a_complete.pdf").exists()
     assert repo.get_reviewer_by_username(session, "meddir") is not None
 
 

@@ -78,10 +78,13 @@ export async function login(username: string, password: string): Promise<User> {
   return user;
 }
 
-export type AIMode = { mode: "mock" | "claude"; label: string; demo?: boolean };
+export type AIMode = { mode: "mock" | "claude"; label: string; demo?: boolean; switchable?: boolean; claude_available?: boolean };
 let modeCache: Promise<AIMode> | null = null;
 export const aiMode = (): Promise<AIMode> =>
   (modeCache ??= fetch("/api/ai/mode").then((r) => r.json()).catch(() => ({ mode: "mock", label: "AI-MK", demo: false })));
+
+export const setAIMode = (mode: "mock" | "claude") =>
+  call<{ mode: string }>("/api/ai/mode", { method: "POST", body: JSON.stringify({ mode }) });
 
 export async function demoPassword(): Promise<string | null> {
   try { const r = await fetch("/api/auth/demo"); return r.ok ? (await r.json()).password : null; }

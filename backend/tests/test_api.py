@@ -98,6 +98,24 @@ def test_request_download_is_audited(client):
 
 
 def test_ai_mode_is_public_and_mock_by_default(client, monkeypatch):
-    assert client.get("/api/ai/mode").json() == {"mode": "mock", "label": "AI-MK", "demo": False}
+    m = client.get("/api/ai/mode").json()
+    assert (m["mode"], m["label"], m["demo"], m["switchable"], m["claude_available"]) == ("mock", "AI-MK", False, False, False)
     monkeypatch.setenv("DEMO_MODE", "true")
     assert client.get("/api/ai/mode").json()["demo"] is True
+
+
+def test_ai_mode_switch_rules(client, monkeypatch):
+    h = login(client)
+    assert client.post("/api/ai/mode", json={"mode": "mock"}).status_code == 401
+    assert client.post("/api/ai/mode", headers=h, json={"mode": "mock"}).status_code == 403   # not demo mode
+    monkeypatch.setenv("DEMO_MODE", "true")
+    assert client.post("/api/ai/mode", headers=h, json={"mode": "claude"}).status_code == 400  # Claude not ready
+    assert client.post("/api/ai/mode", headers=h, json={"mode": "mock"}).json() == {"mode": "mock"}
+    from app.services import review
+    review.ClaudeEngine.ready = True
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    try:
+        assert client.post("/api/ai/mode", headers=h, json={"mode": "claude"}).json() == {"mode": "claude"}
+        assert client.get("/api/ai/mode").json()["label"] == "AI"
+    finally:
+        review.ClaudeEngine.ready = False

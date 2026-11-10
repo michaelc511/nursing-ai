@@ -11,6 +11,13 @@ def utcnow() -> datetime:
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
+class Setting(Base):
+    """Small runtime settings (e.g. the demo AI mode switch)."""
+    __tablename__ = "settings"
+    key: Mapped[str] = mapped_column(String(50), primary_key=True)
+    value: Mapped[str] = mapped_column(String(200))
+
+
 class Reviewer(Base):
     __tablename__ = "reviewers"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

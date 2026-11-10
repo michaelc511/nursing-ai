@@ -6,6 +6,7 @@ import { Notices } from "./components/Notices";
 import { PolicyRow } from "./components/PolicyRow";
 import { LastRun } from "./components/LastRun";
 import { ThemeToggle } from "./components/ThemeToggle";
+import { AISwitch } from "./components/AISwitch";
 import { HelpChat, startTour } from "./components/HelpChat";
 import { HiddenReset } from "./components/HiddenReset";
 import { roleName } from "./roles";
@@ -26,7 +27,7 @@ export default function App() {
     <>
       <header className="top">
         <div className="brand"><img src="/nurse.svg" alt="" width={40} height={40} /> NurseOps Now<HiddenReset /></div>
-        <div className="who"><button type="button" className="theme-btn" onClick={startTour}>AI Assist</button> <ThemeToggle /> <HelpButton screen={openId === null ? "queue" : "case"} role={user.role} /> {user.full_name} · {roleName(user.role)}
+        <div className="who"><button type="button" className="theme-btn" onClick={startTour}>AI Assist</button> <AISwitch /> <ThemeToggle /> <HelpButton screen={openId === null ? "queue" : "case"} role={user.role} /> {user.full_name} · {roleName(user.role)}
           <button className="link" data-tour="signout" onClick={() => { logout(); setUser(null); setOpenId(null); }}>Sign out</button></div>
       </header>
       <MockBanner />

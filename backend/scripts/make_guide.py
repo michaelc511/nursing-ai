@@ -148,7 +148,7 @@ RULES = [
 ]
 
 W1 = [
-    ("1", "Intake Coordinator · intake1", "Click Check inbox.", "New cases appear as Received."),
+    ("1", "Presenter / Intake Coordinator", "Reset the demo (or click Check inbox for new files).", "3 cases appear, already reviewed by AI-MK."),
     ("2", "AI review (AI-MK)", "Runs right after Check inbox: reads case #1 (lumbar MRI), checks it against the policy.", "Ready for review, likely approve."),
     ("3", "Nurse · nurse1", "Sign in, open case #1, compare with the Policy tab, Approve with a reason.", "Approved → Synced; audit shows nurse1."),
     ("4", "Nurse · nurse1", "Open case #3 (brain MRI, no red flags), Pend for the Medical Director.", "Pended."),

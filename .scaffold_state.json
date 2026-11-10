@@ -142,7 +142,8 @@
     "[TODO] Demo run of show: 15 min (problem+3 opportunities, architecture, live demo 4 steps, extensibility, compliance) + backup recording",
     "[PLAN Layer 2] Run order: #2a read CPT (python regex, Claude fallback) before #3 policy lookup, then #2b full review",
     "[DONE 2026-11-10] Mock AI (AI-MK) for all AI features + Run AI review buttons; labels '(AI-MK)' everywhere",
-    "[DONE] Icon preview ?icons=ai (demo mode only); prod = one Fly app, AI_MODE=claude, no mock fallback (case -> needs review); optional staging app with AI_MODE=mock"
+    "[DONE] Icon preview ?icons=ai (demo mode only); prod = one Fly app, AI_MODE=claude, no mock fallback (case -> needs review); optional staging app with AI_MODE=mock",
+    "[DONE] Header AI switch AI-MK | Claude (demo mode only, audited; Claude disabled until ClaudeEngine.ready + API key); reset fills the queue (run_all); index.html no-cache"
   ],
   "app_name": "NurseOps Now",
   "layers": {

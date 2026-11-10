@@ -152,3 +152,14 @@ test("icon preview is ignored outside demo mode", async () => {
   window.history.pushState({}, "", "/");
   spy.mockRestore();
 });
+
+test("AI switch shows in demo mode with Claude greyed out until it's connected", async () => {
+  const api = await import("./api");
+  const { AISwitch } = await import("./components/AISwitch");
+  const { vi } = await import("vitest");
+  const spy = vi.spyOn(api, "aiMode").mockResolvedValue({ mode: "mock", label: "AI-MK", demo: true, switchable: true, claude_available: false });
+  render(<AISwitch />);
+  expect((await screen.findByRole("button", { name: "AI-MK" })).getAttribute("aria-pressed")).toBe("true");
+  expect((screen.getByRole("button", { name: "Claude" }) as HTMLButtonElement).disabled).toBe(true);
+  spy.mockRestore();
+});
