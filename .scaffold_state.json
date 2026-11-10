@@ -1,6 +1,6 @@
 {
   "project": "nursing-ai",
-  "current_phase": 7,
+  "current_phase": 8,
   "updated": "2026-11-10",
   "requirements_file": "README.md",
   "stack": {
@@ -199,13 +199,30 @@
       "note": "AI Assist backend on Claude + tools + guide RAG + SqliteSaver memory; UI wiring in Phase 10; scripted Guide me stays as fallback in the frontend; N3 semantic chat cache not built (exact review cache only)"
     },
     "7": {
-      "status": "pending",
+      "status": "built",
       "answers": {
         "retrieval": "hybrid BM25 + vector (RRF) + cross-encoder re-ranking (Mike)",
         "answer_check": "check step on every answer: review verify node + AI Assist grounding/citation check",
         "query_rewrite_S8": "yes, chat + AI review (Mike chose both; +1 LLM call per review)",
         "N7": "no (optional)"
-      }
+      },
+      "started": "2026-11-10 15:25",
+      "finished": "2026-11-10 15:45",
+      "minutes": 20,
+      "features": [
+        "F18",
+        "F10",
+        "S8"
+      ],
+      "tests": {
+        "pytest": 111
+      },
+      "retrieval": {
+        "hit@1": "8/9",
+        "hit@3": "9/9",
+        "baseline_hit@3": "8/9"
+      },
+      "note": "answer check = review verify node + assist check node (Phase 5/6)"
     },
     "8": {
       "status": "pending",

@@ -17,6 +17,7 @@ def env(tmp_path, monkeypatch):
     assist.reset_saver()
     from app.rag import index
     index.set_embedder(index.HashEmbedder())   # offline, no model download in tests
+    index.set_reranker(None)                   # no cross-encoder download in tests
     index.reset_client()
     (tmp_path / "inbox").mkdir()
     (tmp_path / "samples").mkdir()

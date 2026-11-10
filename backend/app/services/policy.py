@@ -69,14 +69,14 @@ def index_policies() -> dict:
     return index.index_all()
 
 
-def search(query: str, cpt: str | None = None, k: int = 4) -> list[dict]:
-    """Top-k policy chunks; builds the index on first use so a fresh checkout just works."""
+def search(query: str, cpt: str | None = None, k: int = 4, extra: list[str] | None = None) -> list[dict]:
+    """Top-k policy chunks (hybrid + re-rank); builds the index on first use. extra = rewritten queries (S8)."""
     from app.rag import index
     if cpt:
         get_policy(cpt)                       # 404 for an unknown CPT
     if index.count() == 0:
         index.index_all()
-    return index.search(query, cpt=cpt, k=k)
+    return index.search(query, cpt=cpt, k=k, extra_queries=extra)
 
 
 def chunks(cpt: str) -> list[dict]:
@@ -85,7 +85,7 @@ def chunks(cpt: str) -> list[dict]:
              "page": c.meta["page"], "text": c.text} for c in index.chunks_for(cpt)]
 
 
-def criteria_for_review(cpt: str, request_text: str = "") -> list[dict]:
+def criteria_for_review(cpt: str, request_text: str = "", extra: list[str] | None = None) -> list[dict]:
     """Policy chunks the AI review reads (CLAUDE.md data flow: 'Claude reads blob + RAG policy chunks')."""
     query = f"{REVIEW_QUERY} {request_text[:600]}".strip()
-    return search(query, cpt=cpt, k=6)
+    return search(query, cpt=cpt, k=6, extra=extra)

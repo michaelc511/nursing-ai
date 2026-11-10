@@ -185,7 +185,7 @@ def review_case(session: Session, case_id: int, actor: str = "system") -> AIRevi
 
 
 def save_review(session: Session, case: Case, eng, result: ReviewResult, pol: dict | None, chunks: list,
-                actor: str, pipeline: str, steps: list | None = None) -> AIReview:
+                actor: str, pipeline: str, steps: list | None = None, rewritten: str | None = None) -> AIReview:
     """Persist the review and move Received -> Ready / Incomplete (never a decision)."""
     if result.fields.cpt and not case.cpt:
         case.cpt = result.fields.cpt
@@ -194,7 +194,7 @@ def save_review(session: Session, case: Case, eng, result: ReviewResult, pol: di
     pol_meta = {k: v for k, v in pol.items() if k != "chunks"} if pol else None
     rag = [{k: c[k] for k in ("id", "label", "section_title", "page", "score", "quote")} for c in chunks]
     data = {**result.model_dump(), "engine": eng.label, "policy": pol_meta, "policy_chunks": rag,
-            "pipeline": {"name": pipeline, "steps": steps or []}}
+            "pipeline": {"name": pipeline, "steps": steps or [], "rewritten_query": rewritten}}
     review = repo.add(session, AIReview(case_id=case.id, result=data, tier=result.tier, prompt_version=eng.version))
     audit.log(session, eng.label, "ai_review", case.id, tier=result.tier, complete=result.complete,
               warnings=len(result.warnings), requested_by=actor)

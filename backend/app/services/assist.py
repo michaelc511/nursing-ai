@@ -82,8 +82,9 @@ def run_tool(session: Session, name: str, args: dict, query_rewrite=None) -> tup
     if name == "metrics":
         return cases.metrics(session), [{"type": "metrics", "label": "Metrics"}]
     if name == "search_policy":
-        q = query_rewrite(args["question"]) if query_rewrite else args["question"]
-        hits = policy.search(q, cpt=str(args["cpt"]), k=3)
+        rw = query_rewrite(args["question"]) if query_rewrite else None
+        hits = policy.search(args["question"], cpt=str(args["cpt"]), k=3,
+                             extra=[rw] if rw and rw != args["question"] else None)
         return [{k: h[k] for k in ("policy_number", "version", "label", "page", "quote")} for h in hits], \
             [{"type": "policy", "label": f"{h['policy_number']} v{h['version']} {h['label']}, page {h['page']}",
               "cpt": h["cpt"], "page": h["page"], "quote": h["quote"]} for h in hits[:2]]
@@ -202,17 +203,20 @@ def build(session: Session):
         return {"blocked": None}
 
     def agent(s):
-        rewrite = None
-        try:
-            from app.services import query_rewrite as qr        # S8 (Phase 7)
-            rewrite = lambda q: qr.rewrite(session, q, s.get("case_id"), s["user"])  # noqa: E731
-        except ImportError:
-            pass
+        from app.services import query_rewrite as qr            # S8 (Phase 7)
+        seen: list[str] = []
+
+        def rewrite(q):
+            rw = qr.rewrite(session, q, s.get("case_id"), s["user"])
+            if rw != q:
+                seen.append(rw)
+            return rw
         if ai_mode.current(session) == "claude" and llm.has_key():
             try:
                 ans, src, used = claude_answer(session, s["question"], s.get("case_id"), s.get("history", []),
                                                s["user"], rewrite)
-                return {"answer": ans, "sources": src, "tools_used": used, "engine": "AI"}
+                return {"answer": ans, "sources": src, "tools_used": used, "engine": "AI",
+                        "rewritten": seen[-1] if seen else None}
             except llm.LLMUnavailable:
                 pass                                              # falls back to the scripted router below
         ans, src, used = mock_answer(session, s["question"], s.get("case_id"))

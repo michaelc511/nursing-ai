@@ -1,6 +1,6 @@
 """Phase 5 (F13, F13.1): the AI review as a LangGraph state machine.
 
-    read_form -> retrieve_policy -> ai_review -> verify --(quotes failed, retry allowed)--> ai_review
+    read_form -> rewrite_query -> retrieve_policy -> ai_review -> verify --(quotes failed, retry allowed)--> ai_review
                                                     \\--> route (save + Received -> Ready/Incomplete)
 
 - read_form, retrieve_policy, verify, route are Python (README: "Python does every rule, check,
@@ -24,7 +24,7 @@ from app.repositories import cases as repo
 from app.schemas.review import ReviewResult
 from app.services import policy
 
-STEP_CAP = 8          # read_form, retrieve, (rewrite), ai, verify, ai, verify, route
+STEP_CAP = 9          # read_form, rewrite, retrieve, ai, verify, ai, verify, route (+1 spare)
 MAX_ATTEMPTS = 2
 
 
@@ -33,6 +33,7 @@ class ReviewState(TypedDict, total=False):
     actor: str
     cpt_read: str | None
     query: str
+    rewritten: str | None
     pol: dict | None
     chunks: list
     result: dict
@@ -67,10 +68,16 @@ def build(session: Session):
         first_page = " ".join(rv.pdf_pages(docs[0])[:1])
         return {"cpt_read": cpt, "query": first_page}
 
+    def rewrite_query(s):
+        from app.services import query_rewrite                # S8 (Claude mode only)
+        rw = query_rewrite.rewrite(session, s.get("query", "")[:1500], s["case_id"], s["actor"])
+        return {"rewritten": rw if rw != s.get("query") else None}
+
     def retrieve_policy(s):
         case, _ = case_and_docs(s)
         pol = policy.policy_for_case(case)                   # #3 CPT -> policy
-        chunks = policy.criteria_for_review(pol["cpt"], s.get("query", "")) if pol else []   # #4 RAG
+        chunks = policy.criteria_for_review(pol["cpt"], s.get("query", ""),
+                                            extra=[s["rewritten"]] if s.get("rewritten") else None) if pol else []  # #4
         return {"pol": {**pol, "chunks": chunks} if pol else None, "chunks": chunks}
 
     def ai_review(s):
@@ -103,7 +110,7 @@ def build(session: Session):
         case, _ = case_and_docs(s)
         r = rv.save_review(session, case, eng, ReviewResult.model_validate(s["result"]), s.get("pol"),
                            s.get("chunks", []), s["actor"], pipeline="graph",
-                           steps=s.get("steps", []) + [{"node": "route", "ms": 0}])
+                           steps=s.get("steps", []) + [{"node": "route", "ms": 0}], rewritten=s.get("rewritten"))
         return {"review_id": r.id}
 
     def after_verify(s) -> str:
@@ -116,12 +123,14 @@ def build(session: Session):
 
     g = StateGraph(ReviewState)
     g.add_node("read_form", _timed("read_form", read_form))
+    g.add_node("rewrite_query", _timed("rewrite_query", rewrite_query))
     g.add_node("retrieve_policy", _timed("retrieve_policy", retrieve_policy))
     g.add_node("ai_review", _timed("ai_review", ai_review))
     g.add_node("verify", _timed("verify", verify))
     g.add_node("route", route)
     g.add_edge(START, "read_form")
-    g.add_edge("read_form", "retrieve_policy")
+    g.add_edge("read_form", "rewrite_query")
+    g.add_edge("rewrite_query", "retrieve_policy")
     g.add_edge("retrieve_policy", "ai_review")
     g.add_edge("ai_review", "verify")
     g.add_conditional_edges("verify", after_verify, {"ai_review": "ai_review", "route": "route"})

@@ -37,7 +37,7 @@ def test_graph_runs_all_nodes_and_saves_steps(session, env):
     r = review.review_case(session, _case(session).id, actor="test")
     p = r.result["pipeline"]
     assert p["name"] == "graph"
-    assert [s["node"] for s in p["steps"]] == ["read_form", "retrieve_policy", "ai_review", "verify", "route"]
+    assert [s["node"] for s in p["steps"]] == ["read_form", "rewrite_query", "retrieve_policy", "ai_review", "verify", "route"]
 
 
 def test_failed_quote_retries_claude_once_with_feedback(session, claude):

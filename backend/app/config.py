@@ -87,6 +87,25 @@ class Settings:
         return int(_get("ASSIST_TURNS") or 10)
 
     @property
+    def hybrid(self) -> bool:
+        """F18: BM25 + vector with Reciprocal Rank Fusion."""
+        return _get("HYBRID_SEARCH", "true").lower() in {"1", "true", "yes"}
+
+    @property
+    def rerank(self) -> bool:
+        """F10: cross-encoder re-ranking of the top 10."""
+        return _get("RERANK", "true").lower() in {"1", "true", "yes"}
+
+    @property
+    def rerank_model(self) -> str:
+        return _get("RERANK_MODEL") or "cross-encoder/ms-marco-MiniLM-L-6-v2"
+
+    @property
+    def query_rewrite(self) -> bool:
+        """S8: Claude rewrites the search query in policy wording (Claude mode only)."""
+        return _get("QUERY_REWRITE", "true").lower() in {"1", "true", "yes"}
+
+    @property
     def chroma_dir(self) -> Path:
         """Policy RAG index (Chroma). Rebuild with: python -m app.cli index-policies."""
         return Path(_get("CHROMA_DIR") or BACKEND / "data" / "chroma")

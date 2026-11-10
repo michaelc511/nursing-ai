@@ -107,17 +107,99 @@ def count() -> int:
     return collection().count()
 
 
-def search(query: str, cpt: str | None = None, k: int = 4) -> list[dict]:
-    """Top-k policy chunks. cpt narrows to that policy (the normal path); None = all policies."""
+# ---------------------------------------------------------------- Phase 7: hybrid + re-rank (F18, F10)
+
+RRF_K = 60
+
+
+class CrossEncoderReranker:
+    """F10: reads question and chunk together (more precise than vector distance)."""
+    def __init__(self, model: str):
+        from sentence_transformers import CrossEncoder
+        self.name = model
+        self._m = CrossEncoder(model)
+
+    def score(self, query: str, texts: list[str]) -> list[float]:
+        return [float(s) for s in self._m.predict([(query, t) for t in texts])]
+
+
+_reranker = None
+_reranker_set = False
+
+
+def set_reranker(r) -> None:
+    """Tests: set_reranker(None) turns re-ranking off."""
+    global _reranker, _reranker_set
+    _reranker, _reranker_set = r, True
+
+
+def reranker():
+    global _reranker, _reranker_set
+    if not _reranker_set:
+        _reranker = CrossEncoderReranker(settings.rerank_model) if settings.rerank else None
+        _reranker_set = True
+    return _reranker
+
+
+def _tokens(text: str) -> list[str]:
+    return re.findall(r"[a-z0-9]+", text.lower())
+
+
+def _candidates(col, cpt: str | None, queries: list[str]):
+    """Every chunk in scope with its cosine score per query (policies are small: <= ~10 chunks each)."""
+    where = {"cpt": cpt} if cpt else None
+    n = len(col.get(where=where)["ids"]) if where else col.count()
+    if n == 0:
+        return {}, []
+    per_query = []
+    docs = {}
+    for q in queries:
+        res = col.query(query_embeddings=embedder().embed([q]), n_results=n, where=where)
+        scores = {}
+        for cid, doc, meta, dist in zip(res["ids"][0], res["documents"][0], res["metadatas"][0], res["distances"][0]):
+            docs[cid] = (doc, meta)
+            scores[cid] = 1 - dist
+        per_query.append(scores)
+    return docs, per_query
+
+
+def search(query: str, cpt: str | None = None, k: int = 4, extra_queries: list[str] | None = None) -> list[dict]:
+    """Hybrid search: vector + BM25 per query, fused with Reciprocal Rank Fusion (also across the original and
+    rewritten queries, S8), then cross-encoder re-ranking of the top 10. `score` stays the vector cosine of the
+    best query (used for "I don't know" thresholds); `rerank` is the cross-encoder score."""
     col = collection()
     if col.count() == 0:
         return []
-    res = col.query(query_embeddings=embedder().embed([query]), n_results=min(k, col.count()),
-                    where={"cpt": cpt} if cpt else None)
+    queries = [query] + [q for q in (extra_queries or []) if q and q != query]
+    docs, per_query = _candidates(col, cpt, queries)
+    if not docs:
+        return []
+    ids = list(docs)
+    bm25 = None
+    if settings.hybrid:
+        from rank_bm25 import BM25Okapi
+        bm25 = BM25Okapi([_tokens(body_of(docs[i][0]) + " " + docs[i][1].get("section_title", "")) for i in ids])
+    fused: dict[str, float] = {i: 0.0 for i in ids}
+    for q, scores in zip(queries, per_query):
+        for rank, cid in enumerate(sorted(ids, key=lambda i: -scores[i])):
+            fused[cid] += 1 / (RRF_K + rank + 1)
+        if bm25 is not None:
+            bm = bm25.get_scores(_tokens(q))
+            for rank, idx in enumerate(sorted(range(len(ids)), key=lambda j: -bm[j])):
+                if bm[idx] > 0:
+                    fused[ids[idx]] += 1 / (RRF_K + rank + 1)
+    order = sorted(ids, key=lambda i: -fused[i])[:10]
+    rr = reranker()
+    rscores = {}
+    if rr is not None and len(order) > 1:
+        rscores = dict(zip(order, rr.score(query, [body_of(docs[i][0]) for i in order])))
+        order = sorted(order, key=lambda i: -rscores[i])
     out = []
-    for cid, doc, meta, dist in zip(res["ids"][0], res["documents"][0], res["metadatas"][0],
-                                    res["distances"][0]):
-        out.append({"id": cid, "score": round(1 - dist, 3), "text": doc, "quote": body_of(doc),
+    for cid in order[:k]:
+        doc, meta = docs[cid]
+        out.append({"id": cid, "score": round(max(s[cid] for s in per_query), 3),
+                    "rerank": round(rscores[cid], 3) if cid in rscores else None,
+                    "fused": round(fused[cid], 4), "text": doc, "quote": body_of(doc),
                     "cpt": meta["cpt"], "policy_number": meta["policy_number"], "version": meta["version"],
                     "label": meta["label"], "section_title": meta["section_title"], "page": meta["page"]})
     return out

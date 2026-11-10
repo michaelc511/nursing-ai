@@ -83,8 +83,14 @@ Demo logins per role: `nurse1`, `nurse2` (nurse), `meddir` (medical director), `
 - CLI `index-policies`, `search-policies "<question>" --cpt <code>`; API `GET /api/policies/{cpt}/search?q=`, `GET /api/policies/{cpt}/chunks`.
 - Retrieval eval: `evaluation/golden.jsonl` + `python ../evaluation/run_retrieval.py` (from `backend/`). Baseline 2026-11-10: hit@1 8/9 (89%); off-topic scores ≈ 0.
 
+## Retrieval quality (Phase 7)
+- Hybrid search (F18): every chunk in the CPT's policy is scored by vector cosine and by BM25 (keywords + section title), fused with Reciprocal Rank Fusion (k=60). `HYBRID_SEARCH=false` turns BM25 off.
+- Re-ranking (F10): cross-encoder `cross-encoder/ms-marco-MiniLM-L-6-v2` re-orders the top 10 (`RERANK=false` off). `score` stays the vector cosine (used for "I don't know"), `rerank` is the cross-encoder score.
+- Query rewriting (S8): in Claude mode, `backend/app/services/query_rewrite.py` (prompt `rewrite_v1.md`, effort low) restates the chat question or the request's first page in policy wording, with personal details removed; original + rewritten results are fused. Review graph node `rewrite_query`; AI Assist shows the rewritten query (debug). AI-MK keeps the original query.
+- Retrieval eval 2026-11-10 (real models): hit@1 8/9 (89%), hit@3 9/9 (100%), up from 89% hit@3 in Phase 3.
+
 ## Review pipeline (Phase 5, LangGraph)
-- `backend/app/services/review_graph.py`: `read_form → retrieve_policy → ai_review → verify → route`. Only `ai_review` calls the AI; the other nodes are Python (CPT regex, CPT → policy + RAG chunks, quote/CPT/injection checks, save + status move).
+- `backend/app/services/review_graph.py`: `read_form → rewrite_query → retrieve_policy → ai_review → verify → route`. Only `ai_review` calls the AI; the other nodes are Python (CPT regex, CPT → policy + RAG chunks, quote/CPT/injection checks, save + status move).
 - `verify → ai_review` retries once (Claude only) with the failed checks as feedback, while the case is under `MAX_CASE_COST_USD` (default $0.50). Step cap 8. Still failing → needs_review for a person.
 - No node can approve, pend or deny. Node timings are saved with each review (`pipeline.steps`).
 - F12.1 baseline: `REVIEW_PIPELINE=linear` runs the original one-pass review (frozen); tests check both give the same tier and status on the demo cases.
