@@ -1,0 +1,13 @@
+{
+  "mode": "mock",
+  "scores": {
+    "retrieval": 1.0,
+    "review": 1.0,
+    "assist": 1.0,
+    "safety": 1.0,
+    "hit@1": 0.889,
+    "hit@3": 1.0
+  },
+  "ragas": {},
+  "cost_usd": 0.0
+}

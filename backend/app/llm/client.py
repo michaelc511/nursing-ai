@@ -122,14 +122,17 @@ def cache_put(session: Session, key: str, purpose: str, model: str, value: dict)
 
 # ---------------------------------------------------------------- calls
 
-def _models(session: Session | None) -> list[str]:
+def _models(session: Session | None, model: str | None = None) -> list[str]:
+    if model:
+        return [model]
     main = current_model(session)
     fb = settings.claude_fallback_model
     return [main] + ([fb] if fb and fb != main else [])
 
 
 def parse(session: Session, *, purpose: str, system: str, content: list, schema: type[T], case_id: int | None = None,
-          actor: str | None = None, effort: str | None = None, max_tokens: int = 16000, cache_parts=None) -> T:
+          actor: str | None = None, effort: str | None = None, max_tokens: int = 16000, cache_parts=None,
+          model: str | None = None) -> T:
     """Structured output validated by Pydantic. Tries the main model, then the fallback model."""
     import anthropic
     key = cache_key(purpose, system, cache_parts, schema.__name__) if cache_parts is not None else None
@@ -140,7 +143,7 @@ def parse(session: Session, *, purpose: str, system: str, content: list, schema:
                    cached=True, actor=actor)
             return schema.model_validate({k: v for k, v in hit.items() if k != "_model"})
     last_err = None
-    for i, model in enumerate(_models(session)):
+    for i, model in enumerate(_models(session, model)):
         t0 = time.monotonic()
         try:
             resp = client().beta.messages.parse(

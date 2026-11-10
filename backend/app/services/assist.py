@@ -120,8 +120,8 @@ def mock_answer(session: Session, q: str, case_id: int | None) -> tuple[str, lis
     if re.search(r"polic|criteri|require|cover", t) and cpt:
         hits, s = run_tool(session, "search_policy", {"question": q, "cpt": cpt})
         used.append("search_policy"); srcs += s
-        h = hits[0]
-        return f"{h['policy_number']} v{h['version']} {h['label']} (page {h['page']}) says: {h['quote']}", srcs, used
+        parts = [f"{h['policy_number']} v{h['version']} {h['label']} (page {h['page']}): {h['quote']}" for h in hits[:2]]
+        return "\n\n".join(parts), srcs, used
     if cid and re.search(r"case|missing|status|why|tier|summary|what|next", t):
         try:
             b, s = run_tool(session, "get_case", {"case_id": cid})
@@ -134,7 +134,7 @@ def mock_answer(session: Session, q: str, case_id: int | None) -> tuple[str, lis
     hits, s = run_tool(session, "search_guide", {"question": q})
     used.append("search_guide"); srcs += s
     if hits and hits[0]["score"] > 0.25:
-        return hits[0]["quote"][:600], srcs, used
+        return "\n\n".join(f"Guide {h['label']} {h['section_title']}: {h['quote'][:500]}" for h in hits[:2]), srcs, used
     return "I don't know. Try asking about a case, a policy, your role or the rules.", [], used
 
 

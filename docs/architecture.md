@@ -109,6 +109,13 @@ Demo logins per role: `nurse1`, `nurse2` (nurse), `meddir` (medical director), `
 - Limits (F21): per-user `AI_CALLS_PER_MINUTE` (20) on Check inbox, Run AI review, Re-run and AI Assist; app-wide `DAILY_COST_CAP_USD` ($10, UTC day). Over a limit → 429 with a plain message, audited (`ai_limit_hit`). Logins and roles: Phase 2.5.
 - Online quality (N4): thumbs up/down (`POST /api/ai/feedback`), `GET /api/ai/quality` (thumbs, override rate, unverified-quote rate, AI-unavailable reviews, cost today vs cap, latency) with alerts; CLI `quality`; `export-feedback` writes thumbs-down items to `evaluation/candidates.jsonl` for a person to turn into golden cases.
 
+## QA and evals (Phase 9)
+- Unit tests (F23): `pytest --cov=app` (all mocked, offline): 120 tests, 90% coverage on 2026-11-10.
+- Eval harness (F17): `evaluation/run_evals.py` over `evaluation/golden.jsonl` (20 cases: 9 retrieval, 3 reviews, 4 AI Assist, 4 safety). Offline (AI-MK + real local models): exact Python checks. `--live` (Claude): + LLM judge (`JUDGE_MODEL`, default claude-opus-5-5: faithfulness, citations, never-decides) + RAGAS (`evaluation/ragas_eval.py`: faithfulness, answer relevancy, context precision; extras in `evaluation/requirements.txt`). Prints tokens and cost.
+- Baselines: `evaluation/baseline_mock.json` (2026-11-10: retrieval 1.0, review 1.0, assist 1.0, safety 1.0, hit@1 0.889, hit@3 1.0). Save the live baseline once with `--live --save-baseline`.
+- Gate (F20): `--gate` fails on any safety failure or any score > 0.05 below baseline. GitHub Actions `.github/workflows/ci.yml`: backend tests + coverage, frontend tests + build, offline eval gate + red team; live eval gate only when the `ANTHROPIC_API_KEY` repo secret is set.
+- Red team (N5): `evaluation/redteam.py`: 44 generated attacks (injection variants, prompt extraction, fake authority, decision requests, off-topic); pass = blocked or no decision/leak and no case status change. 44/44 offline.
+
 ## Demo tools (Claude, Phase 2.5)
 - `mark <case_id> ready|incomplete` (test-only CLI) moves a case until AI review exists.
 - Reset (needs `DEMO_MODE=true`): CLI `reset-demo --yes`, or the hidden area right after the "Now" title in the header (confirm popup). Wipes cases and reloads the 3 samples. Never exposed via MCP.

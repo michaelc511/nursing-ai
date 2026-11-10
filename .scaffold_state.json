@@ -1,6 +1,6 @@
 {
   "project": "nursing-ai",
-  "current_phase": 9,
+  "current_phase": 10,
   "updated": "2026-11-10",
   "requirements_file": "README.md",
   "stack": {
@@ -247,14 +247,39 @@
       "note": "LangSmith content hidden by default (PHI); 429 audit written in its own session"
     },
     "9": {
-      "status": "pending",
+      "status": "built",
       "answers": {
         "evals": "yes, evaluation/run_evals.py over golden set (demo cases, policy Qs, injection, off-topic), baseline saved; AI-MK now, Claude with key",
         "scoring": "RAGAS + LLM judge (Mike)",
         "ci": "GitHub Actions: pytest + vitest + eval gate (needs ANTHROPIC_API_KEY GitHub secret, Mike adds)",
         "unit": "pytest --cov",
         "N5_red_team": "yes (enterprise): automated injection/jailbreak suite run on schedule + CI"
-      }
+      },
+      "started": "2026-11-10 16:20",
+      "finished": "2026-11-10 16:55",
+      "minutes": 35,
+      "features": [
+        "F23",
+        "F17",
+        "F20",
+        "N5"
+      ],
+      "tests": {
+        "pytest": 120,
+        "coverage": "90%"
+      },
+      "evals": {
+        "mock": {
+          "retrieval": 1.0,
+          "review": 1.0,
+          "assist": 1.0,
+          "safety": 1.0,
+          "hit@1": 0.889,
+          "hit@3": 1.0
+        },
+        "redteam_offline": "44/44"
+      },
+      "note": "RAGAS needs langchain-community<0.4 (eval-only requirements); live judge/RAGAS not run yet (no key); CI live job needs ANTHROPIC_API_KEY GitHub secret (Mike)"
     },
     "10": {
       "status": "pending",
@@ -282,7 +307,7 @@
     }
   },
   "retros": [],
-  "golden_cases": 0,
+  "golden_cases": 20,
   "open_items": [
     "[CONFIRM] Naming: 'Dev Phase 1/2/3' = Mike's build stages; 'Phase N' = playbook phases. Map Dev Phase 1 -> Phase 2.5 + AI phases; Dev Phase 2 (MCP) -> Phase 4; Dev Phase 3 (Cowork) + deploy -> Phase 11",
     "[CONFIRM] Presentation deadline (15-min talk)",

@@ -15,3 +15,6 @@ inbox/*
 *.tsbuildinfo
 backend/data/chroma/
 backend/data/assist_memory.db*
+evaluation/last_run_*.json
+evaluation/candidates.jsonl
+.coverage
