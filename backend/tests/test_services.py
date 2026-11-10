@@ -170,8 +170,6 @@ def test_poll_uses_channel_from_sample_manifest(session, env):
         (env / "inbox" / n).write_bytes(b"%PDF")
     got = {c.filename: (c.source, cases.summary(session, c)["doc_id"][:3]) for c in intake.poll_inbox(session)}
     assert got == {"a.pdf": ("fax", "FAX"), "b.pdf": ("portal", "PRT"), "c.pdf": ("upload", "UPL"), "d.pdf": ("fax", "FAX")}
-    b = next(c for c in repo.list_cases(session) if c.filename == "b.pdf")
-    assert cases.summary(session, b)["description"].endswith("· Sciatica (M54.41)")
 
 
 def test_policy_lookup_by_cpt(session):

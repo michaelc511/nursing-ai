@@ -38,8 +38,10 @@ Approved | Denied -&gt; Synced</pre>
 <p>Demo logins per role: <code>nurse1</code>, <code>nurse2</code> (nurse), <code>meddir</code> (medical director), <code>intake1</code></p>
 <p>(intake coordinator: intake + add documents, can&#x27;t decide → 403); one shared</p>
 <p><code>DEMO_PASSWORD</code> from <code>.env</code>. Production: SSO + role-based access (HIPAA).</p>
+<h2>AI engines (Phase 3)</h2>
+<ul><li><code>AI_MODE=mock</code> → <b>AI-MK</b>: prepared answers for the demo requests, same <code>ReviewResult</code> schema as Claude; every output labeled (AI-MK).</li><li><code>AI_MODE=claude</code> → real Claude (<code>anthropic</code> SDK, PDF input, structured output), next.</li><li>Either way Python reads the CPT (#2a), verifies quotes against the PDF text, and forces needs_review on any mismatch.</li></ul>
 <h2>Demo tools (Claude, Phase 2.5)</h2>
-<ul><li><code>mark &lt;case_id&gt; ready|incomplete</code> (test-only CLI) moves a case until AI review exists.</li><li>Reset (needs <code>DEMO_MODE=true</code>): CLI <code>reset-demo --yes</code>, or the hidden area right after the &quot;Now&quot; title in the header (confirm popup). Wipes cases and reloads the 3 samples. Never exposed via MCP.</li><li>Simulated AI check (demo mode, web): Check passed / Missing info on Received cases, until Phase 3.</li></ul>
+<ul><li><code>mark &lt;case_id&gt; ready|incomplete</code> (test-only CLI) moves a case until AI review exists.</li><li>Reset (needs <code>DEMO_MODE=true</code>): CLI <code>reset-demo --yes</code>, or the hidden area right after the &quot;Now&quot; title in the header (confirm popup). Wipes cases and reloads the 3 samples. Never exposed via MCP.</li></ul>
 <h2>Built so far</h2>
 <ul><li>Phase 2.5 (no AI): Layers 1, 4, 5 + state machine, login, CLI, React UI with PDF viewer. 42 pytest + 2 vitest; handoff scripts W1/W2 in README.</li><li>Code map: <code>backend/app/services/</code> (state, intake, decision, sync, cases, auth, demo, audit),</li></ul>
 <p>  <code>backend/app/repositories/</code> (cases, blob), <code>backend/app/api/routes.py</code>, <code>backend/app/cli.py</code>, <code>frontend/src/</code>.</p>

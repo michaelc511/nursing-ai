@@ -6,7 +6,7 @@ import typer
 
 from app.db import init_db, new_session
 from app.errors import AppError
-from app.services import auth, cases, demo, intake
+from app.services import auth, cases, demo, intake, review
 
 app = typer.Typer(help="NurseOps Now CLI (prior authorization)", no_args_is_help=True)
 
@@ -40,6 +40,21 @@ def poll():
     with session_scope() as s:
         created = intake.poll_inbox(s, actor="cli")
         typer.echo(f"{len(created)} new case(s): {[c.id for c in created]}")
+
+
+@app.command("review")
+def review_cmd(case_id: int):
+    """AI review one case (AI_MODE=mock -> AI-MK)."""
+    with session_scope() as s:
+        r = review.review_case(s, case_id, actor="cli")
+        typer.echo(f"Case {case_id}: {r.tier} ({r.result.get('engine')}) -> {cases.get_case(s, case_id).status}")
+
+
+@app.command("run-all")
+def run_all_cmd():
+    """Poll the inbox + AI review all new cases (what Cowork runs)."""
+    with session_scope() as s:
+        typer.echo(json.dumps(review.run_all(s, actor="cli", trigger="cli: run-all"), indent=2))
 
 
 @app.command()

@@ -35,7 +35,7 @@ def test_bad_login(client):
 
 def test_upload_view_and_decide_flow(client):
     h = login(client)
-    r = client.post("/api/intake/upload", headers=h,
+    r = client.post("/api/intake/upload?auto_review=false", headers=h,
                     files={"file": ("72148_a.pdf", b"%PDF-1.4 demo", "application/pdf")})
     cid = r.json()["id"]
     assert r.json()["status"] == "Received"
@@ -62,18 +62,6 @@ def test_demo_password_hint_only_in_demo_mode(client, monkeypatch):
     assert client.get("/api/auth/demo").status_code == 404
     monkeypatch.setenv("DEMO_MODE", "true")
     assert client.get("/api/auth/demo").json() == {"password": "test-pass"}
-
-
-def test_simulated_check_demo_mode_only(client, monkeypatch):
-    h = login(client)
-    cid = client.post("/api/intake/upload", headers=h,
-                      files={"file": ("a.pdf", b"%PDF", "application/pdf")}).json()["id"]
-    assert client.post(f"/api/demo/cases/{cid}/check?result=ready", headers=h).status_code == 403
-    monkeypatch.setenv("DEMO_MODE", "true")
-    r = client.post(f"/api/demo/cases/{cid}/check?result=incomplete", headers=h)
-    assert r.json() == {"status": "Incomplete"}
-    audit = client.get(f"/api/cases/{cid}", headers=h).json()["audit"]
-    assert any(a["action"] == "status_change" and a["details"]["reason"] == "simulated AI check (demo)" for a in audit)
 
 
 def test_web_reset_demo_mode_only(client, monkeypatch):
@@ -107,3 +95,7 @@ def test_request_download_is_audited(client):
     actions = [a["action"] for a in client.get(f"/api/cases/{cid}", headers=h).json()["audit"]]
     assert actions.count("document_downloaded") == 1
     assert client.get(f"/api/cases/{cid}/document?download=true").status_code == 401
+
+
+def test_ai_mode_is_public_and_mock_by_default(client):
+    assert client.get("/api/ai/mode").json() == {"mode": "mock", "label": "AI-MK"}

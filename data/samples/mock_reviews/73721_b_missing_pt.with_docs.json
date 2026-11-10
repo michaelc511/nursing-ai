@@ -1,0 +1,29 @@
+{
+  "fields": {"member_name": "Casey Morgan", "member_id": "RHP-100377", "dob": "07/02/1985",
+             "provider_name": "Dr. Ben Okafor, MD", "provider_npi": "1999999902",
+             "service": "MRI knee (right) without contrast", "cpt": "73721",
+             "icd10": "M25.561", "diagnosis": "Pain in right knee, suspected meniscus tear", "urgency": "Standard"},
+  "documents_found": [
+    {"name": "Prior authorization request form", "doc": 0, "page": 1},
+    {"name": "Clinical note (office visit 10/28/2026) with X-ray result", "doc": 0, "page": 2},
+    {"name": "Physical therapy progress summary", "doc": 1, "page": 1}],
+  "missing": [],
+  "complete": true,
+  "retrieved_criteria": [
+    {"page": 1, "text": "Suspected meniscus or ligament tear with mechanical symptoms ... AND a knee X-ray, AND failure of at least 4–6 weeks of conservative care"},
+    {"page": 2, "text": "Records of conservative care (PT notes with dates and response)"}],
+  "criteria": [
+    {"criterion": "Mechanical symptoms or positive exam test", "result": "met",
+     "request_evidence": [{"quote": "McMurray test positive medially.", "doc": 0, "page": 2}],
+     "policy_evidence": {"quote": "A. Suspected meniscus or ligament tear with mechanical symptoms (locking, catching,", "page": 1}},
+    {"criterion": "Knee X-ray done", "result": "met",
+     "request_evidence": [{"quote": "Right knee X-ray 09/05/2026: no fracture, joint spaces preserved.", "doc": 0, "page": 2}],
+     "policy_evidence": {"quote": "Knee X-ray report", "page": 2}},
+    {"criterion": "At least 4–6 weeks of conservative care failed (PT notes)", "result": "met",
+     "request_evidence": [{"quote": "Dates of care: 09/08/2026 – 10/20/2026 (6 weeks, 12 visits)", "doc": 1, "page": 1},
+                          {"quote": "Mechanical symptoms persist after 6 weeks of conservative care.", "doc": 1, "page": 1}],
+     "policy_evidence": {"quote": "AND failure of at least 4–6 weeks of conservative care (PT, activity change, NSAIDs).", "page": 1}}],
+  "tier": "likely_approve",
+  "summary": "Now complete. PT notes show 6 weeks of conservative care with persistent catching and a positive McMurray test, plus a normal X-ray. Meets criterion 2A of policy RHP-IMG-022.",
+  "draft_provider_request": null
+}

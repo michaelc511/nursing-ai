@@ -1,0 +1,29 @@
+{
+  "fields": {"member_name": "Jordan Rivers", "member_id": "RHP-100245", "dob": "03/14/1979",
+             "provider_name": "Dr. Maya Thornton, MD", "provider_npi": "1999999901",
+             "service": "MRI lumbar spine without contrast", "cpt": "72148",
+             "icd10": "M54.16", "diagnosis": "Lumbar radiculopathy", "urgency": "Standard"},
+  "documents_found": [
+    {"name": "Prior authorization request form", "doc": 0, "page": 1},
+    {"name": "Clinical note (office visit 10/27/2026)", "doc": 0, "page": 2},
+    {"name": "Physical therapy discharge summary", "doc": 0, "page": 3}],
+  "missing": [],
+  "complete": true,
+  "retrieved_criteria": [
+    {"page": 1, "text": "Low back pain or radicular symptoms lasting 6 weeks or more AND failure of at least 6 weeks of conservative therapy"},
+    {"page": 2, "text": "Records of conservative therapy (PT notes or medication history with dates)"}],
+  "criteria": [
+    {"criterion": "Symptoms for 6 weeks or more", "result": "met",
+     "request_evidence": [{"quote": "Low back pain radiating to left leg for 10 weeks.", "doc": 0, "page": 1}],
+     "policy_evidence": {"quote": "Low back pain or radicular symptoms lasting 6 weeks or more AND failure of", "page": 1}},
+    {"criterion": "At least 6 weeks of conservative therapy failed, with dates and response", "result": "met",
+     "request_evidence": [{"quote": "Dates of care: 08/29/2026 – 10/24/2026 (8 weeks, 16 visits)", "doc": 0, "page": 3},
+                          {"quote": "Radicular leg symptoms unchanged.", "doc": 0, "page": 3}],
+     "policy_evidence": {"quote": "with documentation of the dates and response.", "page": 1}},
+    {"criterion": "Neurological exam documented", "result": "met",
+     "request_evidence": [{"quote": "Positive straight-leg raise left at 40 degrees.", "doc": 0, "page": 2}],
+     "policy_evidence": {"quote": "Clinical note with history, duration of symptoms and neurological exam", "page": 2}}],
+  "tier": "likely_approve",
+  "summary": "Complete request. Radicular symptoms for 10 weeks with 8 weeks of documented PT and NSAIDs without improvement, and an abnormal neurological exam. Meets criterion 2A of policy RHP-IMG-014.",
+  "draft_provider_request": null
+}

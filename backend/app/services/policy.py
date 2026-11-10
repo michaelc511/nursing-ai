@@ -39,7 +39,9 @@ def policy_path(cpt: str) -> tuple[Path, str]:
 
 
 def cpt_for_case(case: Case) -> str | None:
-    """Until Phase 3 the CPT comes from the file name prefix; then Claude extracts it from the request."""
+    """CPT read from the form by the review (#2a); before a review, the file name prefix (demo)."""
+    if case.cpt:
+        return case.cpt
     cpt = case.filename[:5]
     return cpt if cpt.isdigit() else None
 

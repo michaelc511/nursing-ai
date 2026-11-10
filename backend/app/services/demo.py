@@ -25,14 +25,6 @@ def mark(session: Session, case_id: int, target: str, note: str = "", actor: str
     return case.status
 
 
-def simulate_check(session: Session, case_id: int, result: str, actor: str) -> str:
-    """DEMO_MODE only, from the web: same as `mark` until Claude reviews cases (Phase 3)."""
-    if not settings.demo_mode:
-        from app.errors import Forbidden
-        raise Forbidden("Demo mode only")
-    return mark(session, case_id, result, note="simulated AI check (demo)", actor=actor)
-
-
 def reset_demo(session: Session, actor: str = "cli") -> dict:
     """Wipe cases + storage + inbox, re-seed reviewers, copy the samples into the inbox."""
     if not settings.demo_mode:

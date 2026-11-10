@@ -65,10 +65,14 @@ Demo logins per role: `nurse1`, `nurse2` (nurse), `meddir` (medical director), `
 (intake coordinator: intake + add documents, can't decide → 403); one shared
 `DEMO_PASSWORD` from `.env`. Production: SSO + role-based access (HIPAA).
 
+## AI engines (Phase 3)
+- `AI_MODE=mock` → **AI-MK**: prepared answers for the demo requests, same `ReviewResult` schema as Claude; every output labeled (AI-MK).
+- `AI_MODE=claude` → real Claude (`anthropic` SDK, PDF input, structured output), next.
+- Either way Python reads the CPT (#2a), verifies quotes against the PDF text, and forces needs_review on any mismatch.
+
 ## Demo tools (Claude, Phase 2.5)
 - `mark <case_id> ready|incomplete` (test-only CLI) moves a case until AI review exists.
 - Reset (needs `DEMO_MODE=true`): CLI `reset-demo --yes`, or the hidden area right after the "Now" title in the header (confirm popup). Wipes cases and reloads the 3 samples. Never exposed via MCP.
-- Simulated AI check (demo mode, web): Check passed / Missing info on Received cases, until Phase 3.
 
 ## Built so far
 - Phase 2.5 (no AI): Layers 1, 4, 5 + state machine, login, CLI, React UI with PDF viewer. 42 pytest + 2 vitest; handoff scripts W1/W2 in README.

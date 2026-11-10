@@ -1,7 +1,7 @@
-"""Generate the Guide Me knowledge base PDF (backend/knowledge/guide_me.pdf).
+"""Generate the AI Assist knowledge base PDF (backend/knowledge/guide_me.pdf).
 
-Source for the Guide Me help today (scripted) and its RAG + LLM later: terms, roles, rules,
-statuses, workflows and how Guide Me picks the next step. Keep in step with README "How to use",
+Source for AI Assist help today (scripted) and its RAG + LLM later: terms, roles, rules,
+statuses, workflows and how AI Assist picks the next step. Keep in step with README "How to use",
 frontend/src/guide.ts and backend/app/services/. Run from backend/: python scripts/make_guide.py
 """
 from datetime import date
@@ -56,7 +56,7 @@ def footer(canvas, doc):
     canvas.setFont("Helvetica", 7.5)
     canvas.setFillColor(colors.grey)
     canvas.drawString(0.75 * inch, 0.45 * inch,
-                      f"NurseOps Now · Guide Me knowledge base v{VERSION} · {date.today():%Y-%m-%d} · synthetic demo content")
+                      f"NurseOps Now · AI Assist knowledge base v{VERSION} · {date.today():%Y-%m-%d} · synthetic demo content")
     canvas.drawRightString(7.75 * inch, 0.45 * inch, f"Page {doc.page}")
     canvas.restoreState()
 
@@ -97,13 +97,14 @@ GLOSSARY = [
     ("UM platform", "The plan's system of record; decisions are pushed there (mocked in the demo)."),
     ("Synced", "Decision sent to the UM platform and the provider notified."),
     ("Stuck case", "A case waiting in the same open status for more than 2 days."),
-    ("Simulated AI check", "Demo-only buttons (Check passed / Missing info) that stand in for Claude's review until it is connected."),
+    ("AI-MK", "Mock AI: prepared answers in the exact shape Claude will return, used until real Claude is connected. Everything it writes is labeled (AI-MK)."),
+    ("Run AI review", "Button that asks the AI to review cases now; Check inbox and Add documents also run it automatically."),
     ("PHI", "Protected health information. The demo uses synthetic data only."),
 ]
 
 ROLES = [
     ("Intake Coordinator", "intake1", "Riley Chen",
-     "Brings in new requests (Check inbox), runs the check on Received cases, adds documents to Incomplete cases. Cannot decide."),
+     "Brings in new requests (Check inbox, which also runs the AI review), adds documents to Incomplete cases. Cannot decide."),
     ("Nurse", "nurse1, nurse2", "Nora Diaz, RN; Sam Patel, RN",
      "Reviews Ready cases against the policy. Can Approve or Pend. Cannot Deny: pends for the Medical Director instead."),
     ("Medical Director", "meddir", "Dr. Alex Kim, MD",
@@ -148,24 +149,24 @@ RULES = [
 
 W1 = [
     ("1", "Intake Coordinator · intake1", "Click Check inbox.", "New cases appear as Received."),
-    ("2", "Intake Coordinator · intake1", "Open case #1 (lumbar MRI), read it, click Check passed.", "Ready for review."),
+    ("2", "AI review (AI-MK)", "Runs right after Check inbox: reads case #1 (lumbar MRI), checks it against the policy.", "Ready for review, likely approve."),
     ("3", "Nurse · nurse1", "Sign in, open case #1, compare with the Policy tab, Approve with a reason.", "Approved → Synced; audit shows nurse1."),
     ("4", "Nurse · nurse1", "Open case #3 (brain MRI, no red flags), Pend for the Medical Director.", "Pended."),
     ("5", "Medical Director · meddir", "Sign in, open case #3, Deny with a reason.", "Denied → Synced."),
     ("✗", "Nurse tries to Deny", "Deny is not offered; the server blocks it.", "Blocked (403)."),
 ]
 W2 = [
-    ("1", "Intake Coordinator · intake1", "Open case #2 (knee MRI), click Missing info.", "Incomplete; provider request sent; rework rate rises."),
+    ("1", "AI review (AI-MK)", "Runs after Check inbox: finds case #2 (knee MRI) is missing PT notes.", "Incomplete; drafted provider request sent; rework rate rises."),
     ("2", "Nurse · nurse1", "Open case #2.", "No decision possible while Incomplete."),
-    ("3", "Intake Coordinator · intake1", "Add documents: the PT notes.", "Back to Received; 2 documents."),
-    ("4", "Intake Coordinator · intake1", "Click Check passed.", "Ready for review."),
+    ("3", "Intake Coordinator · intake1", "Add documents: the PT notes.", "Back to Received, 2 documents; AI-MK reviews again."),
+    ("4", "AI review (AI-MK)", "Finds 6 weeks of PT documented.", "Ready for review, likely approve."),
     ("5", "Nurse · nurse2", "Approve with a reason (6 weeks PT, knee still catching).", "Approved → Synced."),
     ("alt", "Nobody", "Provider never responds.", "After 2 days the case shows as stuck."),
 ]
 
 GUIDE_ORDER = [
     ("1", "No cases yet", "Intake Coordinator", "Click Check inbox."),
-    ("2", "Any Received", "Intake Coordinator", "Open the case, read it, click Check passed or Missing info."),
+    ("2", "Any Received", "Intake Coordinator", "Click Run AI review (AI-MK) on the queue."),
     ("3", "Any Ready for review", "Nurse (Medical Director can too)", "Open it, compare with the policy, Approve or Pend."),
     ("4", "Any Pended", "Medical Director", "Open it, Deny or Approve with a reason."),
     ("5", "Any Incomplete", "Intake Coordinator", "Add the missing documents."),
@@ -173,7 +174,7 @@ GUIDE_ORDER = [
 ]
 
 FAQ = [
-    ("Who am I and what do I do?", "Guide Me reads your role from your sign-in and lists your steps (see Roles)."),
+    ("Who am I and what do I do?", "AI Assist reads your role from your sign-in and lists your steps (see Roles)."),
     ("Why can't I deny?", "Only the Medical Director can deny (adverse determination). Pend it for MD review."),
     ("Why are there no decision buttons?", "The case isn't Ready for review or Pended, or your role can't decide (Intake Coordinator)."),
     ("What does PRT / UPL / FAX mean?", "How the request arrived: Provider portal, Provider upload, Fax."),
@@ -189,9 +190,9 @@ def build() -> Path:
     OUT.parent.mkdir(parents=True, exist_ok=True)
     doc = SimpleDocTemplate(str(OUT), pagesize=letter, leftMargin=0.75 * inch, rightMargin=0.75 * inch,
                             topMargin=0.7 * inch, bottomMargin=0.7 * inch,
-                            title="NurseOps Now — Guide Me knowledge base", author="NurseOps Now")
-    f = [p("NurseOps Now — Guide Me knowledge base", H1),
-         p(f"Version {VERSION} · {date.today():%B %d, %Y} · Source for the Guide Me assistant (scripted today; RAG + LLM later). "
+                            title="NurseOps Now — AI Assist knowledge base", author="NurseOps Now")
+    f = [p("NurseOps Now — AI Assist knowledge base", H1),
+         p(f"Version {VERSION} · {date.today():%B %d, %Y} · Source for AI Assist (scripted today; RAG + LLM later). "
            "Synthetic demo content, not a real health plan document.", SMALL), Spacer(1, 8)]
     f += section("1. About NurseOps Now", *bullets([
         "Helps prior authorization nurses at a regional health plan review MRI requests faster.",
@@ -213,8 +214,8 @@ def build() -> Path:
                  table(["Step", "Who", "Does", "Sees"], W1, [0.4, 1.7, 3.0, 1.9]), Spacer(1, 6),
                  p("<b>W2: Incomplete request → provider sends documents → decision</b>"),
                  table(["Step", "Who", "Does", "Sees"], W2, [0.4, 1.7, 3.0, 1.9]))
-    f += section("7. How Guide Me picks your next step",
-                 p("Guide Me looks at who is signed in and every case's status, finds the first stage below that has work, "
+    f += section("7. How AI Assist picks your next step",
+                 p("AI Assist (Guide me) looks at who is signed in and every case's status, finds the first stage below that has work, "
                    "and tells you the next action in plain words. If the stage belongs to another role, it says: "
                    "\"This step is for the &lt;role&gt;. Click Sign out (top right), then sign in as &lt;login&gt;.\" "
                    "It outlines the button to click and updates after every action, even across sign-out and sign-in."),
@@ -227,11 +228,11 @@ def build() -> Path:
          "Check passed → Nurse pends → Medical Director denies."),
     ], [0.5, 3.2, 1.4, 1.9]))
     f += section("9. Screens", *bullets([
-        "<b>Sign in:</b> pick a user; Guide Me and Dark mode at the top.",
+        "<b>Sign in:</b> pick a user; AI Assist and Dark mode at the top.",
         "<b>Home:</b> results cards (turnaround, rework, cases reviewed, override rate), intro, Unit board, case queue "
         "(sortable: #, Document ID, Channel, Description, Status, AI tier, Received), Medical policies row below.",
-        "<b>Case:</b> request and Policy tabs with Download, Simulated AI check (demo), AI review, decision form, audit log.",
-        "<b>Help:</b> the ? button (About, this screen, workflow) and Guide Me chat (bottom left). The AI assistant will sit on the right later.",
+        "<b>Case:</b> request and Policy tabs with Download, AI review (AI-MK) with Run / Re-run, decision form, audit log.",
+        "<b>Help:</b> the ? button (About, this screen, workflow) and AI Assist (bottom right): Guide me today, Claude case questions later.",
     ]))
     f += [KeepTogether(section("10. Common questions", table(["Question", "Answer"], FAQ, [2.3, 4.7])))]
     doc.build(f, onFirstPage=footer, onLaterPages=footer)

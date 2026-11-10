@@ -39,6 +39,11 @@ class Settings:
         return _get("DEMO_MODE").lower() in {"1", "true", "yes"}
 
     @property
+    def ai_mode(self) -> str:
+        """mock (AI-MK, prepared answers) | claude (Phase 3)."""
+        return (_get("AI_MODE") or "mock").lower()
+
+    @property
     def secret_key(self) -> str:
         return _get("SECRET_KEY") or "dev-only-secret-change-me-in-env-0123456789"
 

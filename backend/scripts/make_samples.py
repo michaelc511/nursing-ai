@@ -197,11 +197,11 @@ def case_c() -> Path:
 
 
 MANIFEST = {
-    "_note": "Per sample: intake channel (README: fax, PDF, portal, provider upload) and the diagnosis on its "
-             "request form. Synthetic demo data; from Phase 3 Claude reads these from the document.",
-    "72148_a_complete.pdf": {"channel": "fax", "diagnosis": "Lumbar radiculopathy, left leg (M54.16)"},
-    "73721_b_missing_pt.pdf": {"channel": "portal", "diagnosis": "Right knee pain, suspected meniscus tear (M25.561)"},
-    "70551_c_not_met.pdf": {"channel": "upload", "diagnosis": "Tension-type headache (G44.209)"},
+    "_note": "Per sample: intake channel (README: fax, PDF, portal, provider upload). Synthetic demo data. "
+             "The diagnosis now comes from the AI review (AI MK).",
+    "72148_a_complete.pdf": {"channel": "fax"},
+    "73721_b_missing_pt.pdf": {"channel": "portal"},
+    "70551_c_not_met.pdf": {"channel": "upload"},
 }
 
 # ---------------------------------------------------------------- policies
