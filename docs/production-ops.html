@@ -1,0 +1,28 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NurseOps Now production ops</title><style>
+:root{--bg:#fff;--fg:#1c1f23;--muted:#5b6470;--line:#dde1e6;--code:#f3f5f7;--accent:#0b6e8a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3238;--code:#1e2328;--accent:#5cc3df}}
+:root[data-theme="dark"]{--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3238;--code:#1e2328;--accent:#5cc3df}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:860px;margin:0 auto}h1,h2{line-height:1.25}h2{border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:2em}
+a{color:var(--accent)}code,pre{background:var(--code);border-radius:4px;font-size:.9em}code{padding:1px 4px}
+pre{padding:12px;overflow-x:auto}table{border-collapse:collapse;width:100%;display:block;overflow-x:auto}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}blockquote{border-left:3px solid var(--accent);margin:0;padding-left:12px;color:var(--muted)}
+</style></head><body><main><h1>NurseOps Now production ops</h1>
+<p>Scope: what runs today on Fly.io with synthetic data, and the plan for a real production system. Targets marked <b>Proposed</b> are starting points, not measured commitments. Owner of every item: Mike Chang.</p>
+<h2>Identity and SSO plan</h2>
+<ul><li><b>Today:</b> four demo accounts share one password stored as a Fly secret. Roles are enforced in the service layer.</li><li><b>Production:</b> sign-in through the health plan&#x27;s identity provider using OIDC or SAML, with individual accounts. Identity-provider groups map to Intake, Nurse and Medical Director roles. <code>DEMO_MODE</code> is off and the shared password is removed.</li></ul>
+<h2>Secrets</h2>
+<ul><li><b>Today:</b> Fly secrets hold <code>ANTHROPIC_API_KEY</code>, <code>SECRET_KEY</code>, <code>DEMO_PASSWORD</code> and <code>MCP_TOKEN</code>. The container refuses to start without <code>SECRET_KEY</code> and <code>DEMO_PASSWORD</code>. <code>.env</code> is never committed or copied into the image.</li><li><b>Production:</b> a managed secrets service, with scheduled rotation and access logs.</li></ul>
+<h2>Service levels and alerts</h2>
+<table><thead><tr><th>Measure</th><th>Proposed target</th><th>Where it is seen</th></tr></thead><tbody><tr><td>Availability</td><td>99.5% a month</td><td>Fly health check on <code>/health</code></td></tr><tr><td>Non-AI API p95</td><td>Under 500 ms</td><td>Load test, Fly metrics</td></tr><tr><td>AI review p95</td><td>Under 90 s</td><td><code>/api/ai/traces</code></td></tr><tr><td>Unverified quote rate</td><td>Under 5%</td><td><code>/api/ai/quality</code></td></tr><tr><td>AI cost per day</td><td>Under the daily cap ($10 by default)</td><td><code>/api/ai/quality</code>, Anthropic console</td></tr></tbody></table>
+<p>The app raises quality alerts through <code>/api/ai/quality</code>, shown in debug mode. <b>Production:</b> send these and Fly health failures to a paging tool.</p>
+<h2>Load test</h2>
+<p><code>tools/scripts/load_test.py</code> exercises the non-AI paths. Result from the production image in a local container limited to 1 CPU and 2 GB, 2026-11-10, with 300 requests, 10 at a time and no errors:</p>
+<table><thead><tr><th>Path</th><th>Median</th><th>p95</th></tr></thead><tbody><tr><td><code>/health</code></td><td>3 ms</td><td>14 ms</td></tr><tr><td><code>/api/cases</code></td><td>27 ms</td><td>58 ms</td></tr><tr><td><code>/api/metrics</code></td><td>22 ms</td><td>58 ms</td></tr></tbody></table>
+<p>Memory stayed near 545 MB. This covers a local container with 3 cases, not Fly&#x27;s network or AI calls, so repeat it against the live URL before relying on it.</p>
+<h2>Backups and disaster recovery</h2>
+<ul><li><b>Today:</b> SQLite, stored files and chat memory sit on one encrypted Fly volume with daily snapshots. Restore steps are in <a href="runbooks/backup-restore.md">runbooks/backup-restore.md</a>. The policy index is rebuilt in every image.</li><li><b>Production:</b> Postgres with point-in-time recovery and object storage for documents, both replicated to a second region. Run a restore test on a schedule.</li></ul>
+<h2>Retention</h2>
+<ul><li><b>Today:</b> synthetic data only. A demo reset deletes all cases, decisions and audit entries.</li><li><b>Production:</b> retention periods for requests, decisions and audit logs must be set with compliance and legal against the plan&#x27;s obligations before launch. The demo reset must stay disabled.</li></ul>
+<h2>Runbooks</h2>
+<ul><li><a href="runbooks/deploy-fly.md">Deploy to Fly.io</a></li><li><a href="runbooks/backup-restore.md">Backup and restore</a></li></ul></main></body></html>

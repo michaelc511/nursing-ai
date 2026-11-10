@@ -43,7 +43,7 @@ function answer(q: string, screen: Screen, role?: string): Msg[] {
   if (/screen|here|page/.test(t)) return [bot(`On this screen (${STEPS[screen].title}):`), ...STEPS[screen].steps.map(bot)];
   if (/rule|reason/.test(t)) return RULES.map(bot);
   if (/about|what is|why|goal/.test(t)) return ABOUT.map(bot);
-  if (/password|login|sign/.test(t)) return [bot("Pick a user and click Sign in; the demo password is filled in. Users: intake1 (Intake Coordinator), nurse1 and nurse2 (Nurse), meddir (Medical Director).")];
+  if (/password|login|sign/.test(t)) return [bot("Pick a user, enter the demo password (local demos fill it in) and click Sign in. Users: intake1 (Intake Coordinator), nurse1 and nurse2 (Nurse), meddir (Medical Director).")];
   if (/case|why|missing|deny|approve|tier|quote/.test(t)) return [bot("Questions about a specific case will be answered by Claude here, with quotes from the request and the policy (coming next phase). For now, open the case and read its AI review (AI-MK).")];
   return [bot("I can guide you through the app. Tap Guide me, or ask about your role, this screen or the rules.")];
 }

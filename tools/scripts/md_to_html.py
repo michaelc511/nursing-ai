@@ -7,7 +7,7 @@ import pathlib
 import re
 
 DOCS = pathlib.Path(__file__).resolve().parents[2] / "docs"
-FILES = ["requirements", "architecture", "features"]
+FILES = ["requirements", "architecture", "features", "governance", "production-ops"]
 
 CSS = """
 :root{--bg:#fff;--fg:#1c1f23;--muted:#5b6470;--line:#dde1e6;--code:#f3f5f7;--accent:#0b6e8a}
