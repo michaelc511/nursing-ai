@@ -97,6 +97,23 @@ def convert(md: str, bullet=inline) -> tuple[str, str]:
     return title, "\n".join(out)
 
 
+def page(title: str, body: str, css: str = CSS) -> str:
+    return (f'<!doctype html><html lang="en"><head><meta charset="utf-8">'
+            f'<meta name="viewport" content="width=device-width,initial-scale=1">'
+            f"<title>{html.escape(title)}</title><style>{css}</style></head>"
+            f"<body><main>{body}</main></body></html>\n")
+
+
+def build_retros() -> None:
+    """All retros on one page, newest first (file names start with YYYY-MM-DD-HHMM)."""
+    files = sorted((DOCS / "retro").glob("*.md"), key=lambda f: f.name, reverse=True)
+    if not files:
+        return
+    body = "\n<hr>\n".join(convert(f.read_text())[1] for f in files)
+    (DOCS / "retros.html").write_text(page("Project retros", "<h1>Project retros</h1>\n" + body))
+    print(f"wrote docs/retros.html ({len(files)} retro(s))")
+
+
 def main() -> None:
     for name in FILES:
         src = DOCS / f"{name}.md"
@@ -104,13 +121,9 @@ def main() -> None:
             continue
         features = name == "features"
         title, body = convert(src.read_text(), status_item if features else inline)
-        css = CSS + STATUS_CSS if features else CSS
-        page = (f'<!doctype html><html lang="en"><head><meta charset="utf-8">'
-                f'<meta name="viewport" content="width=device-width,initial-scale=1">'
-                f"<title>{html.escape(title)}</title><style>{css}</style></head>"
-                f"<body><main>{body}</main></body></html>\n")
-        (DOCS / f"{name}.html").write_text(page)
+        (DOCS / f"{name}.html").write_text(page(title, body, CSS + STATUS_CSS if features else CSS))
         print(f"wrote docs/{name}.html")
+    build_retros()
 
 
 if __name__ == "__main__":
