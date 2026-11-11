@@ -10,7 +10,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.llm import pricing
+from app.llm import pricing, tracing
 from app.models import LLMCache, LLMCall, Setting
 
 T = TypeVar("T", bound=BaseModel)
@@ -146,7 +146,8 @@ def parse(session: Session, *, purpose: str, system: str, content: list, schema:
     for i, model in enumerate(_models(session, model)):
         t0 = time.monotonic()
         try:
-            resp = client().beta.messages.parse(
+            resp = tracing.llm_call(              # F9: LangSmith LLM run (model, tokens, cost)
+                client().beta.messages.parse, purpose,
                 model=model, max_tokens=max_tokens, system=system,
                 messages=[{"role": "user", "content": content}],
                 output_format=schema, output_config={"effort": effort or settings.claude_effort},
@@ -182,7 +183,8 @@ def text(session: Session, *, purpose: str, system: str, messages: list, case_id
     for i, model in enumerate(_models(session)):
         t0 = time.monotonic()
         try:
-            resp = client().beta.messages.create(
+            resp = tracing.llm_call(              # F9: LangSmith LLM run (model, tokens, cost)
+                client().beta.messages.create, purpose,
                 model=model, max_tokens=max_tokens, system=system, messages=messages,
                 output_config={"effort": effort}, betas=[FALLBACK_BETA], fallbacks="default")
         except (anthropic.RateLimitError, anthropic.InternalServerError, anthropic.APIConnectionError,
@@ -211,7 +213,8 @@ def create(session: Session, *, purpose: str, system: str, messages: list, tools
         t0 = time.monotonic()
         try:
             kw = {"tools": tools} if tools else {}
-            resp = client().beta.messages.create(
+            resp = tracing.llm_call(              # F9: LangSmith LLM run (model, tokens, cost)
+                client().beta.messages.create, purpose,
                 model=model, max_tokens=max_tokens, system=system, messages=messages,
                 output_config={"effort": effort}, betas=[FALLBACK_BETA], fallbacks="default", **kw)
         except (anthropic.RateLimitError, anthropic.InternalServerError, anthropic.APIConnectionError,
