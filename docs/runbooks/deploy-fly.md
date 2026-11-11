@@ -20,6 +20,9 @@ Never set `DEMO_AUTOFILL` on Fly: it hands the password to every visitor.
 - Sign in, click the invisible spot just right of the **NurseOps Now** title, and confirm the reset to fill the queue. This runs real Claude on 3 cases, about $0.30.
 - POST to `/mcp` without a token returns 401.
 
+## Sign-in lockout
+Three wrong passwords from one network address lock sign-in from that address for 24 hours. To clear lockouts: `fly ssh console -C "python -m app.cli unlock-logins"`
+
 ## Update
 Ship the code, then run `fly deploy --ha=false` from the terminal.
 

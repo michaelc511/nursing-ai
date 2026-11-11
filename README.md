@@ -1,5 +1,10 @@
 # NurseOps Now — Prior Authorization AI Prototype
 
+## Live links
+
+- **Live demo:** [nurseops-now.fly.dev](https://nurseops-now.fly.dev) (sign-in required)
+- **Blog:** [NurseOps Now, feature by feature](https://michaelc511.github.io/nursing-ai/nurseops-now-blog.html)
+
 ## Problem statement
 
 A regional health plan processes approximately 15,000 prior authorization requests per month.

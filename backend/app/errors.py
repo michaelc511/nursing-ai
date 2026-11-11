@@ -23,3 +23,7 @@ class InvalidTransition(AppError):
 
 class Unauthorized(AppError):
     status_code = 401
+
+
+class LockedOut(AppError):
+    status_code = 429

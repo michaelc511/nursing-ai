@@ -65,7 +65,7 @@ CI runs the offline gate on every push. The live gate runs only once the `ANTHRO
 | Claude outage | Medium | Fallback model, then the case goes to a person with a warning | Test fallback on real Claude |
 | Runaway AI cost | Medium | Per-user rate limit, cost cap per case, daily cap | Set a spend limit in the Anthropic console |
 | Model or prompt change lowers quality | Medium | Versioning and eval gate | Add the GitHub secret for the live gate |
-| Unauthorized access | Medium | Login, role rules, no public password hint | **Production:** SSO and individual accounts |
+| Unauthorized access | Medium | Login, role rules, no public password hint, 24-hour lockout per network address after 3 wrong passwords | **Production:** SSO and individual accounts |
 | Presenter switches used by a signed-in user | Low | Demo mode only, password required, AI mode changes audited | **Production:** `DEMO_MODE` off |
 
 ## Data-use policy

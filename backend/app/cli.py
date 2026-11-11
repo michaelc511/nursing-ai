@@ -34,6 +34,14 @@ def init_db_cmd():
     typer.echo(f"Database ready; {n} reviewer(s) created")
 
 
+@app.command("unlock-logins")
+def unlock_logins_cmd():
+    """Clear every sign-in lockout (after too many wrong passwords)."""
+    with session_scope() as s:
+        n = auth.unlock_logins(s)
+    typer.echo(f"Cleared {n} sign-in record(s)")
+
+
 @app.command()
 def poll():
     """Intake: scan ./inbox and create a case per file."""
