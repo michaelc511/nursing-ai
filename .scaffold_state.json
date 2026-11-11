@@ -1,6 +1,6 @@
 {
   "project": "nursing-ai",
-  "current_phase": 12,
+  "current_phase": "done",
   "updated": "2026-11-10",
   "requirements_file": "README.md",
   "stack": {
@@ -317,10 +317,21 @@
       "note": "Fly.io live at https://nurseops-now.fly.dev; live checks pass. Cowork connector and phone check pending; F20 live gate and further N8 skipped for now by Mike."
     },
     "12": {
-      "status": "pending"
+      "status": "built",
+      "finished": "2026-11-10 17:47",
+      "features": [
+        "F25"
+      ]
     }
   },
-  "retros": [],
+  "retros": [
+    {
+      "date": "2026-11-10 17:47",
+      "type": "full",
+      "after_phase": 11,
+      "file": "docs/retro/2026-11-10-1747.md"
+    }
+  ],
   "golden_cases": 20,
   "open_items": [
     "[CONFIRM] Naming: 'Dev Phase 1/2/3' = Mike's build stages; 'Phase N' = playbook phases. Map Dev Phase 1 -> Phase 2.5 + AI phases; Dev Phase 2 (MCP) -> Phase 4; Dev Phase 3 (Cowork) + deploy -> Phase 11",
