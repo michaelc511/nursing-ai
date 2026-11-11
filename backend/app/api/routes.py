@@ -1,5 +1,7 @@
 """Thin REST routes: parse input -> call a service -> return."""
-from fastapi import APIRouter, Depends, File, Query, UploadFile
+import os
+
+from fastapi import APIRouter, Depends, File, Query, Request, UploadFile
 from fastapi.responses import FileResponse
 
 from app.api.deps import current_user, get_session
@@ -16,9 +18,15 @@ from app.services import auth, cases, decision, demo, intake, policy, review
 router = APIRouter(prefix="/api")
 
 
+def client_ip(request: Request) -> str:
+    """The caller's address. Fly's edge sets Fly-Client-IP; anywhere else that header could be faked."""
+    forwarded = request.headers.get("fly-client-ip") if os.environ.get("FLY_APP_NAME") else None
+    return forwarded or (request.client.host if request.client else "unknown")
+
+
 @router.post("/auth/login", response_model=LoginOut)
-def login(body: LoginIn, session=Depends(get_session)):
-    token, r = auth.login(session, body.username, body.password)
+def login(body: LoginIn, request: Request, session=Depends(get_session)):
+    token, r = auth.login(session, body.username, body.password, client_ip(request))
     return LoginOut(token=token, username=r.username, full_name=r.full_name, role=r.role)
 
 

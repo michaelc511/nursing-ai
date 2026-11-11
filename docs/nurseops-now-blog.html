@@ -115,7 +115,7 @@ dd { margin: 4px 0 0; }
 <article class="home">
 <header class="prose">
   <h1>NurseOps Now: an Enterprise AI copilot for prior authorization, feature by feature</h1>
-  <p class="byline">Nov 10, 2026 · Michael Chang</p>
+  <p class="byline">Nov 10, 2026 · Michael Chang · <a href="https://nurseops-now.fly.dev" rel="noopener" target="_blank">Live demo: nurseops-now.fly.dev</a></p>
 </header>
 
 <div class="prose">
@@ -860,7 +860,7 @@ dd { margin: 4px 0 0; }
   <h3>What it does</h3>
   <p>Packages the app and puts it on the internet.</p>
   <h3>How NurseOps Now uses it</h3>
-  <ul><li>The plan is a <a class="term" href="#g-docker" title="A tool that packages an application and its dependencies into a container image."><strong>Docker</strong></a> image on <a class="term" href="#g-flyio" title="A cloud platform for running containerized applications."><strong>Fly.io</strong></a>, in Phase 11.</li><li>A placeholder <code>Dockerfile</code> exists and is marked for finalizing. There's no Fly configuration yet, and the app runs locally today.</li></ul>
+  <ul><li>The app runs as a single <a class="term" href="#g-docker" title="A tool that packages an application and its dependencies into a container image."><strong>Docker</strong></a> image on <a class="term" href="#g-flyio" title="A cloud platform for running containerized applications."><strong>Fly.io</strong></a>, and it is <a href="https://nurseops-now.fly.dev" rel="noopener" target="_blank">live here</a>.</li><li>One container serves the web app and the API. A volume keeps the database and files between deploys, and API keys are stored as host secrets.</li></ul>
   <h3>Why it matters</h3>
   <p>A public HTTPS address is also what lets Claude Cowork connect to the MCP server.</p>
   <h3>Read more</h3>

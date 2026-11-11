@@ -6,8 +6,8 @@ import jwt
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.errors import AppError, Unauthorized
-from app.models import Reviewer
+from app.errors import AppError, LockedOut, Unauthorized
+from app.models import LoginGuard, Reviewer, utcnow
 from app.repositories import cases as repo
 from app.services import audit
 
@@ -19,6 +19,9 @@ DEMO_USERS = [
     ("intake1", "Riley Chen, Intake Coordinator", INTAKE),
 ]
 TOKEN_HOURS = 12
+MAX_FAILED_LOGINS = 3
+LOCKOUT_HOURS = 24
+LOCKED_MESSAGE = "Too many wrong passwords. Sign-in from this network is locked for 24 hours."
 
 
 def seed_reviewers(session: Session) -> int:
@@ -45,15 +48,49 @@ def demo_hint() -> dict:
     return {"password": settings.demo_password}
 
 
-def login(session: Session, username: str, password: str) -> tuple[str, Reviewer]:
+def _record_failed_login(session: Session, guard: LoginGuard | None, ip: str, username: str) -> None:
+    """Counts a wrong password. Commits itself because the failed request is rolled back afterwards."""
+    if guard is None:
+        guard = LoginGuard(ip=ip, failures=0)
+        session.add(guard)
+    guard.failures += 1
+    locked = guard.failures >= MAX_FAILED_LOGINS
+    if locked:
+        guard.locked_until = utcnow() + timedelta(hours=LOCKOUT_HOURS)
+        audit.log(session, "system", "login_locked", ip=ip, username=username, hours=LOCKOUT_HOURS)
+    session.commit()
+    if locked:
+        raise LockedOut(LOCKED_MESSAGE)
+
+
+def login(session: Session, username: str, password: str, ip: str = "unknown") -> tuple[str, Reviewer]:
+    guard = session.get(LoginGuard, ip)
+    if guard is not None and guard.locked_until is not None:
+        if guard.locked_until > utcnow():
+            raise LockedOut(LOCKED_MESSAGE)
+        session.delete(guard)     # the lockout has expired: start counting again
+        session.flush()
+        guard = None
     r = repo.get_reviewer_by_username(session, username)
     if r is None or not bcrypt.checkpw(password.encode(), r.password_hash.encode()):
+        _record_failed_login(session, guard, ip, username)
         raise Unauthorized("Wrong username or password")
+    if guard is not None:
+        session.delete(guard)
     exp = datetime.now(timezone.utc) + timedelta(hours=TOKEN_HOURS)
     token = jwt.encode({"sub": r.username, "role": r.role, "exp": exp}, settings.secret_key,
                        algorithm="HS256")
     audit.log(session, r.username, "login")
     return token, r
+
+
+def unlock_logins(session: Session, actor: str = "cli") -> int:
+    """Clears every lockout and failure count."""
+    guards = session.query(LoginGuard).all()
+    for guard in guards:
+        session.delete(guard)
+    audit.log(session, actor, "logins_unlocked", count=len(guards))
+    return len(guards)
 
 
 def user_from_token(session: Session, token: str) -> Reviewer:

@@ -27,6 +27,14 @@ class Reviewer(Base):
     password_hash: Mapped[str] = mapped_column(String(100))
 
 
+class LoginGuard(Base):
+    """Failed sign-ins per network address, kept in the database so a restart can't clear a lockout."""
+    __tablename__ = "login_guard"
+    ip: Mapped[str] = mapped_column(String(64), primary_key=True)
+    failures: Mapped[int] = mapped_column(Integer, default=0)
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
 class Case(Base):
     __tablename__ = "cases"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

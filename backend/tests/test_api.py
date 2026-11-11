@@ -29,6 +29,59 @@ def test_login_required(client):
     assert client.get("/api/cases").status_code == 401
 
 
+def try_login(client, password, **kw):
+    return client.post("/api/auth/login", json={"username": "nurse1", "password": password}, **kw)
+
+
+def test_three_wrong_passwords_lock_out_even_the_right_one(client):
+    assert [try_login(client, "x").status_code for _ in range(3)] == [401, 401, 429]
+    r = try_login(client, "test-pass")
+    assert r.status_code == 429 and "24 hours" in r.json()["detail"]
+
+
+def test_lockout_survives_and_expires(client):
+    from datetime import timedelta
+    from app.db import new_session
+    from app.models import LoginGuard, utcnow
+    for _ in range(3):
+        try_login(client, "x")
+    s = new_session()
+    guard = s.query(LoginGuard).one()
+    assert guard.locked_until > utcnow() + timedelta(hours=23)
+    guard.locked_until = utcnow() - timedelta(minutes=1)
+    s.commit(); s.close()
+    assert try_login(client, "test-pass").status_code == 200
+
+
+def test_correct_password_resets_the_count(client):
+    assert try_login(client, "x").status_code == 401
+    assert try_login(client, "x").status_code == 401
+    assert try_login(client, "test-pass").status_code == 200
+    assert [try_login(client, "x").status_code for _ in range(2)] == [401, 401]
+
+
+def test_lockout_is_per_address_on_fly_and_header_ignored_elsewhere(client, monkeypatch):
+    for _ in range(3):
+        try_login(client, "x", headers={"Fly-Client-IP": "9.9.9.9"})     # not on Fly: real address counts
+    assert try_login(client, "test-pass", headers={"Fly-Client-IP": "8.8.8.8"}).status_code == 429
+    monkeypatch.setenv("FLY_APP_NAME", "nurseops-now")
+    assert try_login(client, "test-pass", headers={"Fly-Client-IP": "8.8.8.8"}).status_code == 200
+
+
+def test_unlock_logins_clears_lockouts_and_is_audited(client):
+    from app.db import new_session
+    from app.models import AuditLog
+    from app.services import auth
+    for _ in range(3):
+        try_login(client, "x")
+    s = new_session()
+    assert auth.unlock_logins(s) == 1
+    s.commit()
+    assert {a.action for a in s.query(AuditLog).all()} >= {"login_locked", "logins_unlocked"}
+    s.close()
+    assert try_login(client, "test-pass").status_code == 200
+
+
 def test_bad_login(client):
     assert client.post("/api/auth/login", json={"username": "nurse1", "password": "x"}).status_code == 401
 
