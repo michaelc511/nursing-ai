@@ -22,6 +22,8 @@ from app.config import settings
 from app.errors import AppError, NotFound
 from app.repositories import cases as repo
 from app.schemas.review import ReviewResult
+from app.llm import client as llm
+from app.llm import tracing
 from app.services import policy
 
 STEP_CAP = 9          # read_form, rewrite, retrieve, ai, verify, ai, verify, route (+1 spare)
@@ -145,7 +147,8 @@ def run(session: Session, case_id: int, actor: str = "system"):
     from app.services import observability
     since = utcnow()
     out = build(session).invoke({"case_id": case_id, "actor": actor, "attempts": 0, "steps": []},
-                                config={"recursion_limit": STEP_CAP})
+                                config={"recursion_limit": STEP_CAP,
+                                        **tracing.run_config("case-review", llm.current_model(session))})  # F9
     r = session.get(AIReview, out["review_id"])
     observability.record_trace(session, kind="review", case_id=case_id, actor=actor, engine=r.result.get("engine"),
                                steps=r.result["pipeline"]["steps"], since=since, outcome=r.tier)

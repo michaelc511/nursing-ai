@@ -12,6 +12,7 @@ import re
 from typing import Protocol
 
 from app.config import settings
+from app.llm import tracing
 from app.rag.chunker import Chunk, body_of, chunk_policy
 from app.services import policy as policy_svc
 
@@ -163,6 +164,7 @@ def _candidates(col, cpt: str | None, queries: list[str]):
     return docs, per_query
 
 
+@tracing.retriever("policy-search")   # F9: LangSmith retriever step
 def search(query: str, cpt: str | None = None, k: int = 4, extra_queries: list[str] | None = None) -> list[dict]:
     """Hybrid search: vector + BM25 per query, fused with Reciprocal Rank Fusion (also across the original and
     rewritten queries, S8), then cross-encoder re-ranking of the top 10. `score` stays the vector cosine of the
@@ -260,6 +262,7 @@ def index_guide() -> int:
     return len(chunks)
 
 
+@tracing.retriever("guide-search")    # F9: LangSmith retriever step
 def search_guide(query: str, k: int = 3) -> list[dict]:
     col = guide_collection()
     if col.count() == 0:

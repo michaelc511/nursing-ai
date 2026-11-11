@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 from app import guard
 from app.config import settings
 from app.llm import client as llm
+from app.llm import tracing
 from app.prompts import load
 from app.services import cases, policy
 
@@ -163,7 +164,7 @@ def claude_answer(session: Session, q: str, case_id: int | None, history: list, 
         results = []
         for tu in tool_uses:
             try:
-                out, s = run_tool(session, tu.name, dict(tu.input), query_rewrite)
+                out, s = tracing.tool_call(run_tool, session, tu.name, dict(tu.input), query_rewrite)  # F9
                 sources += s
                 used.append(tu.name)
                 results.append({"type": "tool_result", "tool_use_id": tu.id, "content": json.dumps(out, default=str)[:12000]})
@@ -261,7 +262,9 @@ def ask(session: Session, user: str, question: str, case_id: int | None = None) 
     from app.models import utcnow
     from app.services import observability
     question = (question or "").strip()[:2000]
-    cfg = {"configurable": {"thread_id": thread_id(user, case_id)}, "recursion_limit": 10}
+    tid = thread_id(user, case_id)
+    cfg = {"configurable": {"thread_id": tid}, "recursion_limit": 10,
+           **tracing.run_config("nurse-assist", llm.current_model(session), thread_id=tid)}  # F9: name, tags, masked id
     since, t0 = utcnow(), time.monotonic()
     out = build(session).invoke({"question": question, "case_id": case_id, "user": user, "answer": "",
                                  "sources": [], "blocked": None, "rewritten": None, "tools_used": []}, cfg)

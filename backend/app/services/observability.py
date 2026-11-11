@@ -26,6 +26,11 @@ def configure_langsmith() -> bool:
     if on and os.environ.get("LANGSMITH_SHOW_CONTENT", "").lower() != "true":
         os.environ.setdefault("LANGSMITH_HIDE_INPUTS", "true")
         os.environ.setdefault("LANGSMITH_HIDE_OUTPUTS", "true")
+        try:                                      # LangSmith caches env reads: make sure the hide flags win
+            from langsmith import utils as ls_utils
+            ls_utils.get_env_var.cache_clear()
+        except Exception:
+            pass
     if not on:
         os.environ["LANGSMITH_TRACING"] = "false"
     return on
