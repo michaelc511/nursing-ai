@@ -93,8 +93,9 @@ export const aiMode = (): Promise<AIMode> =>
 export const setAIMode = (mode: "mock" | "claude") =>
   call<{ mode: string }>("/api/ai/mode", { method: "POST", body: JSON.stringify({ mode }) });
 
-export async function demoPassword(): Promise<string | null> {
-  try { const r = await fetch("/api/auth/demo"); return r.ok ? (await r.json()).password : null; }
+export type DemoHint = { password: string; until: string | null };
+export async function demoPassword(): Promise<DemoHint | null> {
+  try { const r = await fetch("/api/auth/demo"); return r.ok ? await r.json() : null; }
   catch { return null; }
 }
 

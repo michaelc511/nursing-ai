@@ -44,6 +44,11 @@ class Settings:
         return _get("DEMO_AUTOFILL").lower() in {"1", "true", "yes"}
 
     @property
+    def demo_autofill_until(self) -> str:
+        """Last day (YYYY-MM-DD, UTC) the login screen shows the password. Empty = no end date."""
+        return _get("DEMO_AUTOFILL_UNTIL").strip()
+
+    @property
     def ai_mode(self) -> str:
         """mock (AI-MK, prepared answers) | claude (Phase 3)."""
         return (_get("AI_MODE") or "mock").lower()

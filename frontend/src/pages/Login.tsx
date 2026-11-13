@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
-import { demoPassword, login, User } from "../api";
+import { demoPassword, DemoHint, login, User } from "../api";
 import { HelpButton } from "../components/Help";
 import { Intro } from "../components/Intro";
 import { ThemeToggle } from "../components/ThemeToggle";
@@ -10,7 +10,8 @@ export function Login({ onLogin }: { onLogin: (u: User) => void }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  useEffect(() => { demoPassword().then((p) => { if (p) setPassword(p); }); }, []);
+  const [hint, setHint] = useState<DemoHint | null>(null);
+  useEffect(() => { demoPassword().then((h) => { if (h) { setHint(h); setPassword(h.password); } }); }, []);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -36,8 +37,9 @@ export function Login({ onLogin }: { onLogin: (u: User) => void }) {
           </select>
         </label>
         <label>Password
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <input type={hint ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required />
         </label>
+        {hint && <p className="muted" data-testid="demo-hint">Demo password: <strong>{hint.password}</strong>{hint.until ? ` (shown until ${hint.until})` : ""}</p>}
         {error && <p role="alert" className="error">{error}</p>}
         <button disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>
       </form>

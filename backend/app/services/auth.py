@@ -41,11 +41,23 @@ def seed_reviewers(session: Session) -> int:
     return created
 
 
-def demo_hint() -> dict:
+def demo_hint(today=None) -> dict:
+    """Prefill + show the shared password on the login screen, only up to DEMO_AUTOFILL_UNTIL (if set)."""
+    from datetime import date, datetime, timezone
+
+    from app.errors import NotFound
     if not settings.demo_mode or not settings.demo_autofill or not settings.demo_password:
-        from app.errors import NotFound
         raise NotFound("Password auto-fill is off")
-    return {"password": settings.demo_password}
+    until = settings.demo_autofill_until
+    if until:
+        today = today or datetime.now(timezone.utc).date()
+        try:
+            last_day = date.fromisoformat(until)
+        except ValueError:
+            raise NotFound("Password auto-fill is off")  # bad date: fail closed
+        if today > last_day:
+            raise NotFound("Password auto-fill is off")
+    return {"password": settings.demo_password, "until": until or None}
 
 
 def _record_failed_login(session: Session, guard: LoginGuard | None, ip: str, username: str) -> None:

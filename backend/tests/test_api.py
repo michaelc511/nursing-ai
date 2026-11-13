@@ -147,7 +147,25 @@ def test_demo_password_hint_needs_demo_mode_and_autofill(client, monkeypatch):
     monkeypatch.setenv("DEMO_MODE", "true")
     assert client.get("/api/auth/demo").status_code == 404     # public demo: never handed out
     monkeypatch.setenv("DEMO_AUTOFILL", "true")
-    assert client.get("/api/auth/demo").json() == {"password": "test-pass"}
+    assert client.get("/api/auth/demo").json() == {"password": "test-pass", "until": None}
+
+
+def test_demo_password_hint_stops_after_until_date(client, monkeypatch):
+    from datetime import date
+
+    import pytest
+
+    from app.errors import NotFound
+    from app.services import auth
+    monkeypatch.setenv("DEMO_MODE", "true")
+    monkeypatch.setenv("DEMO_AUTOFILL", "true")
+    monkeypatch.setenv("DEMO_AUTOFILL_UNTIL", "2026-11-27")
+    assert auth.demo_hint(date(2026, 11, 27)) == {"password": "test-pass", "until": "2026-11-27"}
+    with pytest.raises(NotFound):
+        auth.demo_hint(date(2026, 11, 28))
+    monkeypatch.setenv("DEMO_AUTOFILL_UNTIL", "not-a-date")
+    with pytest.raises(NotFound):
+        auth.demo_hint(date(2026, 11, 1))
 
 
 def test_web_reset_demo_mode_only(client, monkeypatch):
