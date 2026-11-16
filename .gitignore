@@ -21,3 +21,5 @@ evaluation/candidates.jsonl
 
 # Fly deploy workflow: keep local only, deploy by hand with `fly deploy`
 .github/workflows/fly-deploy.yml
+# Fly app config: keep local only (deploy by hand with `fly deploy`)
+fly.toml
