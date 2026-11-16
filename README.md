@@ -38,7 +38,8 @@ Built so far (updated every phase):
   Add documents for Incomplete cases, metrics header, CLI (`init-db`, `poll`, `list`, `status`, `stuck`, test-only `mark`, `reset-demo`).
 - 3 synthetic MRI requests in `data/samples/`: A lumbar spine (72148), B knee (73721), C brain (70551), (`python scripts/make_samples.py`); `data/samples/manifest.json` sets each one's intake channel (A fax, B provider portal, C provider upload) and the diagnosis shown in the queue description (Claude reads these from the document from Phase 3).
 - **AI review with mock AI (AI-MK):** form reading, completeness, drafted provider request, policy criteria used, criteria with verified quotes, suggested tier, Run / Re-run AI review buttons, Last run card (Cowork preview), AI assistant placeholder (right). CLI `review <id>`, `run-all`.
-- Next: real Claude (`AI_MODE=claude`), MCP + Cowork.
+- **Phases 3-11 (AI, MCP, deploy):** real Claude review (`AI_MODE=claude`), policy RAG, LangGraph review graph, AI Assist agent, MCP server (7 tools, no decision tool), guardrails, PII redaction, evals + red team, tracing (LangSmith), cost limits, sign-in lockout. Live at https://nurseops-now.fly.dev since 2026-11-10.
+- **Dev Phase 3 Cowork (2026-11-14):** Claude Cowork connected to the live MCP server as the custom connector **Prior Auth**; scheduled task **Prior auth intake** runs `run_all` and reports. Setup: `cowork.md`; demo: `docs/demo/4-demo-script.md` #5, `docs/demo/1-short_script.md`.
 
 ## How it works
 Python does every rule, check, status change and log entry; Claude reads and suggests; Cowork triggers and reports; people decide.
@@ -52,20 +53,20 @@ The Intake Coordinator's **Check inbox** can replace Cowork's scheduled start.
 4. Policy RAG (Python + Chroma) - Built (Phase 3)
 5. Nurse decision (React + API) - Built
 6. Systems of record (Python, mocked) - Built
-7. Cowork operator (Cowork + MCP) - MCP server built (Phase 4); Cowork setup at deploy
+7. Cowork operator (Cowork + MCP) - Built: MCP server (Phase 4), Cowork connected 2026-11-14
 
 **In the order it runs** (#n = layer above)
 
-1. **#7** Cowork operator starts the run on a schedule - Not built
+1. **#7** Cowork operator starts the run on a schedule - Built (scheduled task, 2026-11-14)
 2. **#1** Intake and storage turns each new document into a case - Built
 3. **#3** Policy lookup and PDFs picks the policy by CPT - Built
 4. **#4** Policy RAG finds the criteria that matter - Built (Phase 3)
-5. **#2** AI review reads, checks, cites and suggests - Built with mock AI (AI-MK)
+5. **#2** AI review reads, checks, cites and suggests - Built (real Claude; mock AI-MK for demos)
 6. **#6** Systems of record sends the provider request if something is missing - Built
-7. **#7** Cowork operator reports what needs people - Not built
+7. **#7** Cowork operator reports what needs people - Built (2026-11-14)
 8. **#5** Nurse decision: Nurse approves or pends, Medical Director denies - Built
 9. **#6** Systems of record syncs the decision and notifies the provider - Built
-10. **#7** Cowork operator answers status questions (stuck cases, override rate) - Not built
+10. **#7** Cowork operator answers status questions (stuck cases, override rate) - Built (2026-11-14)
 
 ## Setup
 ```bash
@@ -104,7 +105,7 @@ Then sign in on the web (see How to use) and decide cases 1 and 3.
 All demo logins share one password: the value of **`DEMO_PASSWORD`** in `.env`.
 With `DEMO_MODE=true` and `DEMO_AUTOFILL=true` the login screen fills the password in and shows it. Set `DEMO_AUTOFILL_UNTIL=YYYY-MM-DD` (UTC) to stop showing it after that day with no redeploy (prod: shown through 2026-11-27). Click **?** on any screen for short steps, or open **✦ AI Assist** (bottom right) and tap **Guide me**: it reads who is signed in and where each case stands, then says the next step in plain words (including when to sign out and who to sign in as). AI Assist is the one place for all AI help: typed questions are answered by Claude (or AI-MK without a key) from the cases, the policies and the guide, with sources; the chips and Guide me are scripted.
 **AI-MK = mocked, not real AI.** Icon preview (demo mode only): `?icons=ai` shows the real-AI ✦ icon while answers stay AI-MK; `?icons=off` turns it off. In production (`DEMO_MODE` off, `AI_MODE=claude`) the preview is ignored. In mock mode a yellow banner on every screen says so, and every AI answer (review panel, queue tier, last run, AI Assist chat) carries an **AI-MK** tag.
-**AI review (AI-MK):** with `AI_MODE=mock` (default) the AI review uses prepared answers for the 3 demo requests, in exactly the shape Claude will return. Everything it produces is labeled **(AI-MK)**. Python still reads the CPT from the PDF, checks every quote against the PDF text, and forces *needs review* on any mismatch. **Check inbox** runs intake + AI review in one go (the same `run_all` Cowork will use); **Run AI review (N new)** and **Run / Re-run AI review** on a case run it on demand. `AI_MODE=claude` switches to real Claude in Phase 3.
+**AI review (AI-MK):** with `AI_MODE=mock` (default) the AI review uses prepared answers for the 3 demo requests, in exactly the shape Claude will return. Everything it produces is labeled **(AI-MK)**. Python still reads the CPT from the PDF, checks every quote against the PDF text, and forces *needs review* on any mismatch. **Check inbox** runs intake + AI review in one go (the same `run_all` Cowork uses); **Run AI review (N new)** and **Run / Re-run AI review** on a case run it on demand. `AI_MODE=claude` switches to real Claude; the live Fly app runs on Claude.
 **Presenter reset:** click the blank space just right of the "NurseOps Now" title in the header → confirm popup → all cases cleared, then the 3 sample requests are loaded and reviewed (AI-MK), so the queue is full (demo mode only).
 **Hidden presenter switches (demo mode only):** after signing in, click the footer words **Synthetic data only** to flip AI-MK and Claude (no restart, audited, needs `ANTHROPIC_API_KEY` for Claude), or **Medical Directors** to flip debug mode for this browser tab. Nothing marks them on screen; the Mock AI and Debug mode banners say when each mode is on. In production (`DEMO_MODE` off) both do nothing, `AI_MODE` decides the engine and `DEBUG_UI` decides debug.
 _Before a public deploy, turn `DEMO_MODE` off (or accept that anyone with the URL can sign in)._

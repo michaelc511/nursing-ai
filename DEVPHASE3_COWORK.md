@@ -1,5 +1,7 @@
 # Dev Phase 3 — Claude Cowork trigger (set up in Claude, not Claude Code)
 
+**Status: done 2026-11-14.** Connector **Prior Auth** (`https://nurseops-now.fly.dev/mcp`, bearer token) and scheduled task **Prior auth intake** work on the live app. Click-by-click setup: `cowork.md`. Demo steps, commands and screenshots: `docs/demo/4-demo-script.md` #5 and `docs/demo/1-short_script.md` #5.
+
 ## Prerequisites
 - Dev Phase 2 MCP server deployed with a public HTTPS URL
 - Added as a custom connector in Claude (check that custom connectors are
@@ -18,7 +20,7 @@ Schedule: daily for the demo. Say in the presentation: every 15 minutes or
 event-driven in production.
 
 ## Live demo script
-1. Drop the 3 sample faxes into the inbox
+1. Drop the 3 sample faxes into the inbox (the `fly ssh ... cp` command in `docs/demo/4-demo-script.md` #5.3; run it once)
 2. In Cowork, run the scheduled task on demand (don't wait for the schedule)
 3. Show Cowork's summary (new cases, incomplete, by tier)
 4. Open the React nurse UI: queue, then case detail with citations
