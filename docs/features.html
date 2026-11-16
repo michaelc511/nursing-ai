@@ -6,38 +6,45 @@ body{background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,system-ui,
 main{max-width:860px;margin:0 auto}h1,h2{line-height:1.25}h2{border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:2em}
 a{color:var(--accent)}code,pre{background:var(--code);border-radius:4px;font-size:.9em}code{padding:1px 4px}
 pre{padding:12px;overflow-x:auto}table{border-collapse:collapse;width:100%;display:block;overflow-x:auto}
-th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}blockquote{border-left:3px solid var(--accent);margin:0;padding-left:12px;color:var(--muted)}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;display:block;margin:8px 0}blockquote{border-left:3px solid var(--accent);margin:0;padding-left:12px;color:var(--muted)}
+:root{--hl-bg:#fff6c2;--hl-line:#e3c400}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--hl-bg:#3d3508;--hl-line:#b39a00}}
+:root[data-theme="dark"]{--hl-bg:#3d3508;--hl-line:#b39a00}
+.hl{background:var(--hl-bg);border:2px solid var(--hl-line);border-radius:8px;padding:4px 16px 12px;margin:16px 0}
+.hl pre,.hl code{background:rgba(255,255,255,.55)}.hl h2{margin-top:.6em}
 
 :root{--y-bg:#d6f3df;--y-fg:#125c2c;--todo-bg:#fff0b3;--todo-fg:#634b00;--na-bg:#fddcd9;--na-fg:#951b1b}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--y-bg:#14432a;--y-fg:#8fe8ad;--todo-bg:#4a3a08;--todo-fg:#f7d96b;--na-bg:#521d1d;--na-fg:#ffb0aa}}
 :root[data-theme="dark"]{--y-bg:#14432a;--y-fg:#8fe8ad;--todo-bg:#4a3a08;--todo-fg:#f7d96b;--na-bg:#521d1d;--na-fg:#ffb0aa}
 .st{border-radius:4px;padding:1px 7px;font-weight:600;font-size:.9em}
 .st-y{background:var(--y-bg);color:var(--y-fg)}.st-todo{background:var(--todo-bg);color:var(--todo-fg)}.st-na{background:var(--na-bg);color:var(--na-fg)}
-</style></head><body><main><h1>NurseOps Now features</h1>
+</style></head><body><main><h1 id="nurseops-now-features">NurseOps Now features</h1>
 <p>Status of all 42 features from <code>claude-config/new-project/super-features.html</code> for this app (decided 2026-11-10, AI features checked on real Claude 2026-11-10).</p>
 <p><b>Y</b> = built; AI features also checked on real Claude unless noted · <b>To Do When LLM is ready</b> = still needs the GitHub secret or Phase 11 · <b>N/A - Optional</b> = optional, skipped. ← new = production / enterprise feature added 2026-11-10.</p>
-<p>Totals: 36 Y · 2 To Do When LLM is ready · 4 N/A - Optional.</p>
-<h2>Scope &amp; Foundation</h2>
+<p>Totals: 37 Y · 1 To Do When LLM is ready · 4 N/A - Optional.</p>
+<p>Project deliverable outside the 42: <b>Dev Phase 3 Claude Cowork operator: Y</b> (connected 2026-11-14; scheduled task runs <code>run_all</code> on the live app through MCP and reports; no decision tool).</p>
+<h2 id="scope-foundation">Scope &amp; Foundation</h2>
 <ul><li>F0 App Idea &amp; Scope Design: <span class="st st-y">Y</span></li><li>F1 Prototype Execution: <span class="st st-y">Y</span></li><li>F4/S16 FastAPI Backend: <span class="st st-y">Y</span></li><li>F12 Engine Strategy Factory: <span class="st st-y">Y</span></li><li>F12.1 Parallel Entry Point: <span class="st st-y">Y</span> ← new (AI-MK engine frozen as a baseline next to LangGraph)</li></ul>
-<h2>Ingestion &amp; Indexing</h2>
+<h2 id="ingestion-indexing">Ingestion &amp; Indexing</h2>
 <ul><li>F3 Semantic RAG &amp; Vector Store: <span class="st st-y">Y</span></li><li>S14 Clause-Aware Chunking: <span class="st st-y">Y</span></li><li>S4 Metadata Extraction: <span class="st st-y">Y</span></li><li>N1 Document Parsing (OCR/tables): <span class="st st-y">Y</span> ← new</li><li>N2 Incremental Re-index + Versioning: <span class="st st-y">Y</span></li></ul>
-<h2>Retrieval Quality</h2>
+<h2 id="retrieval-quality">Retrieval Quality</h2>
 <ul><li>F18/S9 Hybrid Search: <span class="st st-y">Y</span></li><li>F10/S10 Cross-Encoder Re-ranking: <span class="st st-y">Y</span></li><li>S8 Query Rewriting: <span class="st st-y">Y</span></li></ul>
-<h2>Prompting &amp; Generation</h2>
+<h2 id="prompting-generation">Prompting &amp; Generation</h2>
 <ul><li>F3.1 System Prompt &amp; Persona: <span class="st st-y">Y</span></li><li>F2 Dynamic LLM Selector: <span class="st st-y">Y</span> ← new</li><li>N3 Semantic Cache + Model Fallback: <span class="st st-y">Y</span> ← new (cache checked live; fallback tested with mocks. Claude down -&gt; needs review, never a silent mock in prod)</li></ul>
-<h2>Agents &amp; Tools</h2>
-<ul><li>F13/S17 LangGraph Engines: <span class="st st-y">Y</span></li><li>F13.1 LangGraph State Machine: <span class="st st-y">Y</span></li><li>F13.2 Agentic RAG: <span class="st st-y">Y</span></li><li>F11 Text-to-SQL: <span class="st st-na">N/A - Optional</span> (optional; agent tools call services/)</li><li>F8 FastMCP Server: <span class="st st-y">Y</span></li><li>F14 CrewAI: <span class="st st-na">N/A - Optional</span> (optional)</li><li>F15 AutoGen: <span class="st st-na">N/A - Optional</span> (optional)</li></ul>
-<h2>Memory</h2>
+<h2 id="agents-tools">Agents &amp; Tools</h2>
+<ul><li>F13/S17 LangGraph Engines: <span class="st st-y">Y</span></li><li>F13.1 LangGraph State Machine: <span class="st st-y">Y</span></li><li>F13.2 Agentic RAG: <span class="st st-y">Y</span></li><li>F11 Text-to-SQL: <span class="st st-na">N/A - Optional</span> (optional; agent tools call services/)</li><li>F8 FastMCP Server: <span class="st st-y">Y</span> (used by Claude Cowork since 2026-11-14)</li><li>F14 CrewAI: <span class="st st-na">N/A - Optional</span> (optional)</li><li>F15 AutoGen: <span class="st st-na">N/A - Optional</span> (optional)</li></ul>
+<h2 id="memory">Memory</h2>
 <ul><li>F7 Chat Memory: <span class="st st-y">Y</span></li><li>F16 Persistent Checkpointing: <span class="st st-y">Y</span></li></ul>
-<h2>Safety, Security &amp; Privacy</h2>
+<h2 id="safety-security-privacy">Safety, Security &amp; Privacy</h2>
 <ul><li>F22 Prompt-Injection Defense: <span class="st st-y">Y</span></li><li>F19 Intent Gating: <span class="st st-y">Y</span></li><li>S5 PII Sanitization: <span class="st st-y">Y</span> ← new (logs, traces, chat history)</li><li>F21/S21 Auth, Rate Limiting &amp; RBAC: <span class="st st-y">Y</span></li><li>N5 Red Teaming: <span class="st st-y">Y</span> ← new (44 attacks on real Claude, 0 failed)</li></ul>
-<h2>Evaluation &amp; QA</h2>
+<h2 id="evaluation-qa">Evaluation &amp; QA</h2>
 <ul><li>F17 RAG Evals Harness: <span class="st st-y">Y</span> (live baseline saved)</li><li>F20 CI Eval Gate: <span class="st st-todo">To Do When LLM is ready</span> (offline gate works; live gate needs the GitHub secret)</li><li>F23 Unit Tests: <span class="st st-y">Y</span></li></ul>
-<h2>Observability &amp; Cost</h2>
+<h2 id="observability-cost">Observability &amp; Cost</h2>
 <ul><li>F9 Tracing: <span class="st st-y">Y</span></li><li>F6 Token &amp; Cost Accounting: <span class="st st-y">Y</span></li><li>N4 Online Quality Monitoring: <span class="st st-y">Y</span> ← new</li></ul>
-<h2>Interfaces &amp; Deployment</h2>
-<ul><li>F5 Web Interfaces: <span class="st st-y">Y</span></li><li>F24 Deploy: <span class="st st-y">Y</span> (live on Fly.io)</li><li>N8 Production Ops &amp; Compliance: <span class="st st-todo">To Do When LLM is ready</span> ← new (Phase 11)</li></ul>
-<h2>Governance &amp; Process</h2>
+<h2 id="interfaces-deployment">Interfaces &amp; Deployment</h2>
+<ul><li>F5 Web Interfaces: <span class="st st-y">Y</span></li><li>F24 Deploy: <span class="st st-y">Y</span> (live on Fly.io)</li><li>N8 Production Ops &amp; Compliance: <span class="st st-y">Y</span> ← new (Phase 11: plans, runbooks and a local load test in docs/production-ops.md; no live-URL load test, by choice)</li></ul>
+<h2 id="governance-process">Governance &amp; Process</h2>
 <ul><li>N6 AI Governance: <span class="st st-y">Y</span> ← new (Phase 11)</li><li>F25 Retro &amp; Memory: <span class="st st-y">Y</span></li></ul>
-<h2>Emerging</h2>
+<h2 id="emerging">Emerging</h2>
 <ul><li>N7 GraphRAG / Multimodal: <span class="st st-na">N/A - Optional</span> (optional)</li></ul></main></body></html>

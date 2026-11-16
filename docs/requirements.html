@@ -6,17 +6,23 @@ body{background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,system-ui,
 main{max-width:860px;margin:0 auto}h1,h2{line-height:1.25}h2{border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:2em}
 a{color:var(--accent)}code,pre{background:var(--code);border-radius:4px;font-size:.9em}code{padding:1px 4px}
 pre{padding:12px;overflow-x:auto}table{border-collapse:collapse;width:100%;display:block;overflow-x:auto}
-th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}blockquote{border-left:3px solid var(--accent);margin:0;padding-left:12px;color:var(--muted)}
-</style></head><body><main><h1>Prior Authorization AI Prototype</h1>
-<h2>Live links</h2>
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;display:block;margin:8px 0}blockquote{border-left:3px solid var(--accent);margin:0;padding-left:12px;color:var(--muted)}
+:root{--hl-bg:#fff6c2;--hl-line:#e3c400}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--hl-bg:#3d3508;--hl-line:#b39a00}}
+:root[data-theme="dark"]{--hl-bg:#3d3508;--hl-line:#b39a00}
+.hl{background:var(--hl-bg);border:2px solid var(--hl-line);border-radius:8px;padding:4px 16px 12px;margin:16px 0}
+.hl pre,.hl code{background:rgba(255,255,255,.55)}.hl h2{margin-top:.6em}
+</style></head><body><main><h1 id="prior-authorization-ai-prototype">Prior Authorization AI Prototype</h1>
+<h2 id="live-links">Live links</h2>
 <ul><li><b>Live demo:</b> <a href="https://nurseops-now.fly.dev">nurseops-now.fly.dev</a> (sign-in required)</li><li><b>Blog:</b> <a href="https://michaelc511.github.io/nursing-ai/nurseops-now-blog.html">NurseOps Now, feature by feature</a></li></ul>
-<h2>Problem statement</h2>
+<h2 id="problem-statement">Problem statement</h2>
 <p>A regional health plan processes approximately 15,000 prior authorization requests per month.</p>
 <p><b>Current state:</b></p>
 <ul><li>Nurses manually review requests.</li><li>Clinical documentation arrives through fax, PDFs, portals, and provider uploads.</li><li>Average turnaround time is 4.2 days.</li><li>22% require rework because of missing information.</li><li>Providers frequently call for status updates.</li></ul>
 <p>Leadership wants to reduce turnaround time by 40% without increasing headcount.</p>
 <p>The Chief Medical Officer asks:</p>
 <blockquote>&quot;How can AI improve this process while maintaining clinical quality and regulatory compliance?&quot;</blockquote>
-<h2>Deliverable (show workflow)</h2>
+<h2 id="deliverable-show-workflow">Deliverable (show workflow)</h2>
 <ul><li>Design and develop a rapid AI prototype with Claude, and present it in 15 minutes.</li><li>Present 3 AI opportunities for the problem space above.</li><li>Build one Claude Cowork based prototype.</li><li>Present the architecture in a business-friendly way, showing how it can be extended.</li></ul>
 <p><em>Source: README.md (spec file). Design: CLAUDE.md. Do not edit here; update README.md and recopy.</em></p></main></body></html>
