@@ -3,7 +3,9 @@
 Status of all 42 features from `claude-config/new-project/super-features.html` for this app (decided 2026-11-10, AI features checked on real Claude 2026-11-10).
 **Y** = built; AI features also checked on real Claude unless noted · **To Do When LLM is ready** = still needs the GitHub secret or Phase 11 · **N/A - Optional** = optional, skipped. ← new = production / enterprise feature added 2026-11-10.
 
-Totals: 36 Y · 2 To Do When LLM is ready · 4 N/A - Optional.
+Totals: 37 Y · 1 To Do When LLM is ready · 4 N/A - Optional.
+
+Project deliverable outside the 42: **Dev Phase 3 Claude Cowork operator: Y** (connected 2026-11-14; scheduled task runs `run_all` on the live app through MCP and reports; no decision tool).
 
 ## Scope & Foundation
 - F0 App Idea & Scope Design: Y
@@ -34,7 +36,7 @@ Totals: 36 Y · 2 To Do When LLM is ready · 4 N/A - Optional.
 - F13.1 LangGraph State Machine: Y
 - F13.2 Agentic RAG: Y
 - F11 Text-to-SQL: N/A - Optional (optional; agent tools call services/)
-- F8 FastMCP Server: Y
+- F8 FastMCP Server: Y (used by Claude Cowork since 2026-11-14)
 - F14 CrewAI: N/A - Optional (optional)
 - F15 AutoGen: N/A - Optional (optional)
 
@@ -62,7 +64,7 @@ Totals: 36 Y · 2 To Do When LLM is ready · 4 N/A - Optional.
 ## Interfaces & Deployment
 - F5 Web Interfaces: Y
 - F24 Deploy: Y (live on Fly.io)
-- N8 Production Ops & Compliance: To Do When LLM is ready ← new (Phase 11)
+- N8 Production Ops & Compliance: Y ← new (Phase 11: plans, runbooks and a local load test in docs/production-ops.md; no live-URL load test, by choice)
 
 ## Governance & Process
 - N6 AI Governance: Y ← new (Phase 11)

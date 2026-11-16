@@ -167,5 +167,5 @@ nurse-AI agreement / override rate.
 ## Scaffold state (phases)
 - `.scaffold_state.json` in the project root holds the phase progress and every answer. Read it
   at session start and before any `phase <n>` or `resume`; it overrides memory of the chat.
-- Phase steps live in `/Users/mike/projects/claude-config/NEWPROJECT.md` ("Phases 3–12").
+- Phase steps live in `/Users/mike/projects/claude-config/new-project/NEWPROJECT.md` ("Phases 3–12").
 - Update the file after every phase confirm (Build or Don't build). Never put secrets in it.

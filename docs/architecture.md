@@ -133,7 +133,7 @@ Demo logins per role: `nurse1`, `nurse2` (nurse), `meddir` (medical director), `
 
 ## External services
 - Anthropic Claude API (`ANTHROPIC_API_KEY`, `CLAUDE_MODEL`)
-- Fly.io (deploy, Phase 11) · Claude Cowork via MCP custom connector (Dev Phase 3)
+- Fly.io (deploy, Phase 11) · Claude Cowork via MCP custom connector (Dev Phase 3, connected 2026-11-14: connector **Prior Auth** at `https://nurseops-now.fly.dev/mcp`, bearer `MCP_TOKEN`; steps in `cowork.md`)
 
 ## Non-negotiables
 AI never denies · every AI claim cites page + quote · full audit trail · synthetic data only, no PHI ·
