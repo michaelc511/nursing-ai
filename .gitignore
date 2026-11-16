@@ -18,3 +18,6 @@ backend/data/assist_memory.db*
 evaluation/last_run_*.json
 evaluation/candidates.jsonl
 .coverage
+
+# Fly deploy workflow: keep local only, deploy by hand with `fly deploy`
+.github/workflows/fly-deploy.yml
