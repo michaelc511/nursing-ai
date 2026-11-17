@@ -89,7 +89,7 @@ footer { color: var(--muted); font-size: 0.88rem; margin-top: 64px; padding-top:
 
 <h2 class="part">Part 1: Intro</h2>
 
-<h2>1. What the app is</h2>
+<h2>1. What the App Is</h2>
 <p>When a doctor wants an expensive test for a patient, like an MRI, the health plan must say yes first. That's <b>prior authorization</b>. Today nurses at the plan read every request by hand (faxes, PDFs, uploads), check it against the plan's rules for that test, and decide. It's slow: 4.2 days on average, and 22% of requests come back because something was missing.</p>
 <p>NurseOps Now is like giving that nurse team a very fast assistant that reads everything first and gets it ready, while the nurses still make the call. The goal is 40% faster (about 2.5 days) with no extra hires. That's a target; the prototype hasn't measured it on real work.</p>
 <figure>
@@ -98,7 +98,7 @@ footer { color: var(--muted); font-size: 0.88rem; margin-top: 64px; padding-top:
 </figure>
 <div class="tech"><b>Tech:</b> We used <b>FastAPI</b> (Python) to build one <b>service layer</b> that holds every rule, status change and log entry, <b>React + TypeScript (Vite)</b> for the web app, and <b>SQLite</b> through <b>SQLAlchemy</b> to store cases, decisions and the audit log, with the PDFs in a file folder (swappable later for Postgres and S3). We used <b>Docker</b> to package it and <b>Fly.io</b> to host it live, with the data on a persistent volume.</div>
 
-<h2>2. Opportunity 1: catch missing paperwork right away</h2>
+<h2>2. Opportunity 1: Catch Missing Paperwork Right Away</h2>
 <p><span class="label">Today:</span> a request sits in a pile for days. When a nurse finally opens it, the physical therapy notes are missing, so she asks the doctor's office and waits again.</p>
 <p><span class="label">With the app:</span> the moment the request arrives, it becomes a case and AI reads that case's PDF, says "this one is missing the PT notes", and drafts the note to the doctor's office. The wait starts on day 1, not day 3.</p>
 <p><span class="label">Why it's good:</span> it goes straight at the 22% rework, the biggest source of delay.</p>
@@ -109,7 +109,7 @@ footer { color: var(--muted); font-size: 0.88rem; margin-top: 64px; padding-top:
 </figure>
 <div class="tech"><b>Tech:</b> We used the <b>Claude API</b> (Anthropic's LLM; Opus by default, Sonnet as fallback) to read the whole request PDF, sent as a native <b>document block</b> so Claude sees the text and the page images, and extract patient, CPT, ICD-10, provider and missing documents. We used <b>structured output</b> (<code>messages.parse</code>) with a <b>Pydantic</b> schema so Claude returns validated JSON, not free text. We used <b>pypdf</b> for page text and <b>RapidOCR</b> (local optical character recognition) for faxed or scanned pages, so scans are read on our own server; the request itself goes to Claude through the API, which in production is covered by a BAA. We used a <b>regex</b> to read the CPT code in Python before calling the AI, so code picks the right policy. We used a mocked <b>notification service</b> to send the drafted provider request.</div>
 
-<h2>3. Opportunity 2: a study buddy for the nurse (copilot)</h2>
+<h2>3. Opportunity 2: A Study Buddy for the Nurse (Copilot)</h2>
 <p><span class="label">Today:</span> the nurse reads a 10-page request and a 5-page policy and checks each rule herself.</p>
 <p><span class="label">With the app:</span> AI has already done it: "Rule 1: met. Here's the exact sentence on page 2 that proves it." Then it suggests <b>likely approve</b>, <b>needs review</b> or <b>likely deny</b>. The app double-checks that every quoted sentence is really in the document, and any quote it can't find sends the case to a person, so a made-up citation can't slip through.</p>
 <p><span class="label">Why it's good:</span> the nurse goes from reading everything to checking the AI's work and deciding. She can still disagree, and the app records it when she does.</p>
@@ -124,7 +124,7 @@ footer { color: var(--muted); font-size: 0.88rem; margin-top: 64px; padding-top:
 </figure>
 <div class="tech"><b>Tech:</b> We used <b>RAG</b> (retrieval-augmented generation) to find only the policy rules that matter: <b>sentence-transformers</b> embeddings in a <b>Chroma</b> vector database, <b>hybrid search</b> (BM25 keyword plus vector similarity), a <b>cross-encoder re-ranker</b> and <b>query rewriting</b>, over policies split into clause-sized chunks. We used <b>LangGraph</b> to run the review as fixed steps: read the CPT, look up the policy, retrieve the criteria, Claude reviews, code verifies. We used <b>Python quote verification</b> so any quote not found in the PDF forces "needs review". We used <b>versioned prompt files</b> so prompt changes are tracked like code, and the <b>service layer's state machine</b> so only people decide, with an <b>override flag</b> when a person disagrees with the AI.</div>
 
-<h2>4. Opportunity 3: always know where things stand</h2>
+<h2>4. Opportunity 3: Always Know Where Things Stand</h2>
 <p><span class="label">Today:</span> doctors' offices call to ask "where's my request?", and managers can't easily see what's stuck.</p>
 <p><span class="label">With the app:</span> anyone can ask. A manager types in Cowork "Which cases are stuck more than 2 days?" or "How often do nurses disagree with the AI?" and gets a plain-English answer. Nurses can ask AI Assist in the web app.</p>
 <p><span class="label">Why it's good:</span> fewer phone calls, and leaders spot problems early.</p>
@@ -135,7 +135,7 @@ footer { color: var(--muted); font-size: 0.88rem; margin-top: 64px; padding-top:
 </figure>
 <div class="tech"><b>Tech:</b> We used <b>metrics services</b> (turnaround, rework rate, cases reviewed, override rate), shown as tiles in the web app and exposed as tools for Cowork. We used <b>AI Assist</b>, a <b>LangGraph agent</b> on Claude with <b>read-only tools</b> over the services plus <b>RAG</b> over the user guide, which remembers the conversation through <b>SqliteSaver</b> checkpoints.</div>
 
-<h2>5. Where Cowork fits</h2>
+<h2>5. Where Cowork Fits</h2>
 <p>Think of Cowork as the <b>shift supervisor who never sleeps</b>. Every morning (or every 15 minutes in real life) it picks up the new requests, has the AI read and check each one, and reports: "3 new: 1 missing paperwork, 1 looks good, 1 doesn't meet the rules. Nothing decided, waiting on nurses."</p>
 <p><b>MCP</b> is the plug that connects Cowork to the app. It gives Cowork a fixed set of buttons: take in requests, check, report, answer questions. There's deliberately <b>no approve or deny button</b>, so Cowork can't make decisions.</p>
 <p><b>Scheduling it and what it costs.</b> The task runs on demand with <b>Run now</b>, and it can also run on a schedule: in the task's <b>Trigger</b>, choose <b>Schedule</b> and a frequency (the screenshot below shows <b>Daily</b> at 09:29 AM). For the demo, daily or on demand is enough; in production you'd run it far more often (every 15 minutes) or on an event such as a new fax arriving.</p>
@@ -163,7 +163,7 @@ footer { color: var(--muted); font-size: 0.88rem; margin-top: 64px; padding-top:
 </figure>
 <div class="tech"><b>Tech:</b> We used <b>FastMCP</b> to build an <b>MCP server</b> (Model Context Protocol, the open standard for giving AI tools), mounted inside the same FastAPI app at <code>/mcp</code>, over <b>Streamable HTTP</b>, protected by a <b>bearer token</b>. It exposes <b>7 tools</b> (<code>run_all</code>, <code>poll_intake</code>, <code>review_case</code>, <code>get_cases</code>, <code>get_case</code>, <code>get_stuck_cases</code>, <code>get_metrics</code>) that call the same services as the web app, never the REST API, with <b>no decision tool</b>. We used <b>Claude Cowork</b> with a <b>custom connector</b> ("Prior Auth") and a <b>scheduled task</b> that calls <code>run_all</code>, then <code>get_metrics</code> and <code>get_stuck_cases</code>, and writes the report. Every MCP call goes to the <b>audit log</b> as "cowork", in the same database the web app reads.</div>
 
-<h2>6. Did we use agents?</h2>
+<h2>6. Did We Use Agents?</h2>
 <p>Yes, two. The main AI review is deliberately not one.</p>
 <table>
   <thead><tr><th>Part</th><th>Agent?</th><th>How it works</th></tr></thead>
@@ -176,18 +176,18 @@ footer { color: var(--muted); font-size: 0.88rem; margin-top: 64px; padding-top:
 <p><span class="label">Why the review isn't an agent:</span> it's the part that suggests approve or deny, so it must run the same way every time, in an order you can audit. Agents are used where flexibility helps: answering open questions (AI Assist) and operating the queue (Cowork). Multi-agent frameworks such as CrewAI and AutoGen weren't needed.</p>
 <div class="tech"><b>Tech:</b> We used <b>LangGraph</b> for both the AI Assist agent (a tool-calling loop on Claude with read-only tools and SqliteSaver memory) and the fixed review workflow, and <b>Claude Cowork</b> as an external agent that operates the app through <b>MCP</b>. Neither agent has a tool that can approve or deny.</div>
 
-<h2>7. Keeping it safe and trustworthy</h2>
+<h2>7. Keeping It Safe and Trustworthy</h2>
 <p>The app is built so the AI can't decide, can't be talked into misbehaving, and can always be checked.</p>
 <p><span class="label">Cowork's part:</span> Cowork gets in only with a secret token, can only use the 7 tools (none of which can approve or deny), and every call it makes is in the audit log as "cowork".</p>
 <div class="tech"><b>Tech:</b> We used <b>guardrails</b> (prompt-injection detection and intent gating) before the model is called, and <b>PII redaction</b> to strip SSNs, birth dates, phones, member IDs, NPIs, addresses and names from logs, chat memory and traces. We used <b>role-based login</b>, a <b>24-hour lockout</b> after 3 wrong passwords, <b>rate limits</b> and <b>cost caps</b> per case and per day. We used <b>LangSmith tracing</b> and token and cost accounting for every AI run, with an <b>exact-match cache</b> so the same request isn't paid for twice. We used an <b>eval harness</b>: a golden set, an <b>LLM-as-judge</b>, <b>RAGAS</b> for faithfulness and relevance, a <b>red-team</b> suite (44 attacks, 0 got through), <b>pytest</b> (139 tests) and <b>vitest</b>, and a <b>CI eval gate</b> so quality can't silently drop.</div>
 
-<h2>8. The one rule</h2>
+<h2>8. The One Rule</h2>
 <p class="rule">AI reads and suggests. Cowork keeps the line moving. People decide.</p>
 <p>A nurse can approve or put a case on hold; only the medical director can deny. Every step, by AI, Cowork or a person, is written down.</p>
 <div class="tech"><b>Tech:</b> The rule is enforced once, in the <b>service layer</b>, so it holds for the web app, the CLI and MCP alike.</div>
 <p>In one sentence: the AI does the reading and checking, Cowork keeps the line moving, and nurses spend their time on decisions instead of paperwork.</p>
 
-<h2 class="part">Part 2: The demo at a high level</h2>
+<h2 class="part">Part 2: The Demo at a High Level</h2>
 <ol class="demo">
   <li><b>New requests arrive.</b> Three prior-auth requests come in, the way a fax, portal or upload would: a lumbar spine MRI, a knee MRI and a brain MRI.</li>
   <li><b>Cowork runs the queue.</b> Cowork, the AI operator in Claude, takes in each request and turns it into a case. The AI reads each case's PDF, checks it against the policy, flags anything missing and suggests a tier: likely approve, needs review or likely deny. Cowork reports what needs people and makes no decisions.</li>
@@ -209,7 +209,7 @@ footer { color: var(--muted); font-size: 0.88rem; margin-top: 64px; padding-top:
 <p>Extending it is cheap: a new policy is a PDF plus a re-index, and a new intake channel is one more door into the same services. On compliance, every AI output, decision, actor and timestamp is on the audit trail. This prototype uses synthetic data; real patient data needs HIPAA controls and a BAA first.</p>
 <blockquote>AI does the reading and the checking. Cowork runs the queue. People keep the decisions. That's how we aim to get to 2.5 days without adding headcount.</blockquote>
 
-<h2>Common questions</h2>
+<h2>Common Questions</h2>
 <ul>
   <li><b>Can the AI ever deny?</b> No. No tool, screen or service lets it. Only the medical director can deny.</li>
   <li><b>How do you know the citations are right?</b> Code checks every quote against the PDF; a mismatch forces needs review.</li>
