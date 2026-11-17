@@ -1,0 +1,38 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Script: AI_Prior_Auth_Workflow_Infographic.png</title><style>
+:root{--bg:#fff;--fg:#1c1f23;--muted:#5b6470;--line:#dde1e6;--code:#f3f5f7;--accent:#0b6e8a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3238;--code:#1e2328;--accent:#5cc3df}}
+:root[data-theme="dark"]{--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3238;--code:#1e2328;--accent:#5cc3df}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:860px;margin:0 auto}h1,h2{line-height:1.25}h2{border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:2em}
+a{color:var(--accent)}code,pre{background:var(--code);border-radius:4px;font-size:.9em}code{padding:1px 4px}
+pre{padding:12px;overflow-x:auto}table{border-collapse:collapse;width:100%;display:block;overflow-x:auto}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;display:block;margin:8px 0}blockquote p{margin:.4em 0}blockquote{border-left:3px solid var(--accent);margin:0;padding-left:12px;color:var(--muted)}
+:root{--hl-bg:#fff6c2;--hl-line:#e3c400}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--hl-bg:#3d3508;--hl-line:#b39a00}}
+:root[data-theme="dark"]{--hl-bg:#3d3508;--hl-line:#b39a00}
+.hl{background:var(--hl-bg);border:2px solid var(--hl-line);border-radius:8px;padding:4px 16px 12px;margin:16px 0}
+.hl pre,.hl code{background:rgba(255,255,255,.55)}.hl h2{margin-top:.6em}
+</style></head><body><main><h1 id="script-ai-prior-auth-workflow-infographic-png">Script: AI_Prior_Auth_Workflow_Infographic.png</h1>
+<p>Speaker script for the one-page NotebookLM infographic &quot;AI Reads and Cites, Nurses Decide&quot;. Facts come from <code>docs/demo/2-talk-notes.md</code> and <code>docs/demo/1-short_script.md</code>.</p>
+<p><b>When to use it</b> (Claude&#x27;s suggestion): either as a 3-minute overview at the start of the 10-minute intro, or as a 2-minute recap right before the 30-minute discussion, left on screen while people talk. It also works as a handout after the talk.</p>
+<p><b>Accuracy check:</b> everything on the infographic matches the docs. No fixes needed.</p>
+<p>---</p>
+<h2 id="full-walk-through-about-3-min">Full walk-through (about 3 min)</h2>
+<h3 id="1-title-ai-reads-and-cites-nurses-decide-15-sec">1. Title: AI Reads and Cites, Nurses Decide (15 sec)</h3>
+<blockquote><p>&quot;If you remember one thing from today, it&#x27;s this line: AI reads and cites, nurses decide. This page shows how that works from start to finish.&quot;</p></blockquote>
+<h3 id="2-the-problem-top-left-30-sec">2. The Problem, top left (30 sec)</h3>
+<blockquote><p>&quot;Today a prior authorization takes 4.2 days on average. Nurses read every fax and PDF by hand, and 22% of requests come back for rework because something&#x27;s missing. That load falls on the nurses.&quot;</p></blockquote>
+<h3 id="3-central-prior-auth-workflow-left-to-right-1-min-30-sec">3. Central Prior Auth Workflow, left to right (1 min 30 sec)</h3>
+<p>Point at each step as you go.</p>
+<blockquote><p>&quot;<b>Requests arrive.</b> Faxes, uploads and PDFs land in the intake inbox, just like today.</p><p><b>Cowork picks them up.</b> Claude Cowork runs a scheduled task called &#x27;Prior auth intake&#x27;. It connects to our app through a connector called Prior Auth, which uses MCP, an open standard for giving AI a fixed set of tools.</p><p><b>Case creation.</b> Each PDF becomes a structured case: patient, procedure code, diagnosis code.</p><p><b>AI policy review.</b> Claude checks the request against the policy rules and cites the exact sentence and page for each one. Code then checks every quote against the PDF, and any mismatch sends the case to a person. It also flags missing paperwork right away and drafts the request to the provider.</p><p><b>Clinical decision.</b> This is where the AI stops. A nurse approves or pends. Only the medical director can deny.&quot;</p></blockquote>
+<h3 id="4-guardrails-top-right-30-sec">4. Guardrails, top right (30 sec)</h3>
+<blockquote><p>&quot;Three guardrails. The AI can&#x27;t decide: Cowork has no tool to approve, pend or deny, and that&#x27;s enforced in the service layer, not just hidden on the screen. Every Cowork action is logged under its own name, &#x27;cowork&#x27;, so the audit trail shows exactly what the AI did. And patient data is protected: personal details are removed from logs and traces, and this prototype uses synthetic data only.&quot;</p></blockquote>
+<h3 id="5-operational-value-bottom-30-sec">5. Operational Value, bottom (30 sec)</h3>
+<blockquote><p>&quot;The value. Intake happens in minutes, not days. Missing paperwork is caught on day one, which targets the 22% rework. And the run cost is low: about 10 cents per new case, nothing for an empty inbox, with hard caps of 50 cents per case and 10 dollars a day.</p><p>The goal is 40% faster, from 4.2 days to about 2.5, with no added headcount. That&#x27;s a goal; a pilot would measure it.&quot;</p></blockquote>
+<p>---</p>
+<h2 id="short-version-about-1-min-for-a-recap">Short version (about 1 min, for a recap)</h2>
+<blockquote><p>&quot;Here&#x27;s the whole thing on one page. Requests arrive by fax and upload. Claude Cowork picks them up on a schedule through the Prior Auth connector, turns each one into a case, and Claude checks it against the policy with exact citations, flagging anything missing on day one. Then people decide: nurses approve or pend, and only the medical director denies. Every Cowork action is logged as &#x27;cowork&#x27;, and the AI can&#x27;t make a decision. The result: faster intake, earlier missing-paperwork alerts, about 10 cents a case. AI reads and cites; nurses decide.&quot;</p></blockquote>
+<p>---</p>
+<h2 id="questions-this-page-invites">Questions this page invites</h2>
+<ul><li>*Does Cowork see patient data?* &quot;Yes, it runs the review, so Claude reads the request. Personal details are kept out of logs and traces, and production would add HIPAA controls and a BAA. This prototype uses synthetic data only.&quot;</li><li>*What if Cowork isn&#x27;t running?* &quot;The web app has a Check inbox button that runs the same services. Cowork is the operator, not the engine.&quot;</li><li>*How fast is &#x27;rapid intake&#x27;?* &quot;A Cowork run of 3 requests takes about a minute and a half end to end.&quot;</li></ul></main></body></html>

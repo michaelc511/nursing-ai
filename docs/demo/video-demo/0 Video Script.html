@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NurseOps Now Video Script</title>
+<style>
+:root{--bg:#fff;--fg:#1c1f23;--muted:#5b6470;--line:#dde1e6;--code:#f3f5f7;--accent:#0b6e8a;--card:#f8fafb;--say:#eaf6f9}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3238;--code:#1e2328;--accent:#5cc3df;--card:#1a1e23;--say:#16303a}}
+:root[data-theme="dark"]{--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3238;--code:#1e2328;--accent:#5cc3df;--card:#1a1e23;--say:#16303a}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:860px;margin:0 auto}
+h1{line-height:1.2;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 20px}
+h2{line-height:1.25;margin:0 0 6px;font-size:1.25em}
+.who{display:inline-block;font-size:.8em;font-weight:600;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:0 9px;margin-left:6px;vertical-align:middle}
+.step{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:16px 0}
+.prep{border-left:4px solid var(--accent)}
+ul{margin:6px 0;padding-left:22px}
+li{margin:3px 0}
+code,pre{background:var(--code);border-radius:4px;font-size:.88em}
+code{padding:1px 4px}
+pre{padding:10px 12px;overflow-x:auto;white-space:pre;margin:6px 0}
+.say{background:var(--say);border-left:3px solid var(--accent);border-radius:6px;padding:8px 12px;margin:8px 0}
+.say::before{content:"Say";display:block;font-size:.75em;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)}
+.video{font-size:.9em;color:var(--muted);margin-top:8px}
+.video a{color:var(--accent)}
+details summary{cursor:pointer;color:var(--accent);font-size:.9em}
+.desc{background:var(--code);border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin:8px 0;white-space:pre-line}
+video{width:100%;max-height:420px;border-radius:6px;margin-top:6px;background:#000}
+</style>
+</head>
+<body>
+<main>
+<h1>NurseOps Now video script</h1>
+<p class="sub">8 steps plus the close. Each step links to its recording in this folder. Live site: <a href="https://nurseops-now.fly.dev">nurseops-now.fly.dev</a></p>
+
+<div class="step prep">
+<h2>Before recording</h2>
+<ul>
+<li>The app is awake, and <code>nurse1</code> is signed in.</li>
+<li>A private window is open on the login screen for <code>meddir</code>.</li>
+<li>Cowork (the Claude app) is open with <b>Prior Auth</b> turned on.</li>
+<li>Terminal is ready with the commands from step 2.</li>
+</ul>
+</div>
+
+<div class="step">
+<h2>1. Web app: the current queue <span class="who">nurse1</span></h2>
+<ul><li>Show the queue. Point at the metric tiles, the <b>Last run · Cowork preview</b> card, and the existing cases with their tiers.</li></ul>
+<div class="say">"This is the nurse's queue. These tiles are our success metrics: turnaround, rework rate, cases reviewed and how often nurses override the AI. Let's bring in new requests."</div>
+<div class="video">Video: <a href="1%20Web%20App.mov">1 Web App.mov</a>
+<details><summary>Play here</summary><video controls preload="none" src="1%20Web%20App.mov"></video></details></div>
+</div>
+
+<div class="step">
+<h2>2. New requests arrive <span class="who">Terminal</span></h2>
+<ul><li>Wake the app and wait for <code>200</code>:</li></ul>
+<pre>curl -s -o /dev/null -w "%{http_code} %{time_total}s\n" https://nurseops-now.fly.dev/api/health</pre>
+<ul><li>Copy the 3 requests into the inbox (this works from any folder):</li></ul>
+<pre>fly ssh console --app nurseops-now -C "cp /app/data/samples/72148_a_complete.pdf /app/data/samples/73721_b_missing_pt.pdf /app/data/samples/70551_c_not_met.pdf /data/inbox/"</pre>
+<div class="say">"Three new requests just arrived in the inbox, the way a fax or portal upload would: a lumbar spine MRI, a knee MRI and a brain MRI. In production they land here on their own."</div>
+<div class="video">Video: <a href="2%20New%20Requests.mov">2 New Requests.mov</a>
+<details><summary>Play here</summary><video controls preload="none" src="2%20New%20Requests.mov"></video></details></div>
+</div>
+
+<div class="step">
+<h2>3. Cowork runs the queue <span class="who">Claude app</span></h2>
+<ul><li>Click <b>Scheduled</b> &gt; <b>Prior auth intake</b> &gt; <b>Run now</b>, then <b>Allow</b> each tool. Wait about 1.5 minutes. While the indicator is flashing grey, it's still running.</li></ul>
+<div class="say">"Cowork connects to our app through MCP and calls one tool, run all. It takes in each request, has Claude check it against the policy, and reports what needs people. It has no tool to approve or deny."</div>
+<div class="video">Video: <a href="3%20Cowork.mov">3 Cowork.mov</a>
+<details><summary>Play here</summary><video controls preload="none" src="3%20Cowork.mov"></video></details></div>
+</div>
+
+<div class="step">
+<h2>4. The new cases in Cowork and the web app <span class="who">Claude app + nurse1</span></h2>
+<ul><li><b>Cowork:</b> read the report.</li></ul>
+<div class="say">"Three new cases: the knee MRI is missing physical therapy notes, the lumbar MRI is likely approve, the brain MRI is likely deny. No decisions were made. That's for people."</div>
+<ul><li><b>Web app:</b> refresh the queue and show the 3 new cases with their tiers. Open one: point at the citations marked <b>✓ found in PDF</b>, then scroll to the audit log, which starts with <b>cowork</b>.</li></ul>
+<div class="say">"Every AI claim cites a page and quote, and code checks each one against the PDF. The audit log shows Cowork brought this case in."</div>
+<div class="video">Video: <a href="4%20Cowork.mov">4 Cowork.mov</a>
+<details><summary>Play here</summary><video controls preload="none" src="4%20Cowork.mov"></video></details></div>
+</div>
+
+<div class="step">
+<h2>5. The nurse decides <span class="who">nurse1</span></h2>
+<ul>
+<li><b>Lumbar MRI:</b> <b>Approve</b>, rationale "Meets all criteria", <b>Submit decision</b>.</li>
+<li><b>Brain MRI:</b> <b>Pend</b>, rationale "Needs Medical Director review", <b>Submit decision</b>.</li>
+</ul>
+<div class="say">"The AI suggested; the nurse decides. A nurse can't deny, and neither can the AI, so this one goes to the medical director."</div>
+<div class="video">Video: <a href="5%20Nurse.mov">5 Nurse.mov</a>
+<details><summary>Play here</summary><video controls preload="none" src="5%20Nurse.mov"></video></details></div>
+</div>
+
+<div class="step">
+<h2>6. The doctor denies <span class="who">meddir, private window</span></h2>
+<ul><li><b>Brain MRI:</b> <b>Deny</b>, rationale "Policy criteria not met", <b>Submit decision</b>. Scroll to the audit log.</li></ul>
+<div class="say">"Only the medical director can deny. Every step, by Cowork, the AI, the nurse and the doctor, is on the audit trail."</div>
+<div class="video">Video: <a href="6%20Dr%20Deny.mov">6 Dr Deny.mov</a>
+<details><summary>Play here</summary><video controls preload="none" src="6%20Dr%20Deny.mov"></video></details></div>
+</div>
+
+<div class="step">
+<h2>7. The leader asks Cowork <span class="who">Claude app</span></h2>
+<ul><li>Click <b>+ New</b> and check that <b>Prior Auth</b> is on. Type: <b>"What's our override rate and turnaround time now?"</b> Click <b>Allow</b>.</li></ul>
+<div class="say">"Now I'm the operations leader. I just ask Cowork, in plain English, from the same live data. Cowork is the operator, not the engine."</div>
+<div class="video">Video: <a href="7%20Cowork.mov">7 Cowork.mov</a>
+<details><summary>Play here</summary><video controls preload="none" src="7%20Cowork.mov"></video></details></div>
+</div>
+
+<div class="step">
+<h2>8. The nurse asks AI Assist <span class="who">nurse1</span></h2>
+<ul><li>Open <b>AI Assist</b> and ask: <b>"What does the knee MRI policy require for physical therapy before approval?"</b> Point at the source under the answer: policy, page and quote.</li></ul>
+<div class="say">"The nurse can ask the policy directly. The assistant searches the policy document and answers with the exact page and quote, so she can check it herself. It only reads; it can't decide anything."</div>
+<div class="video">Video: <a href="8%20Nurse%20AI%20Assist.mov">8 Nurse AI Assist.mov</a>
+<details><summary>Play here</summary><video controls preload="none" src="8%20Nurse%20AI%20Assist.mov"></video></details></div>
+</div>
+
+<div class="step">
+<h2>Close <span class="who">to camera</span></h2>
+<div class="say">"AI does the reading and the checking. Cowork runs the queue. People keep the decisions. That's how we get to 2.5 days without adding headcount. Thank you."</div>
+</div>
+
+<div class="step prep">
+<h2>Before another take</h2>
+<ul><li>In the web app, click the blank space to the right of the <b>NurseOps Now</b> title, then <b>Yes, reset</b> (about $0.30).</li></ul>
+</div>
+
+<h1 style="margin-top:40px">YouTube titles and descriptions</h1>
+<p class="sub">One title and description per clip, plus one for a single full video. Every description ends with the same note that the demo uses synthetic data only.</p>
+
+<div class="step prep">
+<h2>Full video (all 8 steps)</h2>
+<p><b>Title:</b> NurseOps Now: AI Prior Authorization Run by Claude Cowork (Full Demo)</p>
+<p><b>Description:</b></p>
+<div class="desc">A full walk-through of NurseOps Now, an AI prototype that helps nurses process prior authorization requests faster. A health plan handles about 15,000 requests a month, waits 4.2 days on average for a decision, and 22% need rework because something is missing. The goal is 40% faster with no added headcount.
+
+In this demo:
+1. The nurse's queue and success metrics
+2. New requests arrive in the inbox
+3. Claude Cowork runs the queue through MCP
+4. The new cases, with cited AI reviews and an audit trail
+5. The nurse approves and pends
+6. The medical director denies
+7. A leader asks Cowork about operations
+8. The nurse asks AI Assist about the policy
+
+The rule throughout: AI reads and cites, people decide. The AI never approves or denies.
+
+Built with Claude (Anthropic), Claude Cowork, MCP, FastAPI, React and RAG over policy PDFs. Live on Fly.io.
+Synthetic data only. No real patient information.</div>
+<p class="video">Once the full video is edited, add a timestamp before each step (the first must be 0:00) so YouTube shows chapters.</p>
+</div>
+
+<div class="step">
+<h2>1 Web App.mov</h2>
+<p><b>Title:</b> NurseOps Now 1/8: The Nurse's Prior Auth Queue</p>
+<div class="desc">The starting point: the nurse's queue in NurseOps Now. The metric tiles track the success measures: turnaround time, rework rate, cases reviewed and how often nurses override the AI. Each case shows the AI's suggested tier.
+
+Synthetic data only. No real patient information.</div>
+</div>
+
+<div class="step">
+<h2>2 New Requests.mov</h2>
+<p><b>Title:</b> NurseOps Now 2/8: New Prior Auth Requests Arrive</p>
+<div class="desc">Three new prior authorization requests land in the inbox, the way a fax, portal or upload would arrive: a lumbar spine MRI, a knee MRI and a brain MRI. In production, requests land here on their own.
+
+Synthetic data only. No real patient information.</div>
+</div>
+
+<div class="step">
+<h2>3 Cowork.mov</h2>
+<p><b>Title:</b> NurseOps Now 3/8: Claude Cowork Runs the Intake Queue</p>
+<div class="desc">Claude Cowork runs a scheduled task called "Prior auth intake". It connects to the app through MCP (Model Context Protocol) and calls one tool, run all: it takes in each new request, has Claude check it against the coverage policy, and reports what needs people. Cowork has no tool to approve or deny.
+
+Synthetic data only. No real patient information.</div>
+</div>
+
+<div class="step">
+<h2>4 Cowork.mov</h2>
+<p><b>Title:</b> NurseOps Now 4/8: AI-Reviewed Cases with Citations and an Audit Trail</p>
+<div class="desc">Cowork's report: one case missing physical therapy notes, one likely approve, one likely deny, and no decisions made. In the web app, each new case shows the AI review with page-and-quote citations that code checks against the PDF, and the audit log shows Cowork brought the case in.
+
+Synthetic data only. No real patient information.</div>
+</div>
+
+<div class="step">
+<h2>5 Nurse.mov</h2>
+<p><b>Title:</b> NurseOps Now 5/8: The Nurse Decides</p>
+<div class="desc">The AI suggests; the nurse decides. The nurse approves the case that meets the policy and pends the likely-deny case for the medical director, each with a required rationale. Neither the nurse nor the AI can deny.
+
+Synthetic data only. No real patient information.</div>
+</div>
+
+<div class="step">
+<h2>6 Dr Deny.mov</h2>
+<p><b>Title:</b> NurseOps Now 6/8: Only the Medical Director Can Deny</p>
+<div class="desc">The medical director reviews the pended case and denies it with a rationale. Only this role can deny, and the rule is enforced in the service layer, not just on screen. The audit trail records every step: Cowork, the AI, the nurse and the doctor.
+
+Synthetic data only. No real patient information.</div>
+</div>
+
+<div class="step">
+<h2>7 Cowork.mov</h2>
+<p><b>Title:</b> NurseOps Now 7/8: Leaders Ask Claude Cowork in Plain English</p>
+<div class="desc">An operations leader asks Claude Cowork, "What's our override rate and turnaround time now?" Cowork answers from the same live data through read-only tools. Cowork is the operator, not the engine; people keep the decisions.
+
+Synthetic data only. No real patient information.</div>
+</div>
+
+<div class="step">
+<h2>8 Nurse AI Assist.mov</h2>
+<p><b>Title:</b> NurseOps Now 8/8: Nurse AI Assist Answers from the Policy</p>
+<div class="desc">The nurse asks AI Assist what the knee MRI policy requires for physical therapy. The assistant searches the policy document (RAG) and answers with the exact page and quote, so the nurse can check it herself. It only reads; it can't decide anything.
+
+Synthetic data only. No real patient information.</div>
+</div>
+
+</main>
+</body>
+</html>
