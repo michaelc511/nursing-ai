@@ -2,6 +2,20 @@
 
 Nov 10, 2026 · Michael Chang · Live demo: nurseops-now.fly.dev
 
+## AI system design: three paths through the system
+
+We want an AI system with three areas. The first prepares the knowledge, turning documents into searchable data. The second uses that knowledge on each request, where agents find the right sources and the AI drafts a cited answer for a person to decide. The third keeps it trustworthy by testing, monitoring and governing the AI.
+
+- **Offline (ingestion).** Policy PDFs are parsed, split by clause, tagged with metadata and embedded into a vector index. A content hash re-indexes only the files that changed.
+- **Online (each request).** A document arrives through any client. The **review agent**, a fixed LangGraph workflow, then runs five steps. It reads the form with OCR, extraction and a completeness check. An LLM rewrites the query in policy wording. RAG retrieves the policy clauses using hybrid search and re-ranking. The LLM writes a cited review that is schema-validated. Code then verifies every quote, with one retry. The case then waits for a human decision, and every step is written to an append-only audit log.
+- **Agents.** The review agent above follows a fixed path, so it can be audited. The **assistant agent** chooses its own tools, including RAG searches over policies and the user guide, to answer staff questions, and its memory is saved. The **operator agent** is Claude Cowork, connected through MCP. It runs intake on a schedule and reports. None of them can approve or deny.
+- **Quality loop (around both).**
+  - **Evals harness.** A golden dataset is scored on retrieval hit rate, RAGAS faithfulness and an LLM judge, and red-team attacks test the guardrails. A CI gate blocks any change that scores below the saved baseline.
+  - **Observability.** Every request is traced in LangSmith with its steps, latency, tokens and cost. Live quality signals such as thumbs up/down, the nurse override rate and quotes that failed the check show when the AI drifts.
+  - **Governance.** Prompts and models are versioned, and a change ships only after it passes the evals. A model card, a risk register and a data-use policy document what the AI may do, and the core rule (AI never decides) is enforced in code.
+
+Offline builds the knowledge, online uses it with agents that can look but never decide, and the quality loop proves it works and keeps it working.
+
 ## The problem: prior authorization is slow, and nurses carry it
 
 NurseOps Now is a working prototype that aims to cut prior authorization turnaround by 40%, from 4.2 days to about 2.5, with no added headcount. The scenario is a regional health plan handling about 15,000 requests a month.

@@ -23,3 +23,6 @@ evaluation/candidates.jsonl
 .github/workflows/fly-deploy.yml
 # Fly app config: keep local only (deploy by hand with `fly deploy`)
 fly.toml
+
+# Demo recordings (too large for GitHub; >100 MB)
+docs/demo/video-demo/*.mov
