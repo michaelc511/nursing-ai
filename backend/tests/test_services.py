@@ -182,7 +182,7 @@ def test_policy_lookup_by_cpt(session):
     unknown = intake.create_case_from_bytes(session, "scan.pdf", b"%PDF")
     assert policy.policy_for_case(unknown) is None
     path, name = policy.policy_path("70551")
-    assert path.read_bytes().startswith(b"%PDF") and name.endswith("_v4.0.pdf")
+    assert path.read_bytes().startswith(b"%PDF") and name.endswith("_v4.1.pdf")
     with pytest.raises(Exception):
         policy.policy_path("99999")
 

@@ -1,0 +1,74 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Eval &amp; QA plan: prove quality at every layer</title><style>
+:root{--bg:#fff;--fg:#1c1f23;--muted:#5b6470;--line:#dde1e6;--code:#f3f5f7;--accent:#0b6e8a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3238;--code:#1e2328;--accent:#5cc3df}}
+:root[data-theme="dark"]{--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3238;--code:#1e2328;--accent:#5cc3df}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:860px;margin:0 auto}h1,h2{line-height:1.25}h2{border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:2em}
+a{color:var(--accent)}code,pre{background:var(--code);border-radius:4px;font-size:.9em}code{padding:1px 4px}
+pre{padding:12px;overflow-x:auto}table{border-collapse:collapse;width:100%;display:block;overflow-x:auto}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;display:block;margin:8px 0}blockquote{border-left:3px solid var(--accent);margin:0;padding-left:12px;color:var(--muted)}
+:root{--hl-bg:#fff6c2;--hl-line:#e3c400}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--hl-bg:#3d3508;--hl-line:#b39a00}}
+:root[data-theme="dark"]{--hl-bg:#3d3508;--hl-line:#b39a00}
+.hl{background:var(--hl-bg);border:2px solid var(--hl-line);border-radius:8px;padding:4px 16px 12px;margin:16px 0}
+.hl pre,.hl code{background:rgba(255,255,255,.55)}.hl h2{margin-top:.6em}
+</style></head><body><main><h1 id="eval-qa-plan-prove-quality-at-every-layer">Eval &amp; QA plan: prove quality at every layer</h1>
+<p>Goal: show, with numbers, that every quality layer of NurseOps Now earns its place, and that</p>
+<p>the evals themselves can be trusted. Area 8 (Evaluation &amp; QA) in <code>docs/features.md</code>, plus</p>
+<p>the pieces of areas 3, 7 and 9 that evals measure.</p>
+<p>Started 2026-11-19. Status: <b>TO DO</b> unless marked.</p>
+<h2 id="where-we-start-from-evaluation-baseline-live-json">Where we start (from <code>evaluation/baseline_live.json</code>)</h2>
+<table><thead><tr><th>Metric</th><th>Score</th><th>Problem</th></tr></thead><tbody><tr><td>hit@1 / hit@3</td><td>0.889 / 1.0</td><td>Set too easy: nothing left to improve, so no layer can show a gain</td></tr><tr><td>review, retrieval, safety</td><td>1.0</td><td>Same: saturated</td></tr><tr><td>assist</td><td>0.875</td><td>OK</td></tr><tr><td>RAGAS faithfulness / answer relevancy</td><td>0.893 / 0.725</td><td>Single run, no spread</td></tr><tr><td>Golden set</td><td>20 rows</td><td>Too small to trust a 0.05 gate</td></tr><tr><td>LLM judge</td><td>not checked against a human</td><td>Can&#x27;t say the judge is right</td></tr><tr><td>CI live gate (F20)</td><td>skipped</td><td>No <code>ANTHROPIC_API_KEY</code> GitHub secret</td></tr></tbody></table>
+<h2 id="step-0-realistic-policy-pdfs-done-2026-11-19">Step 0: Realistic policy PDFs (DONE 2026-11-19)</h2>
+<p>The 3 policies were one page each (6-8 chunks), so every retrieval method scored 100%.</p>
+<ul><li>Expanded to 5 pages each with 13 more sections (definitions, repeat and post-op imaging,</li></ul>
+<p>  prior imaging, contrast, special populations, review timelines, appeals, coding, history).</p>
+<p>  The wording overlaps the coverage criteria on purpose (hard negatives).</p>
+<ul><li>Pages 1-2 unchanged, so §2.A etc., page numbers and mock reviews still hold.</li><li>Versions bumped (72148 v3.3, 73721 v2.2, 70551 v4.1) and re-embedded: 21 → 83 chunks.</li><li>Source: <code>backend/scripts/make_samples.py --policies-only</code>.</li></ul>
+<table><thead><tr><th>Offline (mock)</th><th>Before</th><th>After</th></tr></thead><tbody><tr><td>hit@1</td><td>0.889</td><td>0.778</td></tr><tr><td>hit@3</td><td>1.0</td><td>0.889</td></tr><tr><td>Live: RAGAS faithfulness</td><td>0.893</td><td>0.775</td></tr><tr><td>Live: answer relevancy</td><td>0.725</td><td>0.785</td></tr><tr><td>Live: assist</td><td>0.875</td><td>1.0</td></tr><tr><td>retrieval</td><td>1.0</td><td>0.889</td></tr></tbody></table>
+<p>The CI gate caught the drop (<code>GATE FAILED: hit@1 0.889 -&gt; 0.778</code>); the mock baseline was then</p>
+<p>re-saved because the corpus changed on purpose. The live baseline was re-run 2026-11-19 ($0.42) and re-saved. Faithfulness fell 0.893 → 0.775: more, similar chunks in the context, or run-to-run noise. Part E will tell which.</p>
+<p>First findings for Part A:</p>
+<ul><li>r5 &quot;documents required for a knee MRI&quot; now returns §17 Coding notes, not §3: a real miss.</li><li>r8 &quot;migraine with a normal neuro exam&quot; wants §5, but new §9 (Migraine) is also right.</li></ul>
+<p>  Golden rows need a list of acceptable labels, not one.</p>
+<ul><li>&quot;my knee keeps giving out&quot; ranks §6.B (definition) over §2.A (criterion): definition</li></ul>
+<p>  sections compete with criteria.</p>
+<h2 id="parts">Parts</h2>
+<h3 id="part-a-bigger-harder-golden-set-claude-drafts-mike-reviews">Part A: Bigger, harder golden set (Claude drafts, Mike reviews)</h3>
+<ol><li>Grow <code>evaluation/golden.jsonl</code> from 20 to about 60 rows.</li><li>Add hard cases on purpose: paraphrases with no shared words, two criteria in one question,</li></ol>
+<p>   negations (&quot;no red flags&quot;), the wrong policy for the CPT, off-topic, and injection text.</p>
+<ol><li>Tag each row <code>difficulty: easy|hard</code> and <code>split: dev|test</code>. Tune on <code>dev</code> only; report on</li></ol>
+<p>   <code>test</code> only (a held-out set, so the numbers aren&#x27;t overfit).</p>
+<ol><li>Mike reviews every label (<code>source: &quot;Claude draft, Mike reviews&quot;</code> stays).</li></ol>
+<p>Done when: hit@1 on <code>test</code> is below 0.9 with today&#x27;s pipeline, so there is room to show gains.</p>
+<h3 id="part-b-full-retrieval-metrics-claude">Part B: Full retrieval metrics (Claude)</h3>
+<ol><li><code>run_retrieval.py</code> reports hit@1, hit@3, <b>MRR</b> and <b>recall@k</b>, per difficulty and split.</li><li>Output JSON as well as text, so other scripts can read it.</li></ol>
+<h3 id="part-c-ablation-table-one-layer-at-a-time-claude-builds-mike-runs-live">Part C: Ablation table, one layer at a time (Claude builds, Mike runs live)</h3>
+<p>New script <code>evaluation/run_ablation.py</code>, no LLM needed for retrieval rows:</p>
+<table><thead><tr><th>Run</th><th>Vector</th><th>BM25 hybrid</th><th>Query rewrite</th><th>Re-rank</th></tr></thead><tbody><tr><td>1</td><td>on</td><td>off</td><td>off</td><td>off</td></tr><tr><td>2</td><td>on</td><td>on</td><td>off</td><td>off</td></tr><tr><td>3</td><td>on</td><td>on</td><td>on</td><td>off</td></tr><tr><td>4</td><td>on</td><td>on</td><td>on</td><td>on</td></tr></tbody></table>
+<p>Plus a chunking row: fixed-size chunks vs clause-aware chunks (S14).</p>
+<p>Writes <code>evaluation/ablation.json</code> and a markdown table. Uses the existing <code>settings.hybrid</code></p>
+<p>and re-ranker switches in <code>backend/app/rag/index.py</code>.</p>
+<p>Done when: the table shows how much each layer adds on the <code>test</code> split.</p>
+<h3 id="part-d-trust-the-judge-mike-labels-claude-scores">Part D: Trust the judge (Mike labels, Claude scores)</h3>
+<ol><li>Pick 20 live answers. Mike marks each pass/fail for faithfulness and citations.</li><li>Compare to the LLM judge: % agreement and Cohen&#x27;s kappa.</li><li>If agreement is under 80%, fix the judge prompt (versioned in <code>backend/prompts/</code>) and rerun.</li></ol>
+<p>Done when: &quot;the judge agrees with a clinician-style review X% of the time&quot; is a real number.</p>
+<h3 id="part-e-measure-the-noise-mike-runs-about-1-3-per-run">Part E: Measure the noise (Mike runs, about $1-3 per run)</h3>
+<ol><li>Run <code>run_evals.py --live</code> 3 times.</li><li>Report mean and spread per score.</li><li>Set the <code>--gate</code> threshold from that spread instead of a flat 0.05.</li></ol>
+<h3 id="part-f-live-ci-gate-catches-a-real-regression-mike-claude">Part F: Live CI gate catches a real regression (Mike + Claude)</h3>
+<ol><li>Mike adds the <code>ANTHROPIC_API_KEY</code> GitHub secret (and a monthly spend cap).</li><li>Open a test PR with a deliberately worse prompt (e.g. drop the &quot;cite page + quote&quot; rule).</li><li>CI live gate fails it. Save the screenshot and log. Close the PR.</li></ol>
+<p>Done when: F20 is <b>Y</b> in <code>docs/features.md</code> and there is proof of a blocked PR.</p>
+<h3 id="part-g-production-failure-golden-case-mike-claude">Part G: Production failure → golden case (Mike + Claude)</h3>
+<ol><li>Take one weak answer seen live (N4 online monitoring or a thumbs down).</li><li>Add it to <code>golden.jsonl</code> with its fix; show the score before and after.</li></ol>
+<p>Done when: one documented loop: live failure → new test → fix → gate passes.</p>
+<h3 id="part-h-write-up-claude">Part H: Write-up (Claude)</h3>
+<p><code>docs/eval-report.md</code> (+ <code>.html</code> via <code>tools/scripts/md_to_html.py</code>): golden set stats, ablation</p>
+<p>table, judge agreement, noise, blocked PR, the feedback-loop example, and five interview lines.</p>
+<h2 id="order-and-size">Order and size</h2>
+<p>A → B → C first (no API cost, biggest proof). Then D and E (small live cost), F (needs the</p>
+<p>secret), G, and H last.</p>
+<h2 id="interview-line-fill-in-the-numbers-at-the-end">Interview line (fill in the numbers at the end)</h2>
+<p>&quot;I built a 60-question golden set with a held-out split, ablated each retrieval layer</p>
+<p>(hybrid +X, re-rank +Y on MRR), checked my LLM judge against my own labels (Z% agreement),</p>
+<p>set the CI gate from measured noise, and showed it blocking a bad prompt change.&quot;</p></main></body></html>
