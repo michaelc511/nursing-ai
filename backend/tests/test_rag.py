@@ -10,7 +10,7 @@ def test_clause_aware_chunks_one_per_criterion_with_header():
     labels = [c.meta["label"] for c in chunks]
     assert {"§2.A", "§2.B", "§2.C", "§3", "§4", "§5"} <= set(labels)
     a = next(c for c in chunks if c.meta["label"] == "§2.A")
-    assert a.text.startswith("[RHP-IMG-014 v3.2 | MRI lumbar spine | CPT 72148 | §2.A")
+    assert a.text.startswith("[RHP-IMG-014 v3.3 | MRI lumbar spine | CPT 72148 | §2.A")
     assert "6 weeks of conservative therapy" in a.text.replace("\n", " ")
     # page furniture never becomes content
     assert not any("SYNTHETIC DEMO POLICY" in chunker.body_of(c.text) for c in chunks)
@@ -21,7 +21,7 @@ def test_metadata_on_every_chunk():
         for c in index.chunks_for(cpt):
             assert c.meta["cpt"] == cpt
             assert c.meta["version"] and c.meta["policy_number"].startswith("RHP-IMG-")
-            assert c.meta["page"] in (1, 2)
+            assert c.meta["page"] in (1, 2, 3, 4, 5)
 
 
 def test_page_numbers_follow_the_pdf():

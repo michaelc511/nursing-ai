@@ -7,7 +7,7 @@ import pathlib
 import re
 
 DOCS = pathlib.Path(__file__).resolve().parents[2] / "docs"
-FILES = ["requirements", "architecture", "features", "governance", "production-ops", "demo/4-demo-script", "demo/1-short_script", "demo/2-talk-notes", "blog/blog"]
+FILES = ["requirements", "architecture", "features", "governance", "production-ops", "demo/4-demo-script", "demo/1-short_script", "demo/2-talk-notes", "blog/blog", "blog/nurseops-now-evals", "eval-qa-plan"]
 
 CSS = """
 :root{--bg:#fff;--fg:#1c1f23;--muted:#5b6470;--line:#dde1e6;--code:#f3f5f7;--accent:#0b6e8a}
@@ -118,13 +118,14 @@ def convert(md: str, bullet=inline) -> tuple[str, str]:
     return title, "\n".join(out)
 
 
-def page(title: str, body: str, css: str = CSS) -> str:
+def page(title: str, body: str, css: str = CSS, head: str = "", tail: str = "") -> str:
     return (f'<!doctype html><html lang="en"><head><meta charset="utf-8">'
             f'<meta name="viewport" content="width=device-width,initial-scale=1">'
-            f"<title>{html.escape(title)}</title><style>{css}</style></head>"
-            f"<body><main>{body}</main></body></html>\n")
+            f"<title>{html.escape(title)}</title>{head}<style>{css}</style></head>"
+            f"<body><main>{body}</main>{tail}</body></html>\n")
 
 
+TERM_FILES = {"blog/nurseops-now-evals"}  # pages with hover definitions + ?defs=1 (tools/scripts/blog_terms.py)
 NAV_FILES = {"demo/4-demo-script", "demo/1-short_script", "blog/blog"}  # pages that get a contents list + "Top" links
 NAV_CSS = """
 #top{scroll-margin-top:0}h2,h3{scroll-margin-top:12px}
@@ -164,9 +165,13 @@ def main() -> None:
         features = name == "features"
         title, body = convert(src.read_text(), status_item if features else inline)
         css = CSS + STATUS_CSS if features else CSS
+        head = tail = ""
+        if name in TERM_FILES:
+            import blog_terms
+            body, css, head, tail = blog_terms.apply(body, css)
         if name in NAV_FILES:
             body, css = add_nav(body), css + NAV_CSS
-        (DOCS / f"{name}.html").write_text(page(title, body, css))
+        (DOCS / f"{name}.html").write_text(page(title, body, css, head, tail))
         print(f"wrote docs/{name}.html")
     build_retros()
 
