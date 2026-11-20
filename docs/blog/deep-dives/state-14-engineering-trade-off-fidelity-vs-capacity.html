@@ -1,0 +1,118 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Deep dive 14 of 27: The Engineering Trade-off: Fidelity vs. Capacity</title><script>(function(){var q=new URLSearchParams(location.search).get('defs');if(q&&/^(1|y|yes|on|true|show)$/i.test(q))document.documentElement.classList.add('show-defs');})();</script><style>
+:root{--bg:#fff;--fg:#1c1f23;--muted:#5b6470;--line:#dde1e6;--code:#f3f5f7;--accent:#0b6e8a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3238;--code:#1e2328;--accent:#5cc3df}}
+:root[data-theme="dark"]{--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3238;--code:#1e2328;--accent:#5cc3df}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:860px;margin:0 auto}h1,h2{line-height:1.25}h2{border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:2em}
+a{color:var(--accent)}code,pre{background:var(--code);border-radius:4px;font-size:.9em}code{padding:1px 4px}
+pre{padding:12px;overflow-x:auto}table{border-collapse:collapse;width:100%;display:block;overflow-x:auto}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;display:block;margin:8px 0}blockquote{border-left:3px solid var(--accent);margin:0;padding-left:12px;color:var(--muted)}
+:root{--hl-bg:#fff6c2;--hl-line:#e3c400}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--hl-bg:#3d3508;--hl-line:#b39a00}}
+:root[data-theme="dark"]{--hl-bg:#3d3508;--hl-line:#b39a00}
+.hl{background:var(--hl-bg);border:2px solid var(--hl-line);border-radius:8px;padding:4px 16px 12px;margin:16px 0}
+.hl pre,.hl code{background:rgba(255,255,255,.55)}.hl h2{margin-top:.6em}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .hl pre,:root:not([data-theme="light"]) .hl code{background:rgba(0,0,0,.35)}}
+:root[data-theme="dark"] .hl pre,:root[data-theme="dark"] .hl code{background:rgba(0,0,0,.35)}
+
+:root{--hl:#e4f1ee}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--hl:#1d3531}}
+:root[data-theme="dark"]{--hl:#1d3531}
+a.term{color:inherit;background:var(--hl);border-radius:3px;padding:0 2px;text-decoration:underline dotted var(--accent);text-underline-offset:3px;scroll-margin-top:40vh}
+a.term:hover{color:var(--accent)}
+a.sec{text-decoration:underline dotted;text-underline-offset:3px}
+a.term.here{outline:2px solid var(--accent)}
+.def{color:var(--muted);font-size:.9em}
+html:not(.show-defs) .def{display:none}
+.term-tip{position:absolute;z-index:50;max-width:320px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:10px 12px;font-size:.88rem;line-height:1.45;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+.term-tip strong{display:block;color:var(--accent);margin-bottom:2px}
+.defs-toggle{font-size:.85em;margin:0 0 16px}
+dl.glossary .entry{padding:10px 0;border-bottom:1px solid var(--line);scroll-margin-top:12px}
+dl.glossary .entry:target{background:var(--hl)}
+dl.glossary dt{font-weight:650}dl.glossary dd{margin:2px 0 0}
+dl.glossary .used{display:block;color:var(--muted);font-size:.88em;margin-top:4px}
+dl.glossary .back{display:inline-block;font-size:.88em;margin-top:4px}
+</style></head><body><main><h1 id="deep-dive-14-of-27-the-engineering-trade-off-fidelity-vs-capacity">Deep dive 14 of 27: The Engineering Trade-off: Fidelity vs. Capacity</h1>
+<p>Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built</p><p class="defs-toggle"><a href="#" id="defs-toggle">Show definitions in ( )</a> · hover a highlighted word for its meaning, click it for details · open with <code>?defs=1</code> to show definitions</p>
+<p><b>Part of:</b> <a href="../nurseops-now-state.html" target="_blank" rel="noopener">Remembering the right things: state management in NurseOps Now</a>, section <a href="../nurseops-now-state.html#compression-strategies-summarization-and-entity-extraction-7-2" target="_blank" rel="noopener">Compression Strategies: Summarization and Entity Extraction (7.2)</a> · <a href="../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives" target="_blank" rel="noopener">All 27 solutions</a> · <a href="state-13-vector-compression-via-rag.html" target="_blank" rel="noopener">← Vector Compression via RAG</a> · <a href="state-15-hot-cold-state-architecture.html" target="_blank" rel="noopener">The Hot/Cold State Architecture →</a></p>
+<p><b>Read in this order</b></p>
+<ol><li><a class="sec" href="#in-plain-words" data-tip="Every compression trades fidelity (exact detail) for capacity (fitting more). The fix is to split what you remember: exact facts (&quot;hard state&quot;: IDs, numbers, error codes) are stored word for word, and only the soft…">In plain words</a>: what it is, without jargon</li><li><a class="sec" href="#the-problem-it-solves" data-tip="Hallucination drift: summaries are lossy, and a summary of a summary drifts like a game of telephone. An error code that becomes &quot;an access error&quot; is useless.">The problem it solves</a>: the book&#x27;s problem, and its idea in my words</li><li><a class="sec" href="#how-to-implement-it-serviceapps" data-tip="Illustrative example: no ServiceApps instance is connected, so the scenario and data are made up. The code is a self-contained sketch; it was run on that made-up data on Nov 19, 2026, and the output below is from…">How to implement it (ServiceApps)</a>: scenario, steps, code and real output</li><li><a class="sec" href="#in-nurseops-now" data-tip="Built, more strictly: nothing is summarized at all. Case status, decisions, the AI review and audit rows are SQL records stored as-is, and tool errors are returned raw. See Step 4.">In NurseOps Now</a>: built or not, and where</li><li><a href="#trade-offs">Trade-offs</a> and <a class="sec" href="#interview-answer" data-tip="&quot;Compression always costs fidelity, so I split state: hard values like IDs, error codes and decisions are stored exactly in structured fields, and only the soft conversational context is summarized. Code and logs are…">Interview answer</a></li></ol>
+<h2 id="in-plain-words">In plain words</h2>
+<p>Every compression trades fidelity (exact detail) for capacity (fitting more). The fix is to split what you remember: exact facts (&quot;hard <a class="term" id="u1" href="#g-state" data-tip="everything the app must remember to continue correctly">state</a><span class="def"> (everything the app must remember to continue correctly)</span>&quot;: IDs, numbers, error codes) are stored word for word, and only the soft parts (intent, mood, flow) are summarized.</p>
+<p><b>In plain terms:</b> you can summarize how a meeting felt, but you copy the contract number exactly.</p>
+<h2 id="the-problem-it-solves">The problem it solves</h2>
+<p><b><a class="term" id="u2" href="#g-hallucination-drift" data-tip="details slowly changing as summaries are summarized again">Hallucination drift</a><span class="def"> (details slowly changing as summaries are summarized again)</span></b>: summaries are lossy, and a summary of a summary <a class="term" id="u3" href="#g-drift" data-tip="quality slowly getting worse over time">drifts</a><span class="def"> (quality slowly getting worse over time)</span> like a game of telephone. An error code that becomes &quot;an access error&quot; is useless.</p>
+<p><b>What the book proposes</b> (in my words): keep hard <a class="term" id="u4" href="#g-state" data-tip="everything the app must remember to continue correctly">state</a><span class="def"> (everything the app must remember to continue correctly)</span> in a lossless format (a SQL row or <a class="term" id="u5" href="#g-json" data-tip="a simple text format for structured data">JSON</a><span class="def"> (a simple text format for structured data)</span> block), summarize only soft <a class="term" id="u6" href="#g-state" data-tip="everything the app must remember to continue correctly">state</a><span class="def"> (everything the app must remember to continue correctly)</span>, and never summarize code blocks or error logs.</p>
+<div class="hl">
+<h2 id="how-to-implement-it-serviceapps">How to implement it (ServiceApps)</h2>
+<p><em>Illustrative example: no <a class="term" id="u7" href="#g-serviceapps" data-tip="a company platform for IT tickets, HR requests and help-center articles">ServiceApps</a><span class="def"> (a company platform for IT tickets, HR requests and help-center articles)</span> instance is connected, so the scenario and data are made up. The code is a self-contained sketch; it was run on that made-up data on Nov 19, 2026, and the output below is from that run.</em></p>
+<p><b>The setting.</b> <b><a class="term" id="u8" href="#g-serviceapps" data-tip="a company platform for IT tickets, HR requests and help-center articles">ServiceApps</a><span class="def"> (a company platform for IT tickets, HR requests and help-center articles)</span> Assist</b>, an AI helper inside a company&#x27;s <a class="term" id="u9" href="#g-serviceapps" data-tip="a company platform for IT tickets, HR requests and help-center articles">ServiceApps</a><span class="def"> (a company platform for IT tickets, HR requests and help-center articles)</span> portal. Employees ask it IT and HR questions; it answers from knowledge-base (<a class="term" id="u10" href="#g-kb" data-tip="knowledge base: a library of help articles">KB</a><span class="def"> (knowledge base: a library of help articles)</span>) articles, looks up the employee&#x27;s own tickets (<a class="term" id="u11" href="#g-incident" data-tip="a ServiceApps ticket for something broken">incidents</a><span class="def"> (a ServiceApps ticket for something broken)</span> like INC0012345) and requests, and keeps one conversation per employee and ticket.</p>
+<p><b>The scenario.</b> A <a class="term" id="u12" href="#g-serviceapps" data-tip="a company platform for IT tickets, HR requests and help-center articles">ServiceApps</a><span class="def"> (a company platform for IT tickets, HR requests and help-center articles)</span> Assist chat about a failed software install contains an error code, an asset tag and a ticket number.</p>
+<p><b>Steps.</b></p>
+<ol><li>Detect hard values with patterns or extraction (error codes, IDs, numbers, versions).</li><li>Store them exactly, as structured fields.</li><li>Summarize only the <a class="term" id="u13" href="#g-rest" data-tip="a common way for programs to talk over the web using URLs">rest</a><span class="def"> (a common way for programs to talk over the web using URLs)</span>.</li><li>Send both: the exact values, then the summary.</li></ol>
+<p><b>The code</b> (Python):</p>
+<pre>import re
+turns = [&quot;Error code 0x80070005 when installing Teams&quot;, &quot;Asset LT-4471, ticket INC0012345&quot;,
+         &quot;User sounds frustrated, wants a fix before Friday&#x27;s demo&quot;, &quot;Tried: reinstall, reboot, cleared cache&quot;]
+
+def careless_summary(t):                         # what a lossy summary can do to exact values
+    return &quot;User had an access error installing Teams on their laptop and is frustrated; a ticket exists.&quot;
+
+HARD = re.compile(r&quot;0x[0-9A-Fa-f]+|INC\d+|[A-Z]{2}-\d{4}&quot;)
+def split_state(turns):
+    hard = sorted({m for t in turns for m in HARD.findall(t)})
+    soft = &quot;Frustrated; wants a fix before Friday&#x27;s demo; tried reinstall, reboot and clearing the cache.&quot;
+    return {&quot;hard&quot;: hard, &quot;soft&quot;: soft}
+
+s, st = careless_summary(turns), split_state(turns)
+print(&quot;careless summary keeps:&quot;, [v for v in [&quot;0x80070005&quot;, &quot;INC0012345&quot;, &quot;LT-4471&quot;] if v in s])
+print(&quot;hard state (exact)    :&quot;, st[&quot;hard&quot;])
+print(&quot;soft state (summary)  :&quot;, st[&quot;soft&quot;])</pre>
+<p><b>Output</b> (from running the code above):</p>
+<pre>careless summary keeps: []
+hard state (exact)    : [&#x27;0x80070005&#x27;, &#x27;INC0012345&#x27;, &#x27;LT-4471&#x27;]
+soft state (summary)  : Frustrated; wants a fix before Friday&#x27;s demo; tried reinstall, reboot and clearing the cache.</pre>
+<p><b>What to watch for.</b></p>
+<ul><li>Decide upfront which fields are hard <a class="term" id="u14" href="#g-state" data-tip="everything the app must remember to continue correctly">state</a><span class="def"> (everything the app must remember to continue correctly)</span>; don&#x27;t leave it to the summarizer.</li><li>Code blocks and logs go to a file or blob, referenced by name, never paraphrased.</li><li>Re-check summaries against hard <a class="term" id="u15" href="#g-state" data-tip="everything the app must remember to continue correctly">state</a><span class="def"> (everything the app must remember to continue correctly)</span> when you can.</li></ul>
+<p><b>In plain terms:</b> copy the error code and ticket number exactly into the ticket; it&#x27;s fine to paraphrase how the user felt.</p>
+</div>
+<h2 id="in-nurseops-now">In NurseOps Now</h2>
+<p>Built, more strictly: nothing is summarized at all. Case status, decisions, the AI review and <a class="term" id="u16" href="#g-audit-row" data-tip="one line in the log of who did what, when">audit rows</a><span class="def"> (one line in the log of who did what, when)</span> are SQL records stored as-is, and <a class="term" id="u17" href="#g-tool" data-tip="a function the AI can call, such as policy search">tool</a><span class="def"> (a function the AI can call, such as policy search)</span> errors are returned raw. See <a href="../nurseops-now-state.html#step-4-hard-state-stays-in-sql" target="_blank" rel="noopener">Step 4</a>.</p>
+<h2 id="trade-offs">Trade-offs</h2>
+<ul><li>Keeping hard <a class="term" id="u18" href="#g-state" data-tip="everything the app must remember to continue correctly">state</a><span class="def"> (everything the app must remember to continue correctly)</span> separate is more design work, but it removes a whole class of silent errors.</li><li>Soft summaries still lose nuance.</li></ul>
+<h2 id="interview-answer">Interview answer</h2>
+<p>&quot;Compression always costs fidelity, so I split <a class="term" id="u19" href="#g-state" data-tip="everything the app must remember to continue correctly">state</a><span class="def"> (everything the app must remember to continue correctly)</span>: hard values like IDs, error codes and decisions are stored exactly in structured fields, and only the soft conversational context is summarized. Code and logs are never paraphrased; they&#x27;re stored and referenced.&quot;</p>
+<p>All data in this post is made up. No real people, tickets or patient data.</p>
+<p><a href="../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives" target="_blank" rel="noopener">← Back to all 27 solutions in the state management blog</a></p><h2 id="key-terms">Key terms</h2><p>Every highlighted word in this post links here. Click <b>↩ Back</b> to return to the spot you came from.</p><dl class="glossary"><div class="entry" id="g-audit-row"><dt>audit row</dt><dd>One line in the log of who did what, when.<span class="used">Used in: <a href="#u16">In NurseOps Now</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-drift"><dt>drift</dt><dd>Quality slowly getting worse over time.<span class="used">Used in: <a href="#u3">The problem it solves</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-hallucination-drift"><dt>hallucination drift</dt><dd>Details slowly changing as summaries are summarized again.<span class="used">Used in: <a href="#u2">The problem it solves</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-incident"><dt>incident</dt><dd>A ServiceApps ticket for something broken.<span class="used">Used in: <a href="#u11">How to implement it (ServiceApps)</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-json"><dt>JSON</dt><dd>A simple text format for structured data.<span class="used">Used in: <a href="#u5">The problem it solves</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-kb"><dt>KB</dt><dd>Knowledge base: a library of help articles.<span class="used">Used in: <a href="#u10">How to implement it (ServiceApps)</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-rest"><dt>REST</dt><dd>A common way for programs to talk over the web using URLs.<span class="used">Used in: <a href="#u13">How to implement it (ServiceApps)</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-serviceapps"><dt>ServiceApps</dt><dd>A company platform for IT tickets, HR requests and help-center articles.<span class="used">Used in: <a href="#u7">How to implement it (ServiceApps)</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-state"><dt>state</dt><dd>Everything the app must remember to continue correctly.<span class="used">Used in: <a href="#u1">In plain words</a>, <a href="#u4">The problem it solves</a>, <a href="#u14">How to implement it (ServiceApps)</a>, <a href="#u18">Trade-offs</a>, <a href="#u19">Interview answer</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-tool"><dt>tool</dt><dd>A function the AI can call, such as policy search.<span class="used">Used in: <a href="#u17">In NurseOps Now</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div></dl></main><script>
+(function(){
+  var r=document.documentElement, b=document.getElementById('defs-toggle'), last=null;
+  function paint(){ if(b) b.textContent=r.classList.contains('show-defs')?'Hide definitions in ( )':'Show definitions in ( )'; }
+  if(b) b.addEventListener('click',function(e){ e.preventDefault(); r.classList.toggle('show-defs');
+    var u=new URL(location.href); u.searchParams.set('defs', r.classList.contains('show-defs')?'1':'0');
+    history.replaceState(null,'',u); paint(); });
+  paint();
+  /* click a term -> its glossary entry; "Back" -> the exact term you clicked */
+  document.addEventListener('click',function(e){
+    var a=e.target.closest&&e.target.closest('a.term'); if(a){ last=a.id; return; }
+    var k=e.target.closest&&e.target.closest('a[data-back]'); if(!k) return;
+    e.preventDefault();
+    var id=last||(history.state&&history.state.from);
+    if(id){ var t=document.getElementById(id); location.hash=id; document.querySelectorAll('a.term.here').forEach(function(x){x.classList.remove('here');});
+      if(t){ t.classList.add('here'); setTimeout(function(){t.classList.remove('here');},2500);} }
+    else history.back();
+  });
+  var tip=document.createElement('div'); tip.className='term-tip'; tip.setAttribute('role','tooltip'); tip.hidden=true; document.body.appendChild(tip);
+  function show(a){ var d=a.getAttribute('data-tip'); if(!d) return;
+    tip.innerHTML=''; var h=document.createElement('strong'); h.textContent=a.textContent; tip.appendChild(h); tip.appendChild(document.createTextNode(d));
+    tip.hidden=false; var rc=a.getBoundingClientRect(), w=tip.offsetWidth,
+      x=Math.min(Math.max(8,rc.left+window.scrollX), window.scrollX+document.documentElement.clientWidth-w-8),
+      y=rc.bottom+window.scrollY+6; if(rc.bottom+tip.offsetHeight+12>window.innerHeight) y=rc.top+window.scrollY-tip.offsetHeight-6;
+    tip.style.left=x+'px'; tip.style.top=y+'px'; }
+  function hide(){ tip.hidden=true; }
+  document.addEventListener('mouseover',function(e){ var a=e.target.closest&&e.target.closest('a.term, a.sec'); if(a) show(a); });
+  document.addEventListener('mouseout',function(e){ var a=e.target.closest&&e.target.closest('a.term, a.sec'); if(a&&!a.contains(e.relatedTarget)) hide(); });
+  document.addEventListener('focusin',function(e){ if(e.target.matches&&e.target.matches('a.term, a.sec')) show(e.target); });
+  document.addEventListener('focusout',hide); window.addEventListener('scroll',hide,{passive:true}); window.addEventListener('hashchange',hide);
+})();
+</script></body></html>

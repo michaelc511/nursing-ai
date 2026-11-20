@@ -1,0 +1,125 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Deep dive 24 of 27: Engineering Fix: Strict RAG and Citation Enforcement</title><script>(function(){var q=new URLSearchParams(location.search).get('defs');if(q&&/^(1|y|yes|on|true|show)$/i.test(q))document.documentElement.classList.add('show-defs');})();</script><style>
+:root{--bg:#fff;--fg:#1c1f23;--muted:#5b6470;--line:#dde1e6;--code:#f3f5f7;--accent:#0b6e8a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3238;--code:#1e2328;--accent:#5cc3df}}
+:root[data-theme="dark"]{--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3238;--code:#1e2328;--accent:#5cc3df}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:860px;margin:0 auto}h1,h2{line-height:1.25}h2{border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:2em}
+a{color:var(--accent)}code,pre{background:var(--code);border-radius:4px;font-size:.9em}code{padding:1px 4px}
+pre{padding:12px;overflow-x:auto}table{border-collapse:collapse;width:100%;display:block;overflow-x:auto}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;display:block;margin:8px 0}blockquote{border-left:3px solid var(--accent);margin:0;padding-left:12px;color:var(--muted)}
+:root{--hl-bg:#fff6c2;--hl-line:#e3c400}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--hl-bg:#3d3508;--hl-line:#b39a00}}
+:root[data-theme="dark"]{--hl-bg:#3d3508;--hl-line:#b39a00}
+.hl{background:var(--hl-bg);border:2px solid var(--hl-line);border-radius:8px;padding:4px 16px 12px;margin:16px 0}
+.hl pre,.hl code{background:rgba(255,255,255,.55)}.hl h2{margin-top:.6em}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .hl pre,:root:not([data-theme="light"]) .hl code{background:rgba(0,0,0,.35)}}
+:root[data-theme="dark"] .hl pre,:root[data-theme="dark"] .hl code{background:rgba(0,0,0,.35)}
+
+:root{--hl:#e4f1ee}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--hl:#1d3531}}
+:root[data-theme="dark"]{--hl:#1d3531}
+a.term{color:inherit;background:var(--hl);border-radius:3px;padding:0 2px;text-decoration:underline dotted var(--accent);text-underline-offset:3px;scroll-margin-top:40vh}
+a.term:hover{color:var(--accent)}
+a.sec{text-decoration:underline dotted;text-underline-offset:3px}
+a.term.here{outline:2px solid var(--accent)}
+.def{color:var(--muted);font-size:.9em}
+html:not(.show-defs) .def{display:none}
+.term-tip{position:absolute;z-index:50;max-width:320px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:10px 12px;font-size:.88rem;line-height:1.45;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+.term-tip strong{display:block;color:var(--accent);margin-bottom:2px}
+.defs-toggle{font-size:.85em;margin:0 0 16px}
+dl.glossary .entry{padding:10px 0;border-bottom:1px solid var(--line);scroll-margin-top:12px}
+dl.glossary .entry:target{background:var(--hl)}
+dl.glossary dt{font-weight:650}dl.glossary dd{margin:2px 0 0}
+dl.glossary .used{display:block;color:var(--muted);font-size:.88em;margin-top:4px}
+dl.glossary .back{display:inline-block;font-size:.88em;margin-top:4px}
+</style></head><body><main><h1 id="deep-dive-24-of-27-engineering-fix-strict-rag-and-citation-enforcement">Deep dive 24 of 27: Engineering Fix: Strict RAG and Citation Enforcement</h1>
+<p>Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built</p><p class="defs-toggle"><a href="#" id="defs-toggle">Show definitions in ( )</a> · hover a highlighted word for its meaning, click it for details · open with <code>?defs=1</code> to show definitions</p>
+<p><b>Part of:</b> <a href="../nurseops-now-state.html" target="_blank" rel="noopener">Remembering the right things: state management in NurseOps Now</a>, section <a href="../nurseops-now-state.html#preventing-drift-and-hallucinations-in-long-running-agents-7-4" target="_blank" rel="noopener">Preventing Drift and Hallucinations in Long-Running Agents (7.4)</a> · <a href="../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives" target="_blank" rel="noopener">All 27 solutions</a> · <a href="state-23-recursive-goal-injection.html" target="_blank" rel="noopener">← Engineering Fix: Recursive Goal Injection</a> · <a href="state-25-input-filtering-relevance-pruning.html" target="_blank" rel="noopener">Input Filtering: Relevance Pruning →</a></p>
+<p><b>Read in this order</b></p>
+<ol><li><a class="sec" href="#in-plain-words" data-tip="Strict RAG means the AI may only answer factual questions from retrieved sources, and must cite them. If the source isn&#x27;t there, it says so (&quot;MISSING_INFO&quot;) instead of guessing. A check then confirms every quote…">In plain words</a>: what it is, without jargon</li><li><a class="sec" href="#the-problem-it-solves" data-tip="Hallucination (The Grounding Failure): when the answer isn&#x27;t in the context, the model fills the gap with something plausible and wrong.">The problem it solves</a>: the book&#x27;s problem, and its idea in my words</li><li><a class="sec" href="#how-to-implement-it-serviceapps" data-tip="Illustrative example: no ServiceApps instance is connected, so the scenario and data are made up. The code is a self-contained sketch; it was run on that made-up data on Nov 19, 2026, and the output below is from…">How to implement it (ServiceApps)</a>: scenario, steps, code and real output</li><li><a class="sec" href="#in-nurseops-now" data-tip="Built: AI Assist&#x27;s prompt says answer only from tools and say &quot;I don&#x27;t know&quot; otherwise; the check node adds a &quot;please check&quot; note to answers without sources; and every case review quote must match the PDF exactly, or…">In NurseOps Now</a>: built or not, and where</li><li><a href="#trade-offs">Trade-offs</a> and <a class="sec" href="#interview-answer" data-tip="&quot;Factual answers must cite a retrieved chunk with an exact quote, and code checks that the quote is really in that chunk. No source means an explicit MISSING_INFO, not a guess. That turns hallucination from a silent…">Interview answer</a></li></ol>
+<h2 id="in-plain-words">In plain words</h2>
+<p>Strict <a class="term" id="u1" href="#g-rag" data-tip="retrieval-augmented generation: the AI looks things up before it answers">RAG</a><span class="def"> (retrieval-augmented generation: the AI looks things up before it answers)</span> means the AI may only answer factual questions from retrieved sources, and must cite them. If the source isn&#x27;t there, it says so (&quot;MISSING_INFO&quot;) instead of guessing. A check then confirms every quote really appears in its source.</p>
+<p><b>In plain terms:</b> no claim without a page number, and someone checks the page.</p>
+<h2 id="the-problem-it-solves">The problem it solves</h2>
+<p><b><a class="term" id="u2" href="#g-hallucination-the-grounding-failure" data-tip="the AI stating made-up facts when the answer isn&#x27;t in front of it">Hallucination (The Grounding Failure)</a><span class="def"> (the AI stating made-up facts when the answer isn&#x27;t in front of it)</span></b>: when the answer isn&#x27;t in the context, the model fills the gap with something plausible and wrong.</p>
+<p><b>What the book proposes</b> (in my words): the <a class="term" id="u3" href="#g-agent" data-tip="an AI that chooses which tools to use to answer">agent</a><span class="def"> (an AI that chooses which tools to use to answer)</span> can&#x27;t answer factual questions unless it cites a retrieved <a class="term" id="u4" href="#g-chunk" data-tip="a small piece of a document; here, one policy rule">chunk</a><span class="def"> (a small piece of a document; here, one policy rule)</span>; otherwise it outputs a predefined marker such as MISSING_INFO.</p>
+<div class="hl">
+<h2 id="how-to-implement-it-serviceapps">How to implement it (ServiceApps)</h2>
+<p><em>Illustrative example: no <a class="term" id="u5" href="#g-serviceapps" data-tip="a company platform for IT tickets, HR requests and help-center articles">ServiceApps</a><span class="def"> (a company platform for IT tickets, HR requests and help-center articles)</span> instance is connected, so the scenario and data are made up. The code is a self-contained sketch; it was run on that made-up data on Nov 19, 2026, and the output below is from that run.</em></p>
+<p><b>The setting.</b> <b><a class="term" id="u6" href="#g-serviceapps" data-tip="a company platform for IT tickets, HR requests and help-center articles">ServiceApps</a><span class="def"> (a company platform for IT tickets, HR requests and help-center articles)</span> Assist</b>, an AI helper inside a company&#x27;s <a class="term" id="u7" href="#g-serviceapps" data-tip="a company platform for IT tickets, HR requests and help-center articles">ServiceApps</a><span class="def"> (a company platform for IT tickets, HR requests and help-center articles)</span> portal. Employees ask it IT and HR questions; it answers from knowledge-base (<a class="term" id="u8" href="#g-kb" data-tip="knowledge base: a library of help articles">KB</a><span class="def"> (knowledge base: a library of help articles)</span>) articles, looks up the employee&#x27;s own tickets (<a class="term" id="u9" href="#g-incident" data-tip="a ServiceApps ticket for something broken">incidents</a><span class="def"> (a ServiceApps ticket for something broken)</span> like INC0012345) and requests, and keeps one conversation per employee and ticket.</p>
+<p><b>The scenario.</b> <a class="term" id="u10" href="#g-serviceapps" data-tip="a company platform for IT tickets, HR requests and help-center articles">ServiceApps</a><span class="def"> (a company platform for IT tickets, HR requests and help-center articles)</span> Assist answers four questions; some answers cite correctly, one misquotes, one cites nothing, one honestly says it can&#x27;t find the information.</p>
+<p><b>Steps.</b></p>
+<ol><li>Tell the model: answer only from the retrieved <a class="term" id="u11" href="#g-chunks" data-tip="small pieces of a document; here, one policy rule each">chunks</a><span class="def"> (small pieces of a document; here, one policy rule each)</span>, cite them as [ID] &quot;quote&quot;, else say MISSING_INFO.</li><li>After the answer, check each <a class="term" id="u12" href="#g-citation" data-tip="a pointer to the exact page and quote that supports a claim">citation</a><span class="def"> (a pointer to the exact page and quote that supports a claim)</span>: the source exists and the quote is in it.</li><li>Block or flag answers that fail.</li><li>Count MISSING_INFO answers; they show gaps in the <a class="term" id="u13" href="#g-knowledge-base" data-tip="a library of help articles; in ServiceApps, a named group of KB articles">knowledge base</a><span class="def"> (a library of help articles; in ServiceApps, a named group of KB articles)</span>.</li></ol>
+<p><b>The code</b> (Python):</p>
+<pre>import re
+CHUNKS = {&quot;KB0010234#errors&quot;: &quot;Error 809 means the VPN can&#x27;t reach the server. Avoid guest Wi-Fi and restart the client.&quot;,
+          &quot;KB0020311#4&quot;: &quot;Employees may work from another country for up to 10 working days a year.&quot;}
+
+def check(answer):
+    if answer.startswith(&quot;MISSING_INFO&quot;):
+        return &quot;OK (honest MISSING_INFO)&quot;
+    m = re.search(r&#x27;\[(KB\d+#\w+)\]\s*&quot;([^&quot;]+)&quot;&#x27;, answer)
+    if not m:
+        return &quot;BLOCKED: no citation&quot;
+    cid, quote = m.groups()
+    if cid not in CHUNKS:
+        return f&quot;BLOCKED: unknown source {cid}&quot;
+    if quote not in CHUNKS[cid]:
+        return f&quot;BLOCKED: quote not in {cid}&quot;
+    return &quot;OK&quot;
+
+answers = [&#x27;Avoid guest Wi-Fi. [KB0010234#errors] &quot;Avoid guest Wi-Fi and restart the client.&quot;&#x27;,
+           &#x27;You can work abroad for 30 days. [KB0020311#4] &quot;up to 30 working days a year&quot;&#x27;,
+           &#x27;Your laptop is probably fine.&#x27;,
+           &quot;MISSING_INFO: I can&#x27;t find your laptop&#x27;s warranty in the knowledge base.&quot;]
+for a in answers:
+    print(f&quot;{check(a):28s} &lt;- {a[:58]}&quot;)</pre>
+<p><b>Output</b> (from running the code above):</p>
+<pre>OK                           &lt;- Avoid guest Wi-Fi. [KB0010234#errors] &quot;Avoid guest Wi-Fi a
+BLOCKED: quote not in KB0020311#4 &lt;- You can work abroad for 30 days. [KB0020311#4] &quot;up to 30 w
+BLOCKED: no citation         &lt;- Your laptop is probably fine.
+OK (honest MISSING_INFO)     &lt;- MISSING_INFO: I can&#x27;t find your laptop&#x27;s warranty in the k</pre>
+<p><b>What to watch for.</b></p>
+<ul><li>Check quotes in code; don&#x27;t trust the model&#x27;s own claim that it cited.</li><li>Allow honest &quot;I don&#x27;t know&quot; answers; punishing them encourages guessing.</li><li>Quote checks need exact text; normalize spaces and punctuation consistently.</li></ul>
+<p><b>In plain terms:</b> every answer must point to the <a class="term" id="u14" href="#g-kb" data-tip="knowledge base: a library of help articles">KB</a><span class="def"> (knowledge base: a library of help articles)</span> line it came from, and a checker reads that line to confirm.</p>
+</div>
+<h2 id="in-nurseops-now">In NurseOps Now</h2>
+<p>Built: <a class="term" id="u15" href="#g-ai-assist" data-tip="the app&#x27;s chat helper for staff questions">AI Assist</a><span class="def"> (the app&#x27;s chat helper for staff questions)</span>&#x27;s <a class="term" id="u16" href="#g-prompt" data-tip="the instructions and text given to the AI">prompt</a><span class="def"> (the instructions and text given to the AI)</span> says answer only from <a class="term" id="u17" href="#g-tool" data-tip="a function the AI can call, such as policy search">tools</a><span class="def"> (a function the AI can call, such as policy search)</span> and say &quot;I don&#x27;t know&quot; otherwise; the <code>check</code> node adds a &quot;please check&quot; note to answers without sources; and every case review quote must match the <a class="term" id="u18" href="#g-pdf" data-tip="a fixed-layout document file">PDF</a><span class="def"> (a fixed-layout document file)</span> exactly, or the review is sent back once. See <a href="../nurseops-now-state.html#step-11-ground-every-answer" target="_blank" rel="noopener">Step 11</a>.</p>
+<h2 id="trade-offs">Trade-offs</h2>
+<ul><li>More &quot;I don&#x27;t know&quot; answers, which is the honest cost of fewer made-up ones.</li><li>Exact quote checks can fail on harmless formatting differences.</li></ul>
+<h2 id="interview-answer">Interview answer</h2>
+<p>&quot;Factual answers must cite a retrieved <a class="term" id="u19" href="#g-chunk" data-tip="a small piece of a document; here, one policy rule">chunk</a><span class="def"> (a small piece of a document; here, one policy rule)</span> with an exact quote, and code checks that the quote is really in that <a class="term" id="u20" href="#g-chunk" data-tip="a small piece of a document; here, one policy rule">chunk</a><span class="def"> (a small piece of a document; here, one policy rule)</span>. No source means an explicit MISSING_INFO, not a guess. That turns <a class="term" id="u21" href="#g-hallucination" data-tip="the AI stating something that isn&#x27;t in the sources">hallucination</a><span class="def"> (the AI stating something that isn&#x27;t in the sources)</span> from a silent failure into a visible, countable one.&quot;</p>
+<p>All data in this post is made up. No real people, tickets or patient data.</p>
+<p><a href="../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives" target="_blank" rel="noopener">← Back to all 27 solutions in the state management blog</a></p><h2 id="key-terms">Key terms</h2><p>Every highlighted word in this post links here. Click <b>↩ Back</b> to return to the spot you came from.</p><dl class="glossary"><div class="entry" id="g-agent"><dt>agent</dt><dd>An AI that chooses which tools to use to answer.<span class="used">Used in: <a href="#u3">The problem it solves</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-ai-assist"><dt>AI Assist</dt><dd>The app&#x27;s chat helper for staff questions.<span class="used">Used in: <a href="#u15">In NurseOps Now</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-chunk"><dt>chunk</dt><dd>A small piece of a document; here, one policy rule.<span class="used">Used in: <a href="#u4">The problem it solves</a>, <a href="#u19">Interview answer</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-chunks"><dt>chunks</dt><dd>Small pieces of a document; here, one policy rule each.<span class="used">Used in: <a href="#u11">How to implement it (ServiceApps)</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-citation"><dt>citation</dt><dd>A pointer to the exact page and quote that supports a claim.<span class="used">Used in: <a href="#u12">How to implement it (ServiceApps)</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-hallucination"><dt>hallucination</dt><dd>The AI stating something that isn&#x27;t in the sources.<span class="used">Used in: <a href="#u21">Interview answer</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-hallucination-the-grounding-failure"><dt>hallucination (the grounding failure)</dt><dd>The AI stating made-up facts when the answer isn&#x27;t in front of it.<span class="used">Used in: <a href="#u2">The problem it solves</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-incident"><dt>incident</dt><dd>A ServiceApps ticket for something broken.<span class="used">Used in: <a href="#u9">How to implement it (ServiceApps)</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-kb"><dt>KB</dt><dd>Knowledge base: a library of help articles.<span class="used">Used in: <a href="#u8">How to implement it (ServiceApps)</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-knowledge-base"><dt>knowledge base</dt><dd>A library of help articles; in ServiceApps, a named group of KB articles.<span class="used">Used in: <a href="#u13">How to implement it (ServiceApps)</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-pdf"><dt>PDF</dt><dd>A fixed-layout document file.<span class="used">Used in: <a href="#u18">In NurseOps Now</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-prompt"><dt>prompt</dt><dd>The instructions and text given to the AI.<span class="used">Used in: <a href="#u16">In NurseOps Now</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-rag"><dt>RAG</dt><dd>Retrieval-augmented generation: the AI looks things up before it answers.<span class="used">Used in: <a href="#u1">In plain words</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-serviceapps"><dt>ServiceApps</dt><dd>A company platform for IT tickets, HR requests and help-center articles.<span class="used">Used in: <a href="#u5">How to implement it (ServiceApps)</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-tool"><dt>tool</dt><dd>A function the AI can call, such as policy search.<span class="used">Used in: <a href="#u17">In NurseOps Now</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div></dl></main><script>
+(function(){
+  var r=document.documentElement, b=document.getElementById('defs-toggle'), last=null;
+  function paint(){ if(b) b.textContent=r.classList.contains('show-defs')?'Hide definitions in ( )':'Show definitions in ( )'; }
+  if(b) b.addEventListener('click',function(e){ e.preventDefault(); r.classList.toggle('show-defs');
+    var u=new URL(location.href); u.searchParams.set('defs', r.classList.contains('show-defs')?'1':'0');
+    history.replaceState(null,'',u); paint(); });
+  paint();
+  /* click a term -> its glossary entry; "Back" -> the exact term you clicked */
+  document.addEventListener('click',function(e){
+    var a=e.target.closest&&e.target.closest('a.term'); if(a){ last=a.id; return; }
+    var k=e.target.closest&&e.target.closest('a[data-back]'); if(!k) return;
+    e.preventDefault();
+    var id=last||(history.state&&history.state.from);
+    if(id){ var t=document.getElementById(id); location.hash=id; document.querySelectorAll('a.term.here').forEach(function(x){x.classList.remove('here');});
+      if(t){ t.classList.add('here'); setTimeout(function(){t.classList.remove('here');},2500);} }
+    else history.back();
+  });
+  var tip=document.createElement('div'); tip.className='term-tip'; tip.setAttribute('role','tooltip'); tip.hidden=true; document.body.appendChild(tip);
+  function show(a){ var d=a.getAttribute('data-tip'); if(!d) return;
+    tip.innerHTML=''; var h=document.createElement('strong'); h.textContent=a.textContent; tip.appendChild(h); tip.appendChild(document.createTextNode(d));
+    tip.hidden=false; var rc=a.getBoundingClientRect(), w=tip.offsetWidth,
+      x=Math.min(Math.max(8,rc.left+window.scrollX), window.scrollX+document.documentElement.clientWidth-w-8),
+      y=rc.bottom+window.scrollY+6; if(rc.bottom+tip.offsetHeight+12>window.innerHeight) y=rc.top+window.scrollY-tip.offsetHeight-6;
+    tip.style.left=x+'px'; tip.style.top=y+'px'; }
+  function hide(){ tip.hidden=true; }
+  document.addEventListener('mouseover',function(e){ var a=e.target.closest&&e.target.closest('a.term, a.sec'); if(a) show(a); });
+  document.addEventListener('mouseout',function(e){ var a=e.target.closest&&e.target.closest('a.term, a.sec'); if(a&&!a.contains(e.relatedTarget)) hide(); });
+  document.addEventListener('focusin',function(e){ if(e.target.matches&&e.target.matches('a.term, a.sec')) show(e.target); });
+  document.addEventListener('focusout',hide); window.addEventListener('scroll',hide,{passive:true}); window.addEventListener('hashchange',hide);
+})();
+</script></body></html>

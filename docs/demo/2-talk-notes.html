@@ -13,6 +13,8 @@ img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;di
 :root[data-theme="dark"]{--hl-bg:#3d3508;--hl-line:#b39a00}
 .hl{background:var(--hl-bg);border:2px solid var(--hl-line);border-radius:8px;padding:4px 16px 12px;margin:16px 0}
 .hl pre,.hl code{background:rgba(255,255,255,.55)}.hl h2{margin-top:.6em}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .hl pre,:root:not([data-theme="light"]) .hl code{background:rgba(0,0,0,.35)}}
+:root[data-theme="dark"] .hl pre,:root[data-theme="dark"] .hl code{background:rgba(0,0,0,.35)}
 </style></head><body><main><h1 id="nurseops-now-talk-notes">NurseOps Now talk notes</h1>
 <p>One file for an AI chat (a Claude Project) to answer questions about NurseOps Now during rehearsal, a presentation or an interview. Facts as of 2026-11-14. If this file and another doc disagree, this file and the date win.</p>
 <h2 id="instructions-for-the-chat">Instructions for the chat</h2>

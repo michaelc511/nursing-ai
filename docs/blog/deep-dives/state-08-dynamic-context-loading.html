@@ -1,0 +1,116 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Deep dive 8 of 27: Dynamic Context Loading</title><script>(function(){var q=new URLSearchParams(location.search).get('defs');if(q&&/^(1|y|yes|on|true|show)$/i.test(q))document.documentElement.classList.add('show-defs');})();</script><style>
+:root{--bg:#fff;--fg:#1c1f23;--muted:#5b6470;--line:#dde1e6;--code:#f3f5f7;--accent:#0b6e8a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3238;--code:#1e2328;--accent:#5cc3df}}
+:root[data-theme="dark"]{--bg:#15181c;--fg:#e6e8eb;--muted:#9aa3ad;--line:#2c3238;--code:#1e2328;--accent:#5cc3df}
+body{background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,system-ui,sans-serif;margin:0;padding:24px 16px}
+main{max-width:860px;margin:0 auto}h1,h2{line-height:1.25}h2{border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:2em}
+a{color:var(--accent)}code,pre{background:var(--code);border-radius:4px;font-size:.9em}code{padding:1px 4px}
+pre{padding:12px;overflow-x:auto}table{border-collapse:collapse;width:100%;display:block;overflow-x:auto}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;display:block;margin:8px 0}blockquote{border-left:3px solid var(--accent);margin:0;padding-left:12px;color:var(--muted)}
+:root{--hl-bg:#fff6c2;--hl-line:#e3c400}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--hl-bg:#3d3508;--hl-line:#b39a00}}
+:root[data-theme="dark"]{--hl-bg:#3d3508;--hl-line:#b39a00}
+.hl{background:var(--hl-bg);border:2px solid var(--hl-line);border-radius:8px;padding:4px 16px 12px;margin:16px 0}
+.hl pre,.hl code{background:rgba(255,255,255,.55)}.hl h2{margin-top:.6em}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .hl pre,:root:not([data-theme="light"]) .hl code{background:rgba(0,0,0,.35)}}
+:root[data-theme="dark"] .hl pre,:root[data-theme="dark"] .hl code{background:rgba(0,0,0,.35)}
+
+:root{--hl:#e4f1ee}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--hl:#1d3531}}
+:root[data-theme="dark"]{--hl:#1d3531}
+a.term{color:inherit;background:var(--hl);border-radius:3px;padding:0 2px;text-decoration:underline dotted var(--accent);text-underline-offset:3px;scroll-margin-top:40vh}
+a.term:hover{color:var(--accent)}
+a.sec{text-decoration:underline dotted;text-underline-offset:3px}
+a.term.here{outline:2px solid var(--accent)}
+.def{color:var(--muted);font-size:.9em}
+html:not(.show-defs) .def{display:none}
+.term-tip{position:absolute;z-index:50;max-width:320px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:10px 12px;font-size:.88rem;line-height:1.45;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+.term-tip strong{display:block;color:var(--accent);margin-bottom:2px}
+.defs-toggle{font-size:.85em;margin:0 0 16px}
+dl.glossary .entry{padding:10px 0;border-bottom:1px solid var(--line);scroll-margin-top:12px}
+dl.glossary .entry:target{background:var(--hl)}
+dl.glossary dt{font-weight:650}dl.glossary dd{margin:2px 0 0}
+dl.glossary .used{display:block;color:var(--muted);font-size:.88em;margin-top:4px}
+dl.glossary .back{display:inline-block;font-size:.88em;margin-top:4px}
+</style></head><body><main><h1 id="deep-dive-8-of-27-dynamic-context-loading">Deep dive 8 of 27: Dynamic Context Loading</h1>
+<p>Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built</p><p class="defs-toggle"><a href="#" id="defs-toggle">Show definitions in ( )</a> · hover a highlighted word for its meaning, click it for details · open with <code>?defs=1</code> to show definitions</p>
+<p><b>Part of:</b> <a href="../nurseops-now-state.html" target="_blank" rel="noopener">Remembering the right things: state management in NurseOps Now</a>, section <a href="../nurseops-now-state.html#implementing-short-term-memory-token-budgets-and-window-management-7-1" target="_blank" rel="noopener">Implementing Short-Term Memory: Token Budgets and Window Management (7.1)</a> · <a href="../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives" target="_blank" rel="noopener">All 27 solutions</a> · <a href="state-07-token-counting-middleware.html" target="_blank" rel="noopener">← Token Counting Middleware</a> · <a href="state-09-system-prompt-pinning.html" target="_blank" rel="noopener">System Prompt Pinning →</a></p>
+<p><b>Read in this order</b></p>
+<ol><li><a class="sec" href="#in-plain-words" data-tip="In plain terms: a library card instead of carrying the whole library in your backpack.">In plain words</a>: what it is, without jargon</li><li><a class="sec" href="#the-problem-it-solves" data-tip="The token window is a hard limit and Loss of instructional integrity: pasting a whole knowledge base or ticket history crowds out the rules and the question.">The problem it solves</a>: the book&#x27;s problem, and its idea in my words</li><li><a class="sec" href="#how-to-implement-it-serviceapps" data-tip="Illustrative example: no ServiceApps instance is connected, so the scenario and data are made up. The code is a self-contained sketch; it was run on that made-up data on Nov 19, 2026, and the output below is from…">How to implement it (ServiceApps)</a>: scenario, steps, code and real output</li><li><a class="sec" href="#in-nurseops-now" data-tip="Built. AI Assist has read-only tools (get_case, list_cases, stuck_cases, metrics, search_policy, search_guide), each result capped at 12,000 characters, with at most 4 tool rounds (assist.py). See Step 3.">In NurseOps Now</a>: built or not, and where</li><li><a href="#trade-offs">Trade-offs</a> and <a class="sec" href="#interview-answer" data-tip="&quot;Instead of stuffing documents into the prompt, I give the model a short stub and tools to fetch what it needs, with size caps and a round limit. The window stays small and current, and every fact used has a source.&quot;">Interview answer</a></li></ol>
+<h2 id="in-plain-words">In plain words</h2>
+<p><a class="term" id="u1" href="#g-dynamic-context-loading" data-tip="giving the AI tools to fetch data only when it needs it, instead of putting everything in the prompt">Dynamic context loading</a><span class="def"> (giving the AI tools to fetch data only when it needs it, instead of putting everything in the prompt)</span> means you don&#x27;t paste everything the AI might need into the <a class="term" id="u2" href="#g-prompt" data-tip="the instructions and text given to the AI">prompt</a><span class="def"> (the instructions and text given to the AI)</span>. You give it a short note saying what&#x27;s available and <a class="term" id="u3" href="#g-tool" data-tip="a function the AI can call, such as policy search">tools</a><span class="def"> (a function the AI can call, such as policy search)</span> to fetch it, and it loads only what the current question needs.</p>
+<p><b>In plain terms:</b> a library card instead of carrying the whole library in your backpack.</p>
+<h2 id="the-problem-it-solves">The problem it solves</h2>
+<p><b><a class="term" id="u4" href="#g-the-token-window-is-a-hard-limit" data-tip="everything sent to the AI shares one fixed size budget">The token window is a hard limit</a><span class="def"> (everything sent to the AI shares one fixed size budget)</span></b> and <b><a class="term" id="u5" href="#g-loss-of-instructional-integrity" data-tip="the AI losing its rules because they were pushed out of the window">Loss of instructional integrity</a><span class="def"> (the AI losing its rules because they were pushed out of the window)</span></b>: pasting a whole <a class="term" id="u6" href="#g-knowledge-base" data-tip="a library of help articles; in ServiceApps, a named group of KB articles">knowledge base</a><span class="def"> (a library of help articles; in ServiceApps, a named group of KB articles)</span> or ticket history crowds out the rules and the question.</p>
+<p><b>What the book proposes</b> (in my words): lazy-load: put a stub like &quot;documentation available via the search <a class="term" id="u7" href="#g-tool" data-tip="a function the AI can call, such as policy search">tool</a><span class="def"> (a function the AI can call, such as policy search)</span>&quot; in the <a class="term" id="u8" href="#g-prompt" data-tip="the instructions and text given to the AI">prompt</a><span class="def"> (the instructions and text given to the AI)</span> and let the <a class="term" id="u9" href="#g-agent" data-tip="an AI that chooses which tools to use to answer">agent</a><span class="def"> (an AI that chooses which tools to use to answer)</span> request specific sections.</p>
+<div class="hl">
+<h2 id="how-to-implement-it-serviceapps">How to implement it (ServiceApps)</h2>
+<p><em>Illustrative example: no <a class="term" id="u10" href="#g-serviceapps" data-tip="a company platform for IT tickets, HR requests and help-center articles">ServiceApps</a><span class="def"> (a company platform for IT tickets, HR requests and help-center articles)</span> instance is connected, so the scenario and data are made up. The code is a self-contained sketch; it was run on that made-up data on Nov 19, 2026, and the output below is from that run.</em></p>
+<p><b>The setting.</b> <b><a class="term" id="u11" href="#g-serviceapps" data-tip="a company platform for IT tickets, HR requests and help-center articles">ServiceApps</a><span class="def"> (a company platform for IT tickets, HR requests and help-center articles)</span> Assist</b>, an AI helper inside a company&#x27;s <a class="term" id="u12" href="#g-serviceapps" data-tip="a company platform for IT tickets, HR requests and help-center articles">ServiceApps</a><span class="def"> (a company platform for IT tickets, HR requests and help-center articles)</span> portal. Employees ask it IT and HR questions; it answers from knowledge-base (<a class="term" id="u13" href="#g-kb" data-tip="knowledge base: a library of help articles">KB</a><span class="def"> (knowledge base: a library of help articles)</span>) articles, looks up the employee&#x27;s own tickets (<a class="term" id="u14" href="#g-incident" data-tip="a ServiceApps ticket for something broken">incidents</a><span class="def"> (a ServiceApps ticket for something broken)</span> like INC0012345) and requests, and keeps one conversation per employee and ticket.</p>
+<p><b>The scenario.</b> The company has 50 <a class="term" id="u15" href="#g-kb-article" data-tip="one help-center article in a knowledge base, with a number like KB0010234">KB articles</a><span class="def"> (one help-center article in a knowledge base, with a number like KB0010234)</span>. An employee asks about VPN error 809 on a Mac.</p>
+<p><b>Steps.</b></p>
+<ol><li>Replace pasted documents with a one-line stub naming the <a class="term" id="u16" href="#g-tool" data-tip="a function the AI can call, such as policy search">tools</a><span class="def"> (a function the AI can call, such as policy search)</span>.</li><li>Give the model <a class="term" id="u17" href="#g-tool" data-tip="a function the AI can call, such as policy search">tools</a><span class="def"> (a function the AI can call, such as policy search)</span> such as search_kb(question) and get_ticket(number).</li><li>Cap each <a class="term" id="u18" href="#g-tool" data-tip="a function the AI can call, such as policy search">tool</a><span class="def"> (a function the AI can call, such as policy search)</span> result&#x27;s size.</li><li>Let the model call <a class="term" id="u19" href="#g-tool" data-tip="a function the AI can call, such as policy search">tools</a><span class="def"> (a function the AI can call, such as policy search)</span> as needed, up to a limit of rounds.</li></ol>
+<p><b>The code</b> (Python):</p>
+<pre>KB = {f&quot;KB00{n}&quot;: f&quot;Article {n} &quot; + &quot;text &quot; * 400 for n in range(10000, 10050)}           # 50 articles
+KB[&quot;KB0010234&quot;] = &quot;Connect to VPN on macOS. Error 809: the client can&#x27;t reach the server; avoid guest Wi-Fi.&quot;
+MAX_RESULT = 300
+
+def search_kb(question, k=1):
+    words = set(question.lower().split())
+    ranked = sorted(KB.items(), key=lambda kv: -len(words &amp; set(kv[1].lower().split())))
+    return [(kid, text[:MAX_RESULT]) for kid, text in ranked[:k]]
+
+STUB = &quot;Knowledge base: available through the search_kb tool. Fetch only what you need.&quot;
+all_chars = sum(len(t) for t in KB.values())
+kid, text = search_kb(&quot;vpn error 809 on mac&quot;)[0]           # a real model decides to call the tool
+print(&quot;whole KB if pasted:&quot;, all_chars, &quot;chars&quot;)
+print(&quot;stub in the prompt:&quot;, len(STUB), &quot;chars&quot;)
+print(&quot;fetched           :&quot;, kid, len(text), &quot;chars -&gt;&quot;, text)</pre>
+<p><b>Output</b> (from running the code above):</p>
+<pre>whole KB if pasted: 100789 chars
+stub in the prompt: 79 chars
+fetched           : KB0010234 89 chars -&gt; Connect to VPN on macOS. Error 809: the client can&#x27;t reach the server; avoid guest Wi-Fi.</pre>
+<p><b>What to watch for.</b></p>
+<ul><li>Cap <a class="term" id="u20" href="#g-tool" data-tip="a function the AI can call, such as policy search">tool</a><span class="def"> (a function the AI can call, such as policy search)</span> results; one huge result can flood the window by itself.</li><li>Limit <a class="term" id="u21" href="#g-tool" data-tip="a function the AI can call, such as policy search">tool</a><span class="def"> (a function the AI can call, such as policy search)</span> rounds, so the <a class="term" id="u22" href="#g-agent" data-tip="an AI that chooses which tools to use to answer">agent</a><span class="def"> (an AI that chooses which tools to use to answer)</span> can&#x27;t loop forever.</li><li>Treat fetched text as data, never as instructions.</li></ul>
+<p><b>In plain terms:</b> the assistant knows where every article is and fetches one page when you ask, instead of reading you the whole manual.</p>
+</div>
+<h2 id="in-nurseops-now">In NurseOps Now</h2>
+<p>Built. <a class="term" id="u23" href="#g-ai-assist" data-tip="the app&#x27;s chat helper for staff questions">AI Assist</a><span class="def"> (the app&#x27;s chat helper for staff questions)</span> has read-only <a class="term" id="u24" href="#g-tool" data-tip="a function the AI can call, such as policy search">tools</a><span class="def"> (a function the AI can call, such as policy search)</span> (<code>get_case</code>, <code>list_cases</code>, <code>stuck_cases</code>, <code>metrics</code>, <code>search_policy</code>, <code>search_guide</code>), each result capped at 12,000 characters, with at most 4 <a class="term" id="u25" href="#g-tool" data-tip="a function the AI can call, such as policy search">tool</a><span class="def"> (a function the AI can call, such as policy search)</span> rounds (<code>assist.py</code>). See <a href="../nurseops-now-state.html#step-3-load-facts-only-when-needed" target="_blank" rel="noopener">Step 3</a>.</p>
+<h2 id="trade-offs">Trade-offs</h2>
+<ul><li><a class="term" id="u26" href="#g-tool" data-tip="a function the AI can call, such as policy search">Tool</a><span class="def"> (a function the AI can call, such as policy search)</span> calls add round trips and <a class="term" id="u27" href="#g-latency" data-tip="how long it takes to respond">latency</a><span class="def"> (how long it takes to respond)</span>.</li><li>The model may not fetch something it needed; good <a class="term" id="u28" href="#g-tool" data-tip="a function the AI can call, such as policy search">tool</a><span class="def"> (a function the AI can call, such as policy search)</span> descriptions matter.</li></ul>
+<h2 id="interview-answer">Interview answer</h2>
+<p>&quot;Instead of stuffing documents into the <a class="term" id="u29" href="#g-prompt" data-tip="the instructions and text given to the AI">prompt</a><span class="def"> (the instructions and text given to the AI)</span>, I give the model a short stub and <a class="term" id="u30" href="#g-tool" data-tip="a function the AI can call, such as policy search">tools</a><span class="def"> (a function the AI can call, such as policy search)</span> to fetch what it needs, with size caps and a round limit. The window stays small and current, and every fact used has a source.&quot;</p>
+<p>All data in this post is made up. No real people, tickets or patient data.</p>
+<p><a href="../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives" target="_blank" rel="noopener">← Back to all 27 solutions in the state management blog</a></p><h2 id="key-terms">Key terms</h2><p>Every highlighted word in this post links here. Click <b>↩ Back</b> to return to the spot you came from.</p><dl class="glossary"><div class="entry" id="g-agent"><dt>agent</dt><dd>An AI that chooses which tools to use to answer.<span class="used">Used in: <a href="#u9">The problem it solves</a>, <a href="#u22">How to implement it (ServiceApps)</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-ai-assist"><dt>AI Assist</dt><dd>The app&#x27;s chat helper for staff questions.<span class="used">Used in: <a href="#u23">In NurseOps Now</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-dynamic-context-loading"><dt>dynamic context loading</dt><dd>Giving the AI tools to fetch data only when it needs it, instead of putting everything in the prompt.<span class="used">Used in: <a href="#u1">In plain words</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-incident"><dt>incident</dt><dd>A ServiceApps ticket for something broken.<span class="used">Used in: <a href="#u14">How to implement it (ServiceApps)</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-kb"><dt>KB</dt><dd>Knowledge base: a library of help articles.<span class="used">Used in: <a href="#u13">How to implement it (ServiceApps)</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-kb-article"><dt>KB article</dt><dd>One help-center article in a knowledge base, with a number like KB0010234.<span class="used">Used in: <a href="#u15">How to implement it (ServiceApps)</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-knowledge-base"><dt>knowledge base</dt><dd>A library of help articles; in ServiceApps, a named group of KB articles.<span class="used">Used in: <a href="#u6">The problem it solves</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-latency"><dt>latency</dt><dd>How long it takes to respond.<span class="used">Used in: <a href="#u27">Trade-offs</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-loss-of-instructional-integrity"><dt>loss of instructional integrity</dt><dd>The AI losing its rules because they were pushed out of the window.<span class="used">Used in: <a href="#u5">The problem it solves</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-prompt"><dt>prompt</dt><dd>The instructions and text given to the AI.<span class="used">Used in: <a href="#u2">In plain words</a>, <a href="#u8">The problem it solves</a>, <a href="#u29">Interview answer</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-serviceapps"><dt>ServiceApps</dt><dd>A company platform for IT tickets, HR requests and help-center articles.<span class="used">Used in: <a href="#u10">How to implement it (ServiceApps)</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-the-token-window-is-a-hard-limit"><dt>the token window is a hard limit</dt><dd>Everything sent to the AI shares one fixed size budget.<span class="used">Used in: <a href="#u4">The problem it solves</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div><div class="entry" id="g-tool"><dt>tool</dt><dd>A function the AI can call, such as policy search.<span class="used">Used in: <a href="#u3">In plain words</a>, <a href="#u7">The problem it solves</a>, <a href="#u16">How to implement it (ServiceApps)</a>, <a href="#u24">In NurseOps Now</a>, <a href="#u26">Trade-offs</a>, <a href="#u30">Interview answer</a></span><a class="back" href="#" data-back>↩ Back to where you were</a></dd></div></dl></main><script>
+(function(){
+  var r=document.documentElement, b=document.getElementById('defs-toggle'), last=null;
+  function paint(){ if(b) b.textContent=r.classList.contains('show-defs')?'Hide definitions in ( )':'Show definitions in ( )'; }
+  if(b) b.addEventListener('click',function(e){ e.preventDefault(); r.classList.toggle('show-defs');
+    var u=new URL(location.href); u.searchParams.set('defs', r.classList.contains('show-defs')?'1':'0');
+    history.replaceState(null,'',u); paint(); });
+  paint();
+  /* click a term -> its glossary entry; "Back" -> the exact term you clicked */
+  document.addEventListener('click',function(e){
+    var a=e.target.closest&&e.target.closest('a.term'); if(a){ last=a.id; return; }
+    var k=e.target.closest&&e.target.closest('a[data-back]'); if(!k) return;
+    e.preventDefault();
+    var id=last||(history.state&&history.state.from);
+    if(id){ var t=document.getElementById(id); location.hash=id; document.querySelectorAll('a.term.here').forEach(function(x){x.classList.remove('here');});
+      if(t){ t.classList.add('here'); setTimeout(function(){t.classList.remove('here');},2500);} }
+    else history.back();
+  });
+  var tip=document.createElement('div'); tip.className='term-tip'; tip.setAttribute('role','tooltip'); tip.hidden=true; document.body.appendChild(tip);
+  function show(a){ var d=a.getAttribute('data-tip'); if(!d) return;
+    tip.innerHTML=''; var h=document.createElement('strong'); h.textContent=a.textContent; tip.appendChild(h); tip.appendChild(document.createTextNode(d));
+    tip.hidden=false; var rc=a.getBoundingClientRect(), w=tip.offsetWidth,
+      x=Math.min(Math.max(8,rc.left+window.scrollX), window.scrollX+document.documentElement.clientWidth-w-8),
+      y=rc.bottom+window.scrollY+6; if(rc.bottom+tip.offsetHeight+12>window.innerHeight) y=rc.top+window.scrollY-tip.offsetHeight-6;
+    tip.style.left=x+'px'; tip.style.top=y+'px'; }
+  function hide(){ tip.hidden=true; }
+  document.addEventListener('mouseover',function(e){ var a=e.target.closest&&e.target.closest('a.term, a.sec'); if(a) show(a); });
+  document.addEventListener('mouseout',function(e){ var a=e.target.closest&&e.target.closest('a.term, a.sec'); if(a&&!a.contains(e.relatedTarget)) hide(); });
+  document.addEventListener('focusin',function(e){ if(e.target.matches&&e.target.matches('a.term, a.sec')) show(e.target); });
+  document.addEventListener('focusout',hide); window.addEventListener('scroll',hide,{passive:true}); window.addEventListener('hashchange',hide);
+})();
+</script></body></html>

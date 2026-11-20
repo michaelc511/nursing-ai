@@ -24,6 +24,8 @@ img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;di
 :root[data-theme="dark"]{--hl-bg:#3d3508;--hl-line:#b39a00}
 .hl{background:var(--hl-bg);border:2px solid var(--hl-line);border-radius:8px;padding:4px 16px 12px;margin:16px 0}
 .hl pre,.hl code{background:rgba(255,255,255,.55)}.hl h2{margin-top:.6em}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .hl pre,:root:not([data-theme="light"]) .hl code{background:rgba(0,0,0,.35)}}
+:root[data-theme="dark"] .hl pre,:root[data-theme="dark"] .hl code{background:rgba(0,0,0,.35)}
 """
 
 # features page only: green = Y, yellow = To Do, red = N/A
@@ -67,7 +69,12 @@ def convert(md: str, bullet=inline) -> tuple[str, str]:
     parent = ""
     while i < len(lines):
         line = lines[i]
-        if line.startswith(":::"):                       # ":::highlight" ... ":::" = yellow box
+        if line.strip() == ":::html":                     # ":::html" ... ":::" = raw HTML, passed through as is
+            i += 1
+            while i < len(lines) and lines[i].strip() != ":::":
+                out.append(lines[i])
+                i += 1
+        elif line.startswith(":::"):                     # ":::highlight" ... ":::" = yellow box
             out.append('<div class="hl">' if line.strip() == ":::highlight" else "</div>")
         elif line.startswith("```"):
             block = []
