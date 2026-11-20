@@ -13,6 +13,8 @@ img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;di
 :root[data-theme="dark"]{--hl-bg:#3d3508;--hl-line:#b39a00}
 .hl{background:var(--hl-bg);border:2px solid var(--hl-line);border-radius:8px;padding:4px 16px 12px;margin:16px 0}
 .hl pre,.hl code{background:rgba(255,255,255,.55)}.hl h2{margin-top:.6em}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .hl pre,:root:not([data-theme="light"]) .hl code{background:rgba(0,0,0,.35)}}
+:root[data-theme="dark"] .hl pre,:root[data-theme="dark"] .hl code{background:rgba(0,0,0,.35)}
 
 :root{--y-bg:#d6f3df;--y-fg:#125c2c;--todo-bg:#fff0b3;--todo-fg:#634b00;--na-bg:#fddcd9;--na-fg:#951b1b}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--y-bg:#14432a;--y-fg:#8fe8ad;--todo-bg:#4a3a08;--todo-fg:#f7d96b;--na-bg:#521d1d;--na-fg:#ffb0aa}}

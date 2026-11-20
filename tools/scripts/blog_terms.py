@@ -346,7 +346,7 @@ dl.glossary .back{display:inline-block;font-size:.88em;margin-top:4px}
 """
 
 HEAD_JS = ("<script>(function(){var q=new URLSearchParams(location.search).get('defs');"
-           "if(q&&/^(1|on|true|show|yes)$/i.test(q))document.documentElement.classList.add('show-defs');})();</script>")
+           "if(q&&/^(1|y|yes|on|true|show)$/i.test(q))document.documentElement.classList.add('show-defs');})();</script>")
 
 TOGGLE = ('<p class="defs-toggle"><a href="#" id="defs-toggle">Show definitions in ( )</a> · '
           'hover a highlighted word for its meaning, click it for details · '
@@ -408,8 +408,14 @@ def section_tips(body: str) -> str:
     return re.sub(r'<a href="#([^"]+)">(.*?)</a>', rep, body)
 
 
+def new_tab_links(body: str) -> str:
+    """Links that leave the page (other pages, files, websites) open in a new tab; #anchors stay in the same tab."""
+    return re.sub(r'<a href="(?!#)([^"]+)"(?![^>]*\btarget=)', r'<a href="\1" target="_blank" rel="noopener"', body)
+
+
 def apply(body: str, css: str) -> tuple[str, str, str, str]:
     """-> (body with linked terms, toggle after the byline and Key terms glossary at the end, css, head js, tail js)."""
+    body = new_tab_links(body)
     body, uses = add_terms(body)
     body = section_tips(body)
     i = body.find("</p>", body.find("</h1>"))

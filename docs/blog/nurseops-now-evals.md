@@ -1,5 +1,18 @@
 # Proving the answers are good: the NurseOps Now eval plan
 
+:::html
+<style>.tags{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:4px 0 10px;font-size:.88em}
+.tags b{color:var(--muted);font-weight:600}.tags a{text-decoration:none;border:1px solid var(--accent);border-radius:14px;padding:2px 10px;
+background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--fg)}.tags a:hover{background:color-mix(in srgb,var(--accent) 22%,transparent)}
+.tags small{color:var(--muted)}.tags .flow{flex-basis:100%;color:var(--muted);font-size:.95em}</style>
+<div class="tags"><b>Tags:</b>
+<a href="#how-a-question-flows-and-where-we-check-it">1 · Build it accurately <small>pipeline, Steps 1–9</small></a>
+<a href="#step-10-offline-evals">2 · Test it <small>evals + test harness, Steps 10–11</small></a>
+<a href="#step-12-after-release">3 · Watch it live <small>observability, Step 12</small></a>
+<a href="#step-0-done-the-test-was-too-easy">4 · Improve it <small>Step 0 findings + plan A–H</small></a>
+<div class="flow">build it accurately → test it → watch it live → improve it</div></div>
+:::
+
 Nov 19, 2026 · Michael Chang · Live demo: nurseops-now.fly.dev · Status: plan, Step 0 done
 
 **Read in this order**
@@ -38,34 +51,34 @@ NurseOps Now reads prior authorization requests, finds the matching rule in a co
 
 ## How a question flows, and where we check it
 
-All 12 steps are already built in the app, and they are listed in the order they run. Click a step name to see what was done, with a real example. The last column says what is still missing to _prove_ each one, and which part of the plan covers it.
+All 12 steps are already built in the app, and they are listed in the order they run. Click a step name to see what was done, with a real example. The _Built?_ column says what is still missing to _prove_ each one, and which part of the plan covers it. The _Deep dive_ column links to a separate post on that step with the real code.
 
 **A. Before any question (offline, once per policy change)**
 
-| # | Step | What happens | How we check it | Built? |
-|---|---|---|---|---|
-| 1 | [Ingestion](#step-1-ingestion) | Policy PDFs are split into clauses, tagged and embedded | Chunk count, labels, pages (unit tests) | ✅ Yes |
+| # | Step | What happens | How we check it | Built? | Deep dive |
+|---|---|---|---|---|---|
+| 1 | [Ingestion](#step-1-ingestion) | Policy PDFs are split into clauses, tagged and embedded | Chunk count, labels, pages (unit tests) | ✅ Yes | [Ingestion deep dive](deep-dives/01-ingestion.html) |
 
 **B. Each request or question, in order**
 
-| # | Step | What happens | How we check it | Built? |
-|---|---|---|---|---|
-| 2 | [Read the request](#step-2-read-the-request) | Read each page (OCR for faxes), find the CPT code, scan for hidden instructions | Golden review cases; OCR tests | ✅ Yes |
-| 3 | [Input guardrails](#step-3-input-guardrails) | Block injection, off-topic and personal data in questions | Red team suite, safety rows in the golden set | ✅ Yes |
-| 4 | [Query rewriting](#step-4-query-rewriting) | Turn "my knee gives out" into policy wording | Retrieval score with and without rewriting | ✅ Yes; its gain not measured yet (Part C) |
-| 5 | [Hybrid search](#step-5-hybrid-search) | Meaning search plus keyword search | hit@1, hit@3, MRR | ✅ Yes; MRR not yet (Part B) |
-| 6 | [Re-ranking](#step-6-re-ranking) | A second model reorders the top 10 | MRR before and after | ✅ Yes; its gain not measured yet (Part C) |
-| 7 | [Generation](#step-7-generation) | Claude writes the cited review | LLM judge, RAGAS faithfulness | ✅ Yes; judge not yet checked by a person (Part D) |
-| 8 | [Output checks](#step-8-output-checks) | Every quote is matched against the PDF | Quote-verified rate | ✅ Yes |
-| 9 | [Human decision and audit](#step-9-human-decision-and-audit) | A nurse or medical director decides; everything is logged | Role rules in code; override rate | ✅ Yes |
+| # | Step | What happens | How we check it | Built? | Deep dive |
+|---|---|---|---|---|---|
+| 2 | [Read the request](#step-2-read-the-request) | Read each page (OCR for faxes), find the CPT code, scan for hidden instructions | Golden review cases; OCR tests | ✅ Yes | To come |
+| 3 | [Input guardrails](#step-3-input-guardrails) | Block injection, off-topic and personal data in questions | Red team suite, safety rows in the golden set | ✅ Yes | To come |
+| 4 | [Query rewriting](#step-4-query-rewriting) | Turn "my knee gives out" into policy wording | Retrieval score with and without rewriting | ✅ Yes; its gain not measured yet (Part C) | To come |
+| 5 | [Hybrid search](#step-5-hybrid-search) | Meaning search plus keyword search | hit@1, hit@3, MRR | ✅ Yes; MRR not yet (Part B) | To come |
+| 6 | [Re-ranking](#step-6-re-ranking) | A second model reorders the top 10 | MRR before and after | ✅ Yes; its gain not measured yet (Part C) | To come |
+| 7 | [Generation](#step-7-generation) | Claude writes the cited review | LLM judge, RAGAS faithfulness | ✅ Yes; judge not yet checked by a person (Part D) | To come |
+| 8 | [Output checks](#step-8-output-checks) | Every quote is matched against the PDF | Quote-verified rate | ✅ Yes | To come |
+| 9 | [Human decision and audit](#step-9-human-decision-and-audit) | A nurse or medical director decides; everything is logged | Role rules in code; override rate | ✅ Yes | To come |
 
 **C. Around the flow: proving and keeping quality**
 
-| # | Step | What happens | How we check it | Built? |
-|---|---|---|---|---|
-| 10 | [Offline evals](#step-10-offline-evals) | The golden set is graded | Scores vs saved baseline | ✅ Yes; set too small (Part A) |
-| 11 | [CI gate](#step-11-ci-gate) | Every change is graded before merge | Gate passes or blocks | 🟡 Offline yes; live needs the GitHub secret (Part F) |
-| 12 | [After release](#step-12-after-release) | Traces, thumbs up/down, override rate | Live failures become new golden questions | 🟡 Monitoring yes; failure-to-test loop not shown yet (Part G) |
+| # | Step | What happens | How we check it | Built? | Deep dive |
+|---|---|---|---|---|---|
+| 10 | [Offline evals](#step-10-offline-evals) | The golden set is graded | Scores vs saved baseline | ✅ Yes; set too small (Part A) | To come |
+| 11 | [CI gate](#step-11-ci-gate) | Every change is graded before merge | Gate passes or blocks | 🟡 Offline yes; live needs the GitHub secret (Part F) | To come |
+| 12 | [After release](#step-12-after-release) | Traces, thumbs up/down, override rate | Live failures become new golden questions | 🟡 Monitoring yes; failure-to-test loop not shown yet (Part G) | To come |
 
 A request (like case 2) goes through steps 2, 4–9. A chat question in AI Assist (like "my knee keeps giving out") goes through steps 3–8. Steps 10–12 run when the code changes or while the app is live, not on each question.
 
@@ -105,6 +118,8 @@ This is a standard technique, not a new one: it is **S14 Clause-Aware Chunking**
 **How it's checked.** Unit tests confirm every chunk has its CPT, version, label and page (`tests/test_rag.py`).
 
 **In plain terms:** cutting a binder into index cards, one rule per card, with the binder's name and page written on top of each card.
+
+**Deep dive:** [Ingestion, with the real code and output](deep-dives/01-ingestion.html): the 8 sub-steps, why clause chunks beat fixed-size, tests and honest gaps.
 
 [↑ Back to the list](#how-a-question-flows-and-where-we-check-it)
 
