@@ -12,7 +12,7 @@ App `nurseops-now`, region `sjc`, one machine, volume `nurseops_data` at `/data`
    - `fly secrets set MCP_TOKEN='<a long random token you keep>' --stage`
 4. `fly deploy --ha=false`
 
-`DEMO_AUTOFILL` on Fly shows the password only to `?demo=y` links (the blogs use them) and only through `DEMO_AUTOFILL_UNTIL` (in `fly.toml`, now 2027-03-30). Turn it off with `fly secrets set DEMO_AUTOFILL=false`.
+`DEMO_AUTOFILL` on Fly fills the password in (masked) only for `?demo=y` links (the blogs use them) and only through `DEMO_AUTOFILL_UNTIL` (in `fly.toml`, now 2027-03-30). Turn it off with `fly secrets set DEMO_AUTOFILL=false`.
 
 ## Check it
 - `curl https://nurseops-now.fly.dev/health` returns `{"status":"ok"}`.
