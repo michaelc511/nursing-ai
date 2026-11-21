@@ -94,8 +94,10 @@ export const setAIMode = (mode: "mock" | "claude") =>
   call<{ mode: string }>("/api/ai/mode", { method: "POST", body: JSON.stringify({ mode }) });
 
 export type DemoHint = { password: string; until: string | null };
+// Only links with ?demo=y (e.g. from the blogs) get the shared demo password; plain visits don't ask.
 export async function demoPassword(): Promise<DemoHint | null> {
-  try { const r = await fetch("/api/auth/demo"); return r.ok ? await r.json() : null; }
+  if (new URLSearchParams(window.location.search).get("demo") !== "y") return null;
+  try { const r = await fetch("/api/auth/demo?demo=y"); return r.ok ? await r.json() : null; }
   catch { return null; }
 }
 

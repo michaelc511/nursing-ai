@@ -31,9 +31,9 @@ def login(body: LoginIn, request: Request, session=Depends(get_session)):
 
 
 @router.get("/auth/demo")
-def demo_login_hint():
-    """DEMO_MODE only: lets the login screen prefill the shared demo password."""
-    return auth.demo_hint()
+def demo_login_hint(demo: str | None = None):
+    """DEMO_MODE only: lets the login screen prefill the shared demo password, only for links with ?demo=y."""
+    return auth.demo_hint(asked=demo == "y")
 
 
 @router.get("/ai/mode")

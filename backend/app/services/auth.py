@@ -41,12 +41,13 @@ def seed_reviewers(session: Session) -> int:
     return created
 
 
-def demo_hint(today=None) -> dict:
-    """Prefill + show the shared password on the login screen, only up to DEMO_AUTOFILL_UNTIL (if set)."""
+def demo_hint(today=None, asked: bool = True) -> dict:
+    """Prefill + show the shared password on the login screen, only for ?demo=y links (asked) and
+    only up to DEMO_AUTOFILL_UNTIL (if set)."""
     from datetime import date, datetime, timezone
 
     from app.errors import NotFound
-    if not settings.demo_mode or not settings.demo_autofill or not settings.demo_password:
+    if not asked or not settings.demo_mode or not settings.demo_autofill or not settings.demo_password:
         raise NotFound("Password auto-fill is off")
     until = settings.demo_autofill_until
     if until:

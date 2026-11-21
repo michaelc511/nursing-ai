@@ -1,6 +1,6 @@
 # NurseOps Now in plain terms
 
-How the app works and why the 3 AI opportunities matter, in plain language with a **Tech** note under each part. Screenshots are from the live app on 2026-11-14. Live site: [nurseops-now.fly.dev](https://nurseops-now.fly.dev). Talk: [short script](../demo/1-short_script.html) · details: [demo script](../demo/4-demo-script.html) · all features: [feature blog](nurseops-now-blog.html).
+How the app works and why the 3 AI opportunities matter, in plain language with a **Tech** note under each part. Screenshots are from the live app on 2026-11-14. Live site: [nurseops-now.fly.dev](https://nurseops-now.fly.dev/?demo=y). Talk: [short script](../demo/1-short_script.html) · details: [demo script](../demo/4-demo-script.html) · all features: [feature blog](nurseops-now-blog.html).
 
 ## #1 What the app is
 
