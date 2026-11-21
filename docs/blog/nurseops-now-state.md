@@ -6,7 +6,9 @@
 background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--fg)}.tags a:hover{background:color-mix(in srgb,var(--accent) 22%,transparent)}
 .tags small{color:var(--muted)}.tags .flow{flex-basis:100%;color:var(--muted);font-size:.95em}
 td>b,.bk{background:#ffe866;color:#1c1f23;border-radius:4px;padding:1px 4px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
-td>b a.term,td>b a.term:hover{background:transparent;color:#1c1f23;border-bottom-color:#8a6d00}td>b .def{color:#4a4000}</style>
+td>b a.term,td>b a.term:hover{background:transparent;color:#1c1f23;border-bottom-color:#8a6d00}td>b .def{color:#4a4000}
+span[id^="outcome-"]~b:nth-of-type(2){background:#ffe866;color:#1c1f23;border-radius:4px;padding:1px 4px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+span[id^="outcome-"]~b:nth-of-type(2) a.term,span[id^="outcome-"]~b:nth-of-type(2) a.term:hover{background:transparent;color:#1c1f23;border-bottom-color:#8a6d00}span[id^="outcome-"]~b:nth-of-type(2) .def{color:#4a4000}</style>
 <div class="tags"><b>Tags:</b>
 <a href="#context-and-state-management-intro">Intro <small>the problem</small></a>
 <a href="#implementing-short-term-memory-token-budgets-and-window-management-7-1">Short-term memory <small>(7.1)</small></a>
@@ -16,13 +18,13 @@ td>b a.term,td>b a.term:hover{background:transparent;color:#1c1f23;border-bottom
 <div class="flow">the problem → fit the window → keep facts exact → save it → keep it on task and truthful</div></div>
 :::
 
-Nov 19, 2026 · Michael Chang · Live demo: nurseops-now.fly.dev · Status: built; 6 gaps named, plan below
+Nov 19, 2026 (updated Nov 20) · Michael Chang · Live demo: nurseops-now.fly.dev · Status: built; 6 gaps named, plan below
 
 **Read in this order**
 
 1. [Why this post](#why-this-post): where the ideas come from, and how this differs from the RAG and eval posts
 2. [Words used in this post](#words-used-in-this-post): the terms
-3. [How a chat turn flows, and where state lives](#how-a-chat-turn-flows-and-where-state-lives): every solution from the book first (bold), then ours, on one page
+3. [How a chat turn flows, and where state lives](#how-a-chat-turn-flows-and-where-state-lives): the 4 Agentic Outcomes (problem → goal → what we built), then every solution from the book first (bold), then ours, on one page
 4. [Context and State Management (Intro)](#context-and-state-management-intro): the problem, and the plan in one page
 5. [Implementing Short-Term Memory: Token Budgets and Window Management (7.1)](#implementing-short-term-memory-token-budgets-and-window-management-7-1)
 6. [Compression Strategies: Summarization and Entity Extraction (7.2)](#compression-strategies-summarization-and-entity-extraction-7-2)
@@ -32,7 +34,7 @@ Nov 19, 2026 · Michael Chang · Live demo: nurseops-now.fly.dev · Status: buil
 
 ## Why this post
 
-**Where the idea comes from.** This post follows Chapter 7, _Context and State Management_, of an AI engineering book I'm studying. The chapter has an intro and four parts: managing the window (7.1), compressing history (7.2), saving state outside the model (7.3), and keeping a long-running agent on task and truthful (7.4). This post follows the same order, using the chapter's own section titles. For each part it states **the problem** and **how NurseOps Now solves it**, with the real code and output, what isn't built yet, and where I'd correct the chapter.
+**Where the idea comes from.** This post follows Chapter 7, _Context and State Management_, of an AI engineering book I'm studying. The chapter has an intro and four parts: managing the window (7.1), compressing history (7.2), saving state outside the model (7.3), and keeping a long-running agent on task and truthful (7.4). This post follows the same order, using the chapter's own section titles. For each part it states **the problem** and **how NurseOps Now solves it**, with the real code and output, what isn't built yet, and where I'd correct the chapter. Every problem and solution is also tagged with the memory type it deals with: working, episodic, semantic or procedural ([the four memory types](#context-and-state-management-intro)).
 
 **How this differs from the other posts.** The [ingestion deep dive](deep-dives/01-ingestion.html) is about finding the right policy text (RAG). The [eval plan](nurseops-now-evals.html) is about proving answers are good. This post is about **memory**: what the AI is given on each call, what is saved, for whom, for how long, and what must never be summarized or leaked. Each step has the two usual halves: the **strategy** (what we built) and the **proof** (how it's checked).
 
@@ -54,10 +56,61 @@ Nov 19, 2026 · Michael Chang · Live demo: nurseops-now.fly.dev · Status: buil
 | Drift | An AI slowly forgetting its rules over a long conversation | A new employee slowly ignoring the handbook |
 | Hallucination | The AI stating something made-up as fact | Guessing instead of checking |
 | Prompt caching | The AI provider reusing an unchanged prompt start, so it's cheaper and faster | Not re-reading the same intro every time |
+| Working / short-term memory | What the AI holds for the current call: the context window | A notepad |
+| Episodic memory | Long-term memory of what happened | A shift log |
+| Semantic memory | Long-term memory of what is true: facts, policies, records | A policy binder |
+| Procedural memory | Long-term memory of how to do things: rules, workflows, tools | The checklist taped to the wall |
 
 ## How a chat turn flows, and where state lives
 
 One AI Assist question goes through `assist.ask()` → a LangGraph graph `gate → agent → check → finish`, saved by a checkpointer after each step. The case itself moves through `state.transition()`. Each group below follows one part of the chapter, starting with the Intro (the title links to its section). Each group shows **the book's problems in its order**, then **the book's solutions in its order**, built or not. **Names highlighted in yellow come from the book**; NurseOps Now's own extras follow, marked _(ours)_. "What happens" is the strategy; "How we check it" is the proof; **Details** links to the step that explains it, or to the plan if it isn't built.
+
+This post uses [four memory types](#context-and-state-management-intro): working, episodic, semantic and procedural. They're defined in the Intro, and each problem and solution from there on is tagged with one, like `[Working]`.
+
+**The 4 Agentic Outcomes: what the chapter sets out to achieve.** The book lists four goals up front; each starts with the problems it solves (click to jump to them, hover for a meaning), then the goal quoted exactly (highlighted in yellow), then my words. Each one is built from the solutions in one or two of its sections; hover a section link to see what it covers, click to jump there.
+
+{#outcome-1}**1.** Problems: [The token window is a hard limit](#prob-the-token-window-is-a-hard-limit), [Cost and latency](#prob-cost-and-latency), [History can't keep growing](#prob-history-can-t-keep-growing) → **Engineer token budgets using progressive summarization and compression techniques to maximize the context window.** 🟡 In my words: keep every call within a planned size by shrinking old history. From [7.1 Short-term memory](#implementing-short-term-memory-token-budgets-and-window-management-7-1) and [7.2 Compression](#compression-strategies-summarization-and-entity-extraction-7-2). NurseOps Now caps history at 10 turns; no token count or summaries yet.
+
+Book solutions behind it (click a name to jump to its row below, which links to the deep dive; hover for a one-line meaning):
+
+- [Token Counting Middleware](#sol-token-counting-middleware) ⬜: count tokens before each call and act at set limits; NurseOps Now counts turns instead (7.1)
+- [Textual Summarization](#sol-textual-summarization) ⬜: rewrite old turns as short notes (7.2)
+- [Rolling Summaries](#sol-rolling-summaries) ⬜: keep one running summary in place of old turns (7.2)
+- [Entity Extraction](#sol-entity-extraction) ✅: pull exact facts out of the chat; NurseOps Now keeps them in SQL from the start (7.2)
+- [The Engineering Trade-off: Fidelity vs. Capacity](#sol-engineering-trade-off-fidelity-vs-capacity) ✅: decide what may be shortened and what must stay exact (7.2)
+
+{#outcome-2}**2.** Problems: [LLMs are stateless](#prob-llms-are-stateless), [Flooding the context window](#prob-flooding-the-context-window) → **Architect hybrid memory systems that couple short-term conversational buffers with long-term Vector DB retrieval (RAG).** ✅ In my words: send the recent chat, and search stored knowledge only when needed. From [7.1 Short-term memory](#implementing-short-term-memory-token-budgets-and-window-management-7-1) and [7.3 Long-term memory](#implementing-long-term-memory-external-persistence-architecture-7-3). NurseOps Now sends the last 10 turns and searches policies and the guide with RAG tools.
+
+Book solutions behind it (click a name to jump to its row below, which links to the deep dive; hover for a one-line meaning):
+
+- [Dynamic Context Loading](#sol-dynamic-context-loading) ✅: the AI fetches the case, policy or guide with a tool only when needed (7.1)
+- [Vector Compression via RAG](#sol-vector-compression-via-rag) 🟡: store text as vectors and pull back only what matches; documents only, not old chat (7.2)
+- [The Hot/Cold State Architecture](#sol-hot-cold-state-architecture) ✅: the current call is hot, saved data is cold (7.3)
+- [Semantic Storage (Vector DB like Pinecone, Weaviate, or Chroma)](#sol-semantic-storage-vector-db) ✅: Chroma holds the policy text and the user guide (7.3)
+
+{#outcome-3}**3.** Problems: [No external state](#prob-no-external-state), [Summarization solves volume, not time](#prob-summarization-solves-volume-not-time), [Persistence creates liability](#prob-persistence-creates-liability) → **Implement strict state serialization to allow agents to pause, crash, and resume without data loss.** 🟡 In my words: save progress after every step so a restart picks up where it left off. From [7.3 Long-term memory](#implementing-long-term-memory-external-persistence-architecture-7-3). Chat threads are checkpointed after every step; a case review reruns from the start after a crash.
+
+Book solutions behind it (click a name to jump to its row below, which links to the deep dive; hover for a one-line meaning):
+
+- [Structured Storage (SQL/Postgres)](#sol-structured-storage-sql-postgres) ✅: case facts and status as exact SQL records (7.3)
+- [Session Caching (Redis/Key-Value)](#sol-session-caching-redis-key-value) ✅: each chat thread checkpointed after every step, in SQLite not Redis (7.3)
+- [The Rehydration Pattern](#sol-rehydration-pattern) ✅: load the saved thread and only the facts needed back into the next call (7.3)
+- [Sanitization layer](#sol-sanitization-layer) ✅: mask personal details before anything is saved (7.3)
+- [TTL (time-to-live) expiration](#sol-ttl-expiration) ⬜: delete saved chat automatically after a set time (7.3)
+- [GDPR Right to Be Forgotten](#sol-gdpr-right-to-be-forgotten) 🟡: clear a conversation on request, with an audit row (7.3)
+
+{#outcome-4}**4.** Problems: [Loss of instructional integrity](#prob-loss-of-instructional-integrity), [Context Drift (The Alignment Failure)](#prob-context-drift-the-alignment-failure) → **Immunize against context drift by systematically pruning irrelevant dialogue and re-injecting core instructions.** 🟡 In my words: drop chat that no longer matters and resend the rules, so a long chat can't wear them down. From [7.4 Drift and hallucinations](#preventing-drift-and-hallucinations-in-long-running-agents-7-4). The rules are re-sent on every call and old turns are dropped from the window; an end-of-prompt reminder and a 50-turn drift test aren't built yet.
+
+Book solutions behind it (click a name to jump to its row below, which links to the deep dive; hover for a one-line meaning):
+
+- [System Prompt Pinning](#sol-system-prompt-pinning) ✅: the rules go in the system field on every call, so they're never trimmed (7.1)
+- [Engineering Fix: Recursive Goal Injection](#sol-recursive-goal-injection) 🟡: repeat the rules near the end of the prompt; NurseOps Now re-sends them at the start only (7.4)
+- [Input Filtering: Relevance Pruning](#sol-input-filtering-relevance-pruning) ✅: check and trim each question before the AI sees it (7.4)
+- [Engineering Fix: Strict RAG and Citation Enforcement](#sol-strict-rag-and-citation-enforcement) ✅: against hallucination, the other half of 7.4: answer only from sources, flag any answer without one
+- [Process Control: Self-Correction Loop](#sol-self-correction-loop) ✅: against hallucination: check the answer and send it back once to fix it (7.4)
+- [Output Guardrails: Schema Enforcement](#sol-schema-enforcement) ✅: against hallucination: the answer must match a fixed shape, checked in code (7.4)
+
+**In plain terms:** four promises for an AI's memory: stay on budget, remember both the chat and the facts, never lose your place, and never forget the rules.
 
 **[Context and State Management (Intro)](#context-and-state-management-intro)**
 
@@ -65,10 +118,10 @@ One AI Assist question goes through `assist.ask()` → a LangGraph graph `gate �
 
 | # | Problem | What goes wrong | How NurseOps Now handles it | Solved by |
 |---|---|---|---|---|
-| 1 | **LLMs are stateless** | The model remembers nothing between calls; everything must be sent again every time | Every call is built fresh from saved state: the rules, the thread's last turns, and facts from tools | Three-tier memory, Hybrid memory systems ([Step 1](#step-1-pick-and-load-the-thread), [Step 2](#step-2-build-the-window)) |
+| 1 | {#prob-llms-are-stateless}**LLMs are stateless** [↑ Back to outcome 2](#outcome-2) | The model remembers nothing between calls; everything must be sent again every time | Every call is built fresh from saved state: the rules, the thread's last turns, and facts from tools | Three-tier memory, Hybrid memory systems ([Step 1](#step-1-pick-and-load-the-thread), [Step 2](#step-2-build-the-window)) |
 | 2 | **The context window: finite, expensive, volatile** | The window has a size limit, every token costs money, and it's gone after the call | Small window per call; tokens and cost recorded for every call; nothing important lives only in the window | Token budgets ([Step 2](#step-2-build-the-window), [Step 8](#step-8-reuse-instead-of-recompute)) |
-| 3 | **Flooding the context window** | Too much raw data, and the AI forgets its original instructions | Rules in the separate system field; facts fetched on demand and capped | Token budgets; see the 7.1 table below ([Step 2](#step-2-build-the-window), [Step 3](#step-3-load-facts-only-when-needed)) |
-| 4 | **No external state** | When the script ends, the AI has forgotten everything | Chat checkpointed to disk per thread; case facts in SQL | Strict state serialization; see the 7.3 table below ([Step 1](#step-1-pick-and-load-the-thread), [Step 4](#step-4-hard-state-stays-in-sql)) |
+| 3 | {#prob-flooding-the-context-window}**Flooding the context window** [↑ Back to outcome 2](#outcome-2) | Too much raw data, and the AI forgets its original instructions | Rules in the separate system field; facts fetched on demand and capped | Token budgets; see the 7.1 table below ([Step 2](#step-2-build-the-window), [Step 3](#step-3-load-facts-only-when-needed)) |
+| 4 | {#prob-no-external-state}**No external state** [↑ Back to outcome 3](#outcome-3) | When the script ends, the AI has forgotten everything | Chat checkpointed to disk per thread; case facts in SQL | Strict state serialization; see the 7.3 table below ([Step 1](#step-1-pick-and-load-the-thread), [Step 4](#step-4-hard-state-stays-in-sql)) |
 
 **Solutions** (the book's concepts first, in its order, then ours):
 
@@ -88,19 +141,19 @@ One AI Assist question goes through `assist.ask()` → a LangGraph graph `gate �
 
 | # | Problem | What goes wrong | How NurseOps Now handles it | Solved by |
 |---|---|---|---|---|
-| 1 | **The token window is a hard limit** | The rules, the question and the whole history all share one fixed budget | The window is rebuilt on every call with only what's needed: the rules, the last 10 turns and a one-line case note; facts come from tools | Dynamic Context Loading, History cap ([Step 2](#step-2-build-the-window), [Step 3](#step-3-load-facts-only-when-needed)) |
+| 1 | {#prob-the-token-window-is-a-hard-limit}**The token window is a hard limit** [↑ Back to outcome 1](#outcome-1) | The rules, the question and the whole history all share one fixed budget | The window is rebuilt on every call with only what's needed: the rules, the last 10 turns and a one-line case note; facts come from tools | Dynamic Context Loading, History cap ([Step 2](#step-2-build-the-window), [Step 3](#step-3-load-facts-only-when-needed)) |
 | 2 | **Sliding window truncation** | When the window fills, chat frameworks silently drop the oldest messages | NurseOps Now never sends more than the last 10 turns, so nothing is dropped behind its back; older turns stay saved on disk | History cap ([Step 2](#step-2-build-the-window), [Step 5](#step-5-older-turns)) |
-| 3 | **Loss of instructional integrity** | The rules get pushed out (for example by a long pasted document), and the AI forgets its role | The rules are in the API's separate system field on every call; a question is cut at 2,000 characters and each tool result at 12,000 | System Prompt Pinning, Dynamic Context Loading ([Step 2](#step-2-build-the-window), [Step 3](#step-3-load-facts-only-when-needed)) |
+| 3 | {#prob-loss-of-instructional-integrity}**Loss of instructional integrity** [↑ Back to outcome 4](#outcome-4) | The rules get pushed out (for example by a long pasted document), and the AI forgets its role | The rules are in the API's separate system field on every call; a question is cut at 2,000 characters and each tool result at 12,000 | System Prompt Pinning, Dynamic Context Loading ([Step 2](#step-2-build-the-window), [Step 3](#step-3-load-facts-only-when-needed)) |
 | 4 | **Worse answers near capacity** | In a very full window, details in the middle get missed and the end gets too much weight | The window stays small, so it's never near capacity; there's no token check to prove it yet | History cap; Token Counting Middleware ⬜ ([Plan 1](#plan-closing-the-gaps)) |
-| 5 | **Cost and latency** | A full window is slower and costs more, because every token is paid for | Small window; identical reviews reused; review calls prompt-cached; tokens and cost recorded for every call | History cap, Reuse instead of recompute ([Step 8](#step-8-reuse-instead-of-recompute), [Plan 4](#plan-closing-the-gaps)) |
+| 5 | {#prob-cost-and-latency}**Cost and latency** [↑ Back to outcome 1](#outcome-1) | A full window is slower and costs more, because every token is paid for | Small window; identical reviews reused; review calls prompt-cached; tokens and cost recorded for every call | History cap, Reuse instead of recompute ([Step 8](#step-8-reuse-instead-of-recompute), [Plan 4](#plan-closing-the-gaps)) |
 
 **Solutions** (the book's first, in its order, then ours):
 
 | Solution | What happens in NurseOps Now | How we check it | Built? | Details | Deep dive |
 |---|---|---|---|---|---|
-| **Token Counting Middleware** | Count tokens before each call and act when the window gets too full | — | ⬜ Not built | [Plan 1](#plan-closing-the-gaps) | [Deep dive](deep-dives/state-07-token-counting-middleware.html) |
-| **Dynamic Context Loading** | Case, policy, guide and metrics come from tools only when the AI asks; each result capped at 12,000 characters; at most 4 tool rounds | Unit test (tool loop) | ✅ | [Step 3](#step-3-load-facts-only-when-needed) | [Deep dive](deep-dives/state-08-dynamic-context-loading.html) |
-| **System Prompt Pinning** | The rules go in the API's separate system field on every call, never in the history, so they can't be trimmed | Demo | ✅ | [Step 2](#step-2-build-the-window) | [Deep dive](deep-dives/state-09-system-prompt-pinning.html) |
+| {#sol-token-counting-middleware}**Token Counting Middleware** [↑ Back to outcome 1](#outcome-1) | Count tokens before each call and act when the window gets too full | — | ⬜ Not built | [Plan 1](#plan-closing-the-gaps) | [Deep dive](deep-dives/state-07-token-counting-middleware.html) |
+| {#sol-dynamic-context-loading}**Dynamic Context Loading** [↑ Back to outcome 2](#outcome-2) | Case, policy, guide and metrics come from tools only when the AI asks; each result capped at 12,000 characters; at most 4 tool rounds | Unit test (tool loop) | ✅ | [Step 3](#step-3-load-facts-only-when-needed) | [Deep dive](deep-dives/state-08-dynamic-context-loading.html) |
+| {#sol-system-prompt-pinning}**System Prompt Pinning** [↑ Back to outcome 4](#outcome-4) | The rules go in the API's separate system field on every call, never in the history, so they can't be trimmed | Demo | ✅ | [Step 2](#step-2-build-the-window) | [Deep dive](deep-dives/state-09-system-prompt-pinning.html) |
 | One thread per user and case _(ours)_ | Each user + case has its own saved thread (`nurse1:case-3`), loaded from disk | Unit test (memory per user, restart, clear) | ✅ | [Step 1](#step-1-pick-and-load-the-thread) | — |
 | History cap _(ours)_ | Only the last 10 turns are sent, plus a one-line note about the open case | Demo: 12 turns stored, 10 sent | ✅ | [Step 2](#step-2-build-the-window) | — |
 
@@ -110,18 +163,18 @@ One AI Assist question goes through `assist.ask()` → a LangGraph graph `gate �
 
 | # | Problem | What goes wrong | How NurseOps Now handles it | Solved by |
 |---|---|---|---|---|
-| 1 | **History can't keep growing** | You can't keep appending history: the window fills and every call gets more expensive | Exact facts never go into the chat; only the last 10 turns are sent; older turns stay on disk | Entity Extraction (a different way), History cap ([Step 4](#step-4-hard-state-stays-in-sql), [Step 5](#step-5-older-turns)) |
+| 1 | {#prob-history-can-t-keep-growing}**History can't keep growing** [↑ Back to outcome 1](#outcome-1) | You can't keep appending history: the window fills and every call gets more expensive | Exact facts never go into the chat; only the last 10 turns are sent; older turns stay on disk | Entity Extraction (a different way), History cap ([Step 4](#step-4-hard-state-stays-in-sql), [Step 5](#step-5-older-turns)) |
 | 2 | **Hallucination drift** | Summaries are lossy: a summary of a summary drifts further each time, and exact details get corrupted | Nothing is summarized; IDs, dates, decisions and errors are stored word for word | The Engineering Trade-off: Fidelity vs. Capacity ([Step 4](#step-4-hard-state-stays-in-sql)) |
 
 **Solutions** (the book's first, in its order, then ours):
 
 | Solution | What happens in NurseOps Now | How we check it | Built? | Details | Deep dive |
 |---|---|---|---|---|---|
-| **Textual Summarization** | Rewrite old chat into dense notes | — | ⬜ Not built | [Step 5](#step-5-older-turns), [Plan 2](#plan-closing-the-gaps) | [Deep dive](deep-dives/state-10-textual-summarization.html) |
-| **Rolling Summaries** | Every few turns, condense the oldest turns into a short summary | — | ⬜ Not built | [Step 5](#step-5-older-turns), [Plan 2](#plan-closing-the-gaps) | [Deep dive](deep-dives/state-11-rolling-summaries.html) |
-| **Entity Extraction** | Key facts in a structured record. Here: case fields, the AI review JSON and decisions are SQL records, fetched by a tool (not a JSON profile in the prompt) | State machine tests | ✅ (a different way) | [Step 4](#step-4-hard-state-stays-in-sql) | [Deep dive](deep-dives/state-12-entity-extraction.html) |
-| **Vector Compression via RAG** | Embed past text and pull back only the relevant parts. Here: used for policy text and the user guide, not for chat history | Unit tests (RAG) | 🟡 Documents only | [Ingestion deep dive](deep-dives/01-ingestion.html) | [Deep dive](deep-dives/state-13-vector-compression-via-rag.html) |
-| **The Engineering Trade-off: Fidelity vs. Capacity** | Summaries are lossy and drift, so exact facts ("hard state": IDs, numbers, decisions, code, error logs) are kept word for word and only conversation ("soft state") may be compressed. Here: exact facts are never in the chat at all, and nothing is summarized: reviews, decisions, audit rows and tool errors are stored as-is | — | ✅ | [Step 4](#step-4-hard-state-stays-in-sql) | [Deep dive](deep-dives/state-14-engineering-trade-off-fidelity-vs-capacity.html) |
+| {#sol-textual-summarization}**Textual Summarization** [↑ Back to outcome 1](#outcome-1) | Rewrite old chat into dense notes | — | ⬜ Not built | [Step 5](#step-5-older-turns), [Plan 2](#plan-closing-the-gaps) | [Deep dive](deep-dives/state-10-textual-summarization.html) |
+| {#sol-rolling-summaries}**Rolling Summaries** [↑ Back to outcome 1](#outcome-1) | Every few turns, condense the oldest turns into a short summary | — | ⬜ Not built | [Step 5](#step-5-older-turns), [Plan 2](#plan-closing-the-gaps) | [Deep dive](deep-dives/state-11-rolling-summaries.html) |
+| {#sol-entity-extraction}**Entity Extraction** [↑ Back to outcome 1](#outcome-1) | Key facts in a structured record. Here: case fields, the AI review JSON and decisions are SQL records, fetched by a tool (not a JSON profile in the prompt) | State machine tests | ✅ (a different way) | [Step 4](#step-4-hard-state-stays-in-sql) | [Deep dive](deep-dives/state-12-entity-extraction.html) |
+| {#sol-vector-compression-via-rag}**Vector Compression via RAG** [↑ Back to outcome 2](#outcome-2) | Embed past text and pull back only the relevant parts. Here: used for policy text and the user guide, not for chat history | Unit tests (RAG) | 🟡 Documents only | [Ingestion deep dive](deep-dives/01-ingestion.html) | [Deep dive](deep-dives/state-13-vector-compression-via-rag.html) |
+| {#sol-engineering-trade-off-fidelity-vs-capacity}**The Engineering Trade-off: Fidelity vs. Capacity** [↑ Back to outcome 1](#outcome-1) | Summaries are lossy and drift, so exact facts ("hard state": IDs, numbers, decisions, code, error logs) are kept word for word and only conversation ("soft state") may be compressed. Here: exact facts are never in the chat at all, and nothing is summarized: reviews, decisions, audit rows and tool errors are stored as-is | — | ✅ | [Step 4](#step-4-hard-state-stays-in-sql) | [Deep dive](deep-dives/state-14-engineering-trade-off-fidelity-vs-capacity.html) |
 | Old turns kept, not sent _(ours)_ | Turns beyond the last 10 stay on disk but leave the window | Demo: oldest sent is question 3 | ✅ | [Step 5](#step-5-older-turns) | — |
 
 **[Implementing Long-Term Memory: External Persistence Architecture (7.3)](#implementing-long-term-memory-external-persistence-architecture-7-3)**
@@ -130,21 +183,21 @@ One AI Assist question goes through `assist.ask()` → a LangGraph graph `gate �
 
 | # | Problem | What goes wrong | How NurseOps Now handles it | Solved by |
 |---|---|---|---|---|
-| 1 | **Summarization solves volume, not time** | A crash or a closed tab loses the window, however well it was summarized | Each chat thread is checkpointed to disk after every step; case state is in SQL | Session Caching, Structured Storage, The Rehydration Pattern ([Step 1](#step-1-pick-and-load-the-thread), [Step 7](#step-7-case-state-machine)) |
-| 2 | **Persistence creates liability** | Saved memory, logs and vector stores can leak personal data or secrets, and keep them forever | Personal details masked before saving; one thread can be deleted on request; no automatic expiry yet | Sanitization layer, GDPR Right to Be Forgotten, TTL expiration ⬜ ([Step 6](#step-6-mask-then-save-the-turn), [Step 9](#step-9-forget-on-request), [Plan 3](#plan-closing-the-gaps)) |
+| 1 | {#prob-summarization-solves-volume-not-time}**Summarization solves volume, not time** [↑ Back to outcome 3](#outcome-3) | A crash or a closed tab loses the window, however well it was summarized | Each chat thread is checkpointed to disk after every step; case state is in SQL | Session Caching, Structured Storage, The Rehydration Pattern ([Step 1](#step-1-pick-and-load-the-thread), [Step 7](#step-7-case-state-machine)) |
+| 2 | {#prob-persistence-creates-liability}**Persistence creates liability** [↑ Back to outcome 3](#outcome-3) | Saved memory, logs and vector stores can leak personal data or secrets, and keep them forever | Personal details masked before saving; one thread can be deleted on request; no automatic expiry yet | Sanitization layer, GDPR Right to Be Forgotten, TTL expiration ⬜ ([Step 6](#step-6-mask-then-save-the-turn), [Step 9](#step-9-forget-on-request), [Plan 3](#plan-closing-the-gaps)) |
 
 **Solutions** (the book's first, in its order, then ours):
 
 | Solution | What happens in NurseOps Now | How we check it | Built? | Details | Deep dive |
 |---|---|---|---|---|---|
-| **The Hot/Cold State Architecture** | Hot = what's in the current call; cold = SQL, checkpoints and Chroma | — | ✅ | [Step 1](#step-1-pick-and-load-the-thread), [Intro](#context-and-state-management-intro) | [Deep dive](deep-dives/state-15-hot-cold-state-architecture.html) |
-| **Structured Storage (SQL/Postgres)** | SQLite tables `cases`, `ai_reviews`, `decisions`, `audit_log` | Unit tests (state machine) | ✅ | [Step 4](#step-4-hard-state-stays-in-sql) | [Deep dive](deep-dives/state-16-structured-storage-sql-postgres.html) |
-| **Semantic Storage (Vector DB like Pinecone, Weaviate, or Chroma)** | Chroma holds the policy text and the user guide | Unit tests (RAG) | ✅ | [Ingestion deep dive](deep-dives/01-ingestion.html) | [Deep dive](deep-dives/state-17-semantic-storage-vector-db.html) |
-| **Session Caching (Redis/Key-Value)** | LangGraph `SqliteSaver` checkpoints each thread after every step (SQLite instead of Redis) | Unit test (memory per user, restart, clear) | ✅ (SQLite, not Redis) | [Step 1](#step-1-pick-and-load-the-thread) | [Deep dive](deep-dives/state-18-session-caching-redis-key-value.html) |
-| **The Rehydration Pattern** | Fetch the thread by ID, filter to the last 10 turns, inject them with the rules; facts come from tools | Demo | ✅ | [Step 1](#step-1-pick-and-load-the-thread), [Step 2](#step-2-build-the-window), [Step 3](#step-3-load-facts-only-when-needed) | [Deep dive](deep-dives/state-19-rehydration-pattern.html) |
-| **Sanitization layer** _(book's security paragraph, no heading)_ | Personal details masked before saving to memory, logs and traces | Demo: DOB, phone, SSN masked | ✅ | [Step 6](#step-6-mask-then-save-the-turn) | [Deep dive](deep-dives/state-20-sanitization-layer.html) |
-| **TTL (time-to-live) expiration** _(same paragraph)_ | Delete saved data automatically after a set time | — | ⬜ Not built | [Step 9](#step-9-forget-on-request), [Plan 3](#plan-closing-the-gaps) | [Deep dive](deep-dives/state-21-ttl-expiration.html) |
-| **GDPR Right to Be Forgotten** _(same paragraph)_ | "Clear" deletes one thread and writes an audit row | Demo + test | 🟡 On request only | [Step 9](#step-9-forget-on-request) | [Deep dive](deep-dives/state-22-gdpr-right-to-be-forgotten.html) |
+| {#sol-hot-cold-state-architecture}**The Hot/Cold State Architecture** [↑ Back to outcome 2](#outcome-2) | Hot = what's in the current call; cold = SQL, checkpoints and Chroma | — | ✅ | [Step 1](#step-1-pick-and-load-the-thread), [Intro](#context-and-state-management-intro) | [Deep dive](deep-dives/state-15-hot-cold-state-architecture.html) |
+| {#sol-structured-storage-sql-postgres}**Structured Storage (SQL/Postgres)** [↑ Back to outcome 3](#outcome-3) | SQLite tables `cases`, `ai_reviews`, `decisions`, `audit_log` | Unit tests (state machine) | ✅ | [Step 4](#step-4-hard-state-stays-in-sql) | [Deep dive](deep-dives/state-16-structured-storage-sql-postgres.html) |
+| {#sol-semantic-storage-vector-db}**Semantic Storage (Vector DB like Pinecone, Weaviate, or Chroma)** [↑ Back to outcome 2](#outcome-2) | Chroma holds the policy text and the user guide | Unit tests (RAG) | ✅ | [Ingestion deep dive](deep-dives/01-ingestion.html) | [Deep dive](deep-dives/state-17-semantic-storage-vector-db.html) |
+| {#sol-session-caching-redis-key-value}**Session Caching (Redis/Key-Value)** [↑ Back to outcome 3](#outcome-3) | LangGraph `SqliteSaver` checkpoints each thread after every step (SQLite instead of Redis) | Unit test (memory per user, restart, clear) | ✅ (SQLite, not Redis) | [Step 1](#step-1-pick-and-load-the-thread) | [Deep dive](deep-dives/state-18-session-caching-redis-key-value.html) |
+| {#sol-rehydration-pattern}**The Rehydration Pattern** [↑ Back to outcome 3](#outcome-3) | Fetch the thread by ID, filter to the last 10 turns, inject them with the rules; facts come from tools | Demo | ✅ | [Step 1](#step-1-pick-and-load-the-thread), [Step 2](#step-2-build-the-window), [Step 3](#step-3-load-facts-only-when-needed) | [Deep dive](deep-dives/state-19-rehydration-pattern.html) |
+| {#sol-sanitization-layer}**Sanitization layer** [↑ Back to outcome 3](#outcome-3) _(book's security paragraph, no heading)_ | Personal details masked before saving to memory, logs and traces | Demo: DOB, phone, SSN masked | ✅ | [Step 6](#step-6-mask-then-save-the-turn) | [Deep dive](deep-dives/state-20-sanitization-layer.html) |
+| {#sol-ttl-expiration}**TTL (time-to-live) expiration** [↑ Back to outcome 3](#outcome-3) _(same paragraph)_ | Delete saved data automatically after a set time | — | ⬜ Not built | [Step 9](#step-9-forget-on-request), [Plan 3](#plan-closing-the-gaps) | [Deep dive](deep-dives/state-21-ttl-expiration.html) |
+| {#sol-gdpr-right-to-be-forgotten}**GDPR Right to Be Forgotten** [↑ Back to outcome 3](#outcome-3) _(same paragraph)_ | "Clear" deletes one thread and writes an audit row | Demo + test | 🟡 On request only | [Step 9](#step-9-forget-on-request) | [Deep dive](deep-dives/state-22-gdpr-right-to-be-forgotten.html) |
 | Case state machine _(ours)_ | Status changes only along allowed paths; only a person can approve, deny or pend; every change audited | Unit tests (state machine) | ✅ | [Step 7](#step-7-case-state-machine) | — |
 | Reuse instead of recompute _(ours)_ | Identical reviews reused from a result cache; review calls use prompt caching | Code | 🟡 Not for AI Assist | [Step 8](#step-8-reuse-instead-of-recompute), [Plan 4](#plan-closing-the-gaps) | — |
 
@@ -154,18 +207,18 @@ One AI Assist question goes through `assist.ask()` → a LangGraph graph `gate �
 
 | # | Problem | What goes wrong | How NurseOps Now handles it | Solved by |
 |---|---|---|---|---|
-| 1 | **Context Drift (The Alignment Failure)** | Over many turns the rules fade and the AI bends to the user (a strict reviewer slowly turns agreeable). Cause: the early rules get less attention as the conversation grows | The rules are sent on every call; bad questions are blocked in code; and no conversation can produce an approval, because the state machine only lets a person approve | Engineering Fix: Recursive Goal Injection 🟡, System Prompt Pinning, Input Filtering, Case state machine ([Step 2](#step-2-build-the-window), [Step 7](#step-7-case-state-machine), [Step 10](#step-10-gate-the-input-and-output), [Plan 5](#plan-closing-the-gaps)) |
+| 1 | {#prob-context-drift-the-alignment-failure}**Context Drift (The Alignment Failure)** [↑ Back to outcome 4](#outcome-4) | Over many turns the rules fade and the AI bends to the user (a strict reviewer slowly turns agreeable). Cause: the early rules get less attention as the conversation grows | The rules are sent on every call; bad questions are blocked in code; and no conversation can produce an approval, because the state machine only lets a person approve | Engineering Fix: Recursive Goal Injection 🟡, System Prompt Pinning, Input Filtering, Case state machine ([Step 2](#step-2-build-the-window), [Step 7](#step-7-case-state-machine), [Step 10](#step-10-gate-the-input-and-output), [Plan 5](#plan-closing-the-gaps)) |
 | 2 | **Hallucination (The Grounding Failure)** | The AI fills a gap with something plausible and made-up. Cause: a high temperature, or the answer simply isn't in the context | Answers come only from tools; no source → a "please check" note; every review quote must match the PDF, with one retry; the output must match a schema | Engineering Fix: Strict RAG and Citation Enforcement, Process Control: Self-Correction Loop, Output Guardrails: Schema Enforcement ([Step 11](#step-11-ground-every-answer)) |
 
 **Solutions** (the book's first, in its order, then ours):
 
 | Solution | What happens in NurseOps Now | How we check it | Built? | Details | Deep dive |
 |---|---|---|---|---|---|
-| **Engineering Fix: Recursive Goal Injection** | A short reminder of the rules before every answer. Here: the full rules are sent on every call, but there's no extra reminder at the end | — | 🟡 | [Step 2](#step-2-build-the-window), [Plan 5](#plan-closing-the-gaps) | [Deep dive](deep-dives/state-23-recursive-goal-injection.html) |
-| **Engineering Fix: Strict RAG and Citation Enforcement** | Answer only from tool results; no source → a "please check" note; review quotes must match the PDF | Unit test (quote check + retry) | ✅ | [Step 11](#step-11-ground-every-answer) | [Deep dive](deep-dives/state-24-strict-rag-and-citation-enforcement.html) |
-| **Input Filtering: Relevance Pruning** | Injection and off-topic questions blocked in code before the AI sees them (rules, not a second model) | Unit tests + red team (44 attacks, 0 through) | ✅ | [Step 10](#step-10-gate-the-input-and-output) | [Deep dive](deep-dives/state-25-input-filtering-relevance-pruning.html) |
-| **Process Control: Self-Correction Loop** | Reviews go `ai_review → verify`; a failed quote check sends the AI back once with the failures | Unit test (quote check + retry) | ✅ Reviews | [Step 11](#step-11-ground-every-answer) | [Deep dive](deep-dives/state-26-self-correction-loop.html) |
-| **Output Guardrails: Schema Enforcement** | Every review must match the `ReviewResult` Pydantic schema (shape, not truth) | Review tests | ✅ | [Step 11](#step-11-ground-every-answer) | [Deep dive](deep-dives/state-27-schema-enforcement.html) |
+| {#sol-recursive-goal-injection}**Engineering Fix: Recursive Goal Injection** [↑ Back to outcome 4](#outcome-4) | A short reminder of the rules before every answer. Here: the full rules are sent on every call, but there's no extra reminder at the end | — | 🟡 | [Step 2](#step-2-build-the-window), [Plan 5](#plan-closing-the-gaps) | [Deep dive](deep-dives/state-23-recursive-goal-injection.html) |
+| {#sol-strict-rag-and-citation-enforcement}**Engineering Fix: Strict RAG and Citation Enforcement** [↑ Back to outcome 4](#outcome-4) | Answer only from tool results; no source → a "please check" note; review quotes must match the PDF | Unit test (quote check + retry) | ✅ | [Step 11](#step-11-ground-every-answer) | [Deep dive](deep-dives/state-24-strict-rag-and-citation-enforcement.html) |
+| {#sol-input-filtering-relevance-pruning}**Input Filtering: Relevance Pruning** [↑ Back to outcome 4](#outcome-4) | Injection and off-topic questions blocked in code before the AI sees them (rules, not a second model) | Unit tests + red team (44 attacks, 0 through) | ✅ | [Step 10](#step-10-gate-the-input-and-output) | [Deep dive](deep-dives/state-25-input-filtering-relevance-pruning.html) |
+| {#sol-self-correction-loop}**Process Control: Self-Correction Loop** [↑ Back to outcome 4](#outcome-4) | Reviews go `ai_review → verify`; a failed quote check sends the AI back once with the failures | Unit test (quote check + retry) | ✅ Reviews | [Step 11](#step-11-ground-every-answer) | [Deep dive](deep-dives/state-26-self-correction-loop.html) |
+| {#sol-schema-enforcement}**Output Guardrails: Schema Enforcement** [↑ Back to outcome 4](#outcome-4) | Every review must match the `ReviewResult` Pydantic schema (shape, not truth) | Review tests | ✅ | [Step 11](#step-11-ground-every-answer) | [Deep dive](deep-dives/state-27-schema-enforcement.html) |
 | Output gate _(ours)_ | Answers that quote the system prompt or contain a secret are blocked | Demo: prompt leak blocked | ✅ | [Step 10](#step-10-gate-the-input-and-output) | — |
 | Long-conversation drift test _(ours)_ | A 50-turn scripted chat that keeps pushing for an approval | — | ⬜ Not built | [Plan 5](#plan-closing-the-gaps) | — |
 
@@ -180,14 +233,26 @@ The review of a case uses Steps 3, 4, 7, 8 and 11. A chat question uses Steps 1�
 - **Too much in the window.** The call gets slow and expensive, and the rules sent at the start get less attention, so the AI can lose its instructions.
 - **Nothing saved outside it.** After a restart, a crash or a new session, the AI starts from zero.
 
-The chapter splits memory into three tiers: **short-term** (the window), **long-term** (a store outside the model) and **episodic** (a log of what happened).
+**The four memory types.** AI memory is grouped the way human memory is: one short-term type and three long-term ones.
+
+| Type | What it holds | Where it lives | In NurseOps Now |
+|---|---|---|---|
+| **Working / Short-term** | The live task: rules, recent turns, tool results for this call | The context window | Rules + last 10 turns + one-line case note, rebuilt every call |
+| **Episodic** (long-term) | What happened: dated events, past sessions, mistakes | Event logs, chat history | `audit_log`, LangSmith traces, LangGraph checkpoints per thread |
+| **Semantic** (long-term) | What is true: facts, policies, records | Vector DB, SQL tables | Chroma (policy text, user guide), SQL case facts |
+| **Procedural** (long-term) | How to do things: rules, workflows, steps | Code, system prompts, tool definitions, state machines | System prompt, tool definitions, case state machine |
+
+The chapter names three tiers (short-term, long-term, episodic). This post splits long-term into the three types it actually holds. Each problem and solution below is tagged with the type it deals with, for example `[Working]`; an item that moves memory from one type into another gets both tags.
+
+**In plain terms:** a nurse's notepad (working), shift log (episodic), policy binder (semantic) and the checklist taped to the wall (procedural).
 
 **How NurseOps Now solves it.**
 
-- **Short-term:** a small window rebuilt on every call: the rules, the last 10 turns and a one-line note about the open case. See [the short-term memory section](#implementing-short-term-memory-token-budgets-and-window-management-7-1).
-- **Long-term:** SQL for case facts, LangGraph checkpoints for each chat thread, Chroma for policy text. See [the long-term memory section](#implementing-long-term-memory-external-persistence-architecture-7-3).
-- **Episodic:** the `audit_log` table (every status change, AI Assist question and clear) and LangSmith traces of each call.
-- **The one rule behind everything:** case facts are never kept in the chat. Status, decisions, missing items and the AI review are stored in SQL as exact records. The chat only remembers the conversation, with personal details masked, and the AI looks the facts up fresh with a tool every time.
+- `[Working]` **Working / short-term:** a small window rebuilt on every call: the rules, the last 10 turns and a one-line note about the open case. See [the short-term memory section](#implementing-short-term-memory-token-budgets-and-window-management-7-1).
+- `[Episodic · Semantic]` **Long-term:** LangGraph checkpoints for each chat thread (episodic); SQL for case facts and Chroma for policy text (semantic). See [the long-term memory section](#implementing-long-term-memory-external-persistence-architecture-7-3).
+- `[Episodic]` **Episodic:** the `audit_log` table (every status change, AI Assist question and clear) and LangSmith traces of each call.
+- `[Procedural]` **Rules and workflow:** the system prompt sent on every call, the tool definitions, and the case state machine that only lets a person approve. See [Step 2](#step-2-build-the-window) and [Step 7](#step-7-case-state-machine).
+- `[Semantic]` **The one rule behind everything:** case facts are never kept in the chat. Status, decisions, missing items and the AI review are stored in SQL as exact records. The chat only remembers the conversation, with personal details masked, and the AI looks the facts up fresh with a tool every time.
 
 **In plain terms:** a nurse with a notepad and a filing cabinet. The notepad holds the last few things said and gets recycled; the filing cabinet holds the official case file, which is never rewritten from memory.
 
@@ -210,21 +275,23 @@ _Memory features checked against each framework's official memory docs on Nov 19
 
 ## Implementing Short-Term Memory: Token Budgets and Window Management (7.1)
 
+**What it does.** Keeps each call's context window small and on budget: count tokens, load facts only when needed, and pin the rules so they're never pushed out.
+
 **The problem** (the book's, in its order):
 
-1. **The token window is a hard limit:** the rules, the question and the whole history share one fixed budget.
-2. **Sliding window truncation:** when it fills, chat frameworks silently drop the oldest messages.
-3. **Loss of instructional integrity:** the rules can be pushed out, for example by a long pasted document, and the AI forgets its role.
-4. **Worse answers near capacity:** in a very full window, details in the middle get missed.
-5. **Cost and latency:** a full window is slower and costs more.
+1. `[Working]` **The token window is a hard limit:** the rules, the question and the whole history share one fixed budget.
+2. `[Working · Episodic]` **Sliding window truncation:** when it fills, chat frameworks silently drop the oldest messages.
+3. `[Procedural]` **Loss of instructional integrity:** the rules can be pushed out, for example by a long pasted document, and the AI forgets its role.
+4. `[Working]` **Worse answers near capacity:** in a very full window, details in the middle get missed.
+5. `[Working]` **Cost and latency:** a full window is slower and costs more.
 
 **How NurseOps Now solves it** (the chapter's three solutions first, in its order, then ours):
 
-- **Token counting middleware** ⬜ not yet: nothing counts tokens before a call; the history cap below counts turns, not tokens ([Plan 1](#plan-closing-the-gaps)).
-- **Dynamic context loading** ✅: the AI fetches the case, policy or guide with a tool only when it needs them; each result is capped at 12,000 characters, with at most 4 tool rounds ([Step 3](#step-3-load-facts-only-when-needed)).
-- **System prompt pinning** ✅: the rules go in the API's separate system field on every call, never in the history, so they can't be trimmed ([Step 2](#step-2-build-the-window)).
-- **History cap** (ours, a simpler stand-in for a token budget) ✅: only the last 10 turns are sent ([Step 2](#step-2-build-the-window)).
-- **One thread per user and case** (ours) ✅: windows never mix ([Step 1](#step-1-pick-and-load-the-thread)).
+- `[Working]` **Token counting middleware** ⬜ not yet: nothing counts tokens before a call; the history cap below counts turns, not tokens ([Plan 1](#plan-closing-the-gaps)).
+- `[Working · Semantic]` **Dynamic context loading** ✅: the AI fetches the case, policy or guide with a tool only when it needs them; each result is capped at 12,000 characters, with at most 4 tool rounds ([Step 3](#step-3-load-facts-only-when-needed)).
+- `[Procedural]` **System prompt pinning** ✅: the rules go in the API's separate system field on every call, never in the history, so they can't be trimmed ([Step 2](#step-2-build-the-window)).
+- `[Working]` **History cap** (ours, a simpler stand-in for a token budget) ✅: only the last 10 turns are sent ([Step 2](#step-2-build-the-window)).
+- `[Episodic]` **One thread per user and case** (ours) ✅: windows never mix ([Step 1](#step-1-pick-and-load-the-thread)).
 
 ### With LangGraph, AutoGen, CrewAI and LlamaIndex (7.1)
 
@@ -324,13 +391,15 @@ results.append({"type": "tool_result", "tool_use_id": tu.id, "content": json.dum
 
 ## Compression Strategies: Summarization and Entity Extraction (7.2)
 
-**The problem.** History can't grow forever, so something has to be shrunk. But a summary loses detail, and a summary of a summary drifts further each time. That's harmless for small talk and dangerous for exact facts: an ID, a date or a decision that's slightly wrong is simply wrong.
+**What it does.** Shrinks history that can't keep growing: summarize old turns and pull exact facts out of the chat so they can't drift.
+
+**The problem.** `[Episodic · Semantic]` History can't grow forever, so something has to be shrunk. But a summary loses detail, and a summary of a summary drifts further each time. That's harmless for small talk and dangerous for exact facts: an ID, a date or a decision that's slightly wrong is simply wrong.
 
 **How NurseOps Now solves it.**
 
-- **Exact facts are never in the chat at all:** they're SQL records, fetched fresh by a tool, so there's nothing to summarize wrongly ([Step 4](#step-4-hard-state-stays-in-sql)). That goes further than the chapter's idea of keeping key facts in a JSON profile.
-- **Old turns are kept, not sent:** turns beyond the last 10 stay on disk but leave the window ([Step 5](#step-5-older-turns)).
-- **Not yet:** a short summary of older turns, so something a nurse said 11 turns ago isn't lost ([Plan 2](#plan-closing-the-gaps)).
+- `[Semantic]` **Exact facts are never in the chat at all:** they're SQL records, fetched fresh by a tool, so there's nothing to summarize wrongly ([Step 4](#step-4-hard-state-stays-in-sql)). That goes further than the chapter's idea of keeping key facts in a JSON profile.
+- `[Working · Episodic]` **Old turns are kept, not sent:** turns beyond the last 10 stay on disk but leave the window ([Step 5](#step-5-older-turns)).
+- `[Episodic]` **Not yet:** a short summary of older turns, so something a nurse said 11 turns ago isn't lost ([Plan 2](#plan-closing-the-gaps)).
 
 ### With LangGraph, AutoGen, CrewAI and LlamaIndex (7.2)
 
@@ -376,16 +445,18 @@ _Memory features checked against each framework's official memory docs on Nov 19
 
 ## Implementing Long-Term Memory: External Persistence Architecture (7.3)
 
-**The problem.** The window disappears after every call. Without a store outside the model, a restart, a crash or a new session loses everything. And whatever is saved becomes a liability: personal data copied into memory, logs and traces, and data kept forever.
+**What it does.** Saves state outside the model so it survives restarts, crashes and new sessions, without keeping personal data longer than needed.
+
+**The problem.** `[Episodic · Semantic]` The window disappears after every call. Without a store outside the model, a restart, a crash or a new session loses everything. And whatever is saved becomes a liability: personal data copied into memory, logs and traces, and data kept forever.
 
 **How NurseOps Now solves it.**
 
-- **Chat survives restarts:** each thread is checkpointed to SQLite after every step ([Step 1](#step-1-pick-and-load-the-thread), [Step 6](#step-6-mask-then-save-the-turn)).
-- **Personal details are masked before saving** ([Step 6](#step-6-mask-then-save-the-turn)).
-- **Case state lives in SQL** and moves only along allowed paths, with an audit row for every change ([Step 7](#step-7-case-state-machine)).
-- **Work isn't paid for twice:** identical reviews are reused, and review calls use prompt caching ([Step 8](#step-8-reuse-instead-of-recompute)).
-- **A conversation can be forgotten on request,** with an audit row ([Step 9](#step-9-forget-on-request)).
-- **Not yet:** automatic expiry and a cap on stored history ([Plan 3](#plan-closing-the-gaps)); prompt caching for AI Assist ([Plan 4](#plan-closing-the-gaps)).
+- `[Episodic]` **Chat survives restarts:** each thread is checkpointed to SQLite after every step ([Step 1](#step-1-pick-and-load-the-thread), [Step 6](#step-6-mask-then-save-the-turn)).
+- `[Episodic]` **Personal details are masked before saving** ([Step 6](#step-6-mask-then-save-the-turn)).
+- `[Semantic · Procedural]` **Case state lives in SQL** and moves only along allowed paths, with an audit row for every change ([Step 7](#step-7-case-state-machine)).
+- `[Semantic]` **Work isn't paid for twice:** identical reviews are reused, and review calls use prompt caching ([Step 8](#step-8-reuse-instead-of-recompute)).
+- `[Episodic]` **A conversation can be forgotten on request,** with an audit row ([Step 9](#step-9-forget-on-request)).
+- `[Episodic]` **Not yet:** automatic expiry and a cap on stored history ([Plan 3](#plan-closing-the-gaps)); prompt caching for AI Assist ([Plan 4](#plan-closing-the-gaps)).
 
 ### With LangGraph, AutoGen, CrewAI and LlamaIndex (7.3)
 
@@ -509,22 +580,24 @@ audit rows 'assist_cleared': 1
 
 ## Preventing Drift and Hallucinations in Long-Running Agents (7.4)
 
+**What it does.** Keeps a long-running agent on its rules (no drift) and on the facts (no hallucination) by re-sending instructions and grounding every answer.
+
 **The problem** (the book's, in its order):
 
-1. **Context Drift (The Alignment Failure):** over many turns the rules fade and the AI starts bending to the user (a strict reviewer slowly becomes an agreeable helper).
-2. **Hallucination (The Grounding Failure):** when the answer isn't in front of it, the AI fills the gap with something plausible and made-up.
+1. `[Procedural]` **Context Drift (The Alignment Failure):** over many turns the rules fade and the AI starts bending to the user (a strict reviewer slowly becomes an agreeable helper).
+2. `[Semantic]` **Hallucination (The Grounding Failure):** when the answer isn't in front of it, the AI fills the gap with something plausible and made-up.
 
 **How NurseOps Now solves it.**
 
-- **Against drift:** the rules are sent on every call ([Step 2](#step-2-build-the-window)); bad questions and leaky answers are blocked in code ([Step 10](#step-10-gate-the-input-and-output)); and no conversation can produce an approval, because the state machine only lets a person approve ([Step 7](#step-7-case-state-machine)).
-- **Against hallucination:** answers come only from tools, an answer with no source gets a "please check" note, every review quote must match the PDF (with one retry), and the output must match a schema ([Step 11](#step-11-ground-every-answer)).
-- **Not yet:** an extra reminder of the rules at the end of the prompt, and a 50-turn test that proves the AI doesn't drift ([Plan 5](#plan-closing-the-gaps)).
+- `[Procedural]` **Against drift:** the rules are sent on every call ([Step 2](#step-2-build-the-window)); bad questions and leaky answers are blocked in code ([Step 10](#step-10-gate-the-input-and-output)); and no conversation can produce an approval, because the state machine only lets a person approve ([Step 7](#step-7-case-state-machine)).
+- `[Semantic]` **Against hallucination:** answers come only from tools, an answer with no source gets a "please check" note, every review quote must match the PDF (with one retry), and the output must match a schema ([Step 11](#step-11-ground-every-answer)).
+- `[Procedural]` **Not yet:** an extra reminder of the rules at the end of the prompt, and a 50-turn test that proves the AI doesn't drift ([Plan 5](#plan-closing-the-gaps)).
 
 ### With LangGraph, AutoGen, CrewAI and LlamaIndex (7.4)
 
 If you build on an agent framework, some of this section's solutions come built in. **🔁 Replace** = the framework does it, you configure it. **🤝 Complement** = use both: the framework gives the mechanism, you add the rules. **🛠 Still yours** = build it yourself. Each framework name links to its deep dive.
 
-**In short:** of this section's 5 solutions, 1 are mostly replaced by the frameworks, 2 stay mostly yours, and the others are used together.
+**In short:** of this section's 5 solutions, 1 is mostly replaced by the frameworks, 2 stay mostly yours, and the others are used together.
 
 | Book solution | Overall | [LangGraph](deep-dives/fw-langgraph.html) | [AutoGen](deep-dives/fw-autogen.html) | [CrewAI](deep-dives/fw-crewai.html) | [LlamaIndex](deep-dives/fw-llamaindex.html) |
 |---|---|---|---|---|---|
@@ -579,7 +652,7 @@ Every idea from the chapter's intro and its four parts, in my own words, with wh
 
 | Part | Idea | NurseOps Now | Status |
 |---|---|---|---|
-| Intro | Models are stateless; three memory tiers (window, long-term store, episode log) | Window = Step 2; long-term = SQL + checkpoints + Chroma; episode log = `audit_log` + traces | ✅ |
+| Intro | Models are stateless; memory in tiers (the book names three: window, long-term store, episode log; this post uses four types) | Working = Step 2; episodic = checkpoints + `audit_log` + traces; semantic = SQL + Chroma; procedural = system prompt, tools, state machine | ✅ |
 | Short-term memory (7.1) | Count tokens before each call; act at thresholds | Turn limit only | ⬜ |
 | Short-term memory (7.1) | Load context only when needed | Tools (Step 3) | ✅ |
 | Short-term memory (7.1) | Pin the system prompt | `system` field on every call (Step 2) | ✅ |
