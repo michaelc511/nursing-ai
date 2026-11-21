@@ -7,7 +7,7 @@ Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built (documents)
 **Read in this order**
 
 1. [In plain words](#in-plain-words): what it is, without jargon
-2. [The problem it solves](#the-problem-it-solves): the book's problem, and its idea in my words
+2. [The problem it solves](#the-problem-it-solves): the problem, and the standard approach in my words
 3. [How to implement it (ServiceApps)](#how-to-implement-it-serviceapps): scenario, steps, code and real output
 4. [In NurseOps Now](#in-nurseops-now): built or not, and where
 5. [Trade-offs](#trade-offs) and [Interview answer](#interview-answer)
@@ -22,7 +22,7 @@ Long-term memory is knowledge kept outside the model that the AI can search when
 
 **No external state** and **The context window: finite, expensive, volatile**: anything only in the window is gone after the call, and you can't fit a whole knowledge base into it.
 
-**What the book proposes** (in my words): keep a long-term tier in a vector store and pull relevant items into the window only when a question needs them.
+**The standard approach** (in my words): keep a long-term tier in a vector store and pull relevant items into the window only when a question needs them.
 
 :::highlight
 ## How to implement it (ServiceApps)
@@ -80,7 +80,7 @@ for q, where in [("why does my vpn say error 809", {"kind": "kb"}), ("how should
 **What to watch for.**
 
 - Filter by labels (user, permissions) before ranking, so one user's memories never surface for another.
-- Only store finalized, useful items; junk memories make search worse (the book's vector store hygiene).
+- Only store finalized, useful items; junk memories make search worse (vector store hygiene).
 - Keep exact facts (ticket status, IDs) in SQL, not only in the vector store.
 
 **In plain terms:** every saved note gets a meaning-based shelf location, and the assistant borrows only the one or two books it needs.

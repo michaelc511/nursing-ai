@@ -7,7 +7,7 @@ Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built
 **Read in this order**
 
 1. [In plain words](#in-plain-words): what it is, without jargon
-2. [The problem it solves](#the-problem-it-solves): the book's problem, and its idea in my words
+2. [The problem it solves](#the-problem-it-solves): the problem, and the standard approach in my words
 3. [How to implement it (ServiceApps)](#how-to-implement-it-serviceapps): scenario, steps, code and real output
 4. [In NurseOps Now](#in-nurseops-now): built or not, and where
 5. [Trade-offs](#trade-offs) and [Interview answer](#interview-answer)
@@ -22,7 +22,7 @@ Rehydration is how a returning user's context is rebuilt: fetch what's saved abo
 
 **Summarization solves volume, not time**: a user who returns after a week expects the assistant to know their open tickets and preferences.
 
-**What the book proposes** (in my words): Fetch (query by user or session ID) → Filter (only active projects, recent summaries, relevant memories) → Inject (prepend to the system prompt of the new session).
+**The standard approach** (in my words): Fetch (query by user or session ID) → Filter (only active projects, recent summaries, relevant memories) → Inject (prepend to the system prompt of the new session).
 
 :::highlight
 ## How to implement it (ServiceApps)

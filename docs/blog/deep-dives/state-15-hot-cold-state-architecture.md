@@ -7,7 +7,7 @@ Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built
 **Read in this order**
 
 1. [In plain words](#in-plain-words): what it is, without jargon
-2. [The problem it solves](#the-problem-it-solves): the book's problem, and its idea in my words
+2. [The problem it solves](#the-problem-it-solves): the problem, and the standard approach in my words
 3. [How to implement it (ServiceApps)](#how-to-implement-it-serviceapps): scenario, steps, code and real output
 4. [In NurseOps Now](#in-nurseops-now): built or not, and where
 5. [Trade-offs](#trade-offs) and [Interview answer](#interview-answer)
@@ -22,7 +22,7 @@ Hot state is what the AI is working with right now, in memory for this call. Col
 
 **Summarization solves volume, not time**: if everything lives in the window, a crash, a closed tab or a new session loses it.
 
-**What the book proposes** (in my words): separate hot state (context window and RAM: fast, volatile, current reasoning) from cold state (SQL, NoSQL or a vector database: durable, slower, long-term facts).
+**The standard approach** (in my words): separate hot state (context window and RAM: fast, volatile, current reasoning) from cold state (SQL, NoSQL or a vector database: durable, slower, long-term facts).
 
 :::highlight
 ## How to implement it (ServiceApps)

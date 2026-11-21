@@ -7,7 +7,7 @@ Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built
 **Read in this order**
 
 1. [In plain words](#in-plain-words): what it is, without jargon
-2. [The problem it solves](#the-problem-it-solves): the book's problem, and its idea in my words
+2. [The problem it solves](#the-problem-it-solves): the problem, and the standard approach in my words
 3. [How to implement it (ServiceApps)](#how-to-implement-it-serviceapps): scenario, steps, code and real output
 4. [In NurseOps Now](#in-nurseops-now): built or not, and where
 5. [Trade-offs](#trade-offs) and [Interview answer](#interview-answer)
@@ -22,7 +22,7 @@ Schema enforcement requires the AI's answer to match a fixed structure: specific
 
 **Hallucination (The Grounding Failure)**: free-form answers can invent fields, values or formats that break the code that uses them.
 
-**What the book proposes** (in my words): use libraries like Pydantic or Instructor to force the output into a strict structure, and retry when validation fails.
+**The standard approach** (in my words): use libraries like Pydantic or Instructor to force the output into a strict structure, and retry when validation fails.
 
 :::highlight
 ## How to implement it (ServiceApps)

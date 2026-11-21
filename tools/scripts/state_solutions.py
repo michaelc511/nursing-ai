@@ -104,7 +104,7 @@ for q, where in [("why does my vpn say error 809", {"kind": "kb"}), ("how should
     print(f"{q!r} -> {score:.2f} {text}")
 ''',
  watch=["Filter by labels (user, permissions) before ranking, so one user's memories never surface for another.",
-        "Only store finalized, useful items; junk memories make search worse (the book's vector store hygiene).",
+        "Only store finalized, useful items; junk memories make search worse (vector store hygiene).",
         "Keep exact facts (ticket status, IDs) in SQL, not only in the vector store."],
  sa_plain="every saved note gets a meaning-based shelf location, and the assistant borrows only the one or two books it needs.",
  nurseops="Built for documents. Policy PDFs and the AI Assist user guide are chunked, embedded with all-MiniLM-L6-v2 and stored in Chroma (`backend/app/rag/index.py`), always filtered by CPT code. Chat itself is kept in checkpoints and case facts in SQL, not in the vector store. See the [ingestion deep dive](01-ingestion.html).",

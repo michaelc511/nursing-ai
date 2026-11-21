@@ -238,7 +238,7 @@ From the official memory docs ([{f} memory docs]({DOCS[f]})), checked on {DATE}:
 
 **🔁 Replace** = {f} does it, you configure it ({counts['R']} of 27). **🤝 Complement** = use both: {f} gives the mechanism, you add the rules ({counts['C']}). **🛠 Still yours** = build it yourself ({counts['Y']}). † = not a memory feature, so from general knowledge rather than the memory docs; check the current docs.
 
-| Book solution | With {f} | How | Solution |
+| Memory solution | With {f} | How | Solution |
 |---|---|---|---|
 """ + "\n".join(rows) + f"""
 
@@ -272,7 +272,7 @@ All data in this post is made up.
 
 def section_table(sec):
     titles = SECTION_OF[sec]
-    head = "| Book solution | Overall | " + " | ".join(f"[{f}](deep-dives/{FILE[f]}.html)" for f in FW) + " |"
+    head = "| Solution | Overall | " + " | ".join(f"[{f}](deep-dives/{FILE[f]}.html)" for f in FW) + " |"
     rows = [f"| **{t}**{' †' if t in NOTE_GENERAL else ''} | {M[t]['overall']} | " + " | ".join(cell(f, t) for f in FW) + " |"
             for t in titles]
     rep = sum(1 for t in titles if M[t]["overall"].startswith("🔁"))

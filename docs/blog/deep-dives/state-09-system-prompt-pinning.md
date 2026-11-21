@@ -7,7 +7,7 @@ Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built
 **Read in this order**
 
 1. [In plain words](#in-plain-words): what it is, without jargon
-2. [The problem it solves](#the-problem-it-solves): the book's problem, and its idea in my words
+2. [The problem it solves](#the-problem-it-solves): the problem, and the standard approach in my words
 3. [How to implement it (ServiceApps)](#how-to-implement-it-serviceapps): scenario, steps, code and real output
 4. [In NurseOps Now](#in-nurseops-now): built or not, and where
 5. [Trade-offs](#trade-offs) and [Interview answer](#interview-answer)
@@ -22,7 +22,7 @@ System prompt pinning keeps the AI's rules in a protected place that is sent on 
 
 **Sliding window truncation** and **Loss of instructional integrity**: if the rules are just the first message, trimming old messages throws the rules away first.
 
-**What the book proposes** (in my words): split the context into an immutable zone (rules) that is never truncated and a mutable zone (history) that slides.
+**The standard approach** (in my words): split the context into an immutable zone (rules) that is never truncated and a mutable zone (history) that slides.
 
 :::highlight
 ## How to implement it (ServiceApps)

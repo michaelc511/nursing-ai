@@ -100,7 +100,7 @@ memory after clear(): []
 
 **🔁 Replace** = AutoGen does it, you configure it (9 of 27). **🤝 Complement** = use both: AutoGen gives the mechanism, you add the rules (9). **🛠 Still yours** = build it yourself (9). † = not a memory feature, so from general knowledge rather than the memory docs; check the current docs.
 
-| Book solution | With AutoGen | How | Solution |
+| Memory solution | With AutoGen | How | Solution |
 |---|---|---|---|
 | **Three-Tier Memory: Short-Term (Context Window)** | 🔁 Replace | The agent's model context: `BufferedChatCompletionContext`, `TokenLimitedChatCompletionContext`, `HeadAndTailChatCompletionContext` | [Deep dive](state-01-short-term-context-window.html) |
 | **Three-Tier Memory: Long-Term (Vector Store)** | 🔁 Replace | `ChromaDBVectorMemory`, `RedisMemory`, `Mem0Memory` | [Deep dive](state-02-long-term-vector-store.html) |

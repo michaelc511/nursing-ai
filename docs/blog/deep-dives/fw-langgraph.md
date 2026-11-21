@@ -104,7 +104,7 @@ after delete_thread: []
 
 **🔁 Replace** = LangGraph does it, you configure it (8 of 27). **🤝 Complement** = use both: LangGraph gives the mechanism, you add the rules (14). **🛠 Still yours** = build it yourself (5). † = not a memory feature, so from general knowledge rather than the memory docs; check the current docs.
 
-| Book solution | With LangGraph | How | Solution |
+| Memory solution | With LangGraph | How | Solution |
 |---|---|---|---|
 | **Three-Tier Memory: Short-Term (Context Window)** | 🤝 Complement | Messages live in graph state per thread; you trim them with `trim_messages` | [Deep dive](state-01-short-term-context-window.html) |
 | **Three-Tier Memory: Long-Term (Vector Store)** | 🔁 Replace | Store (`InMemoryStore`, `PostgresStore`, …) with semantic search, per namespace | [Deep dive](state-02-long-term-vector-store.html) |

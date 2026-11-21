@@ -7,7 +7,7 @@ Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built (reviews)
 **Read in this order**
 
 1. [In plain words](#in-plain-words): what it is, without jargon
-2. [The problem it solves](#the-problem-it-solves): the book's problem, and its idea in my words
+2. [The problem it solves](#the-problem-it-solves): the problem, and the standard approach in my words
 3. [How to implement it (ServiceApps)](#how-to-implement-it-serviceapps): scenario, steps, code and real output
 4. [In NurseOps Now](#in-nurseops-now): built or not, and where
 5. [Trade-offs](#trade-offs) and [Interview answer](#interview-answer)
@@ -22,7 +22,7 @@ A self-correction loop checks the AI's draft answer before the user sees it, and
 
 **Hallucination (The Grounding Failure)**: a first draft can contain a quote or fact that isn't in the source.
 
-**What the book proposes** (in my words): ask the model to verify its answer against the provided context before returning the final result.
+**The standard approach** (in my words): ask the model to verify its answer against the provided context before returning the final result.
 
 :::highlight
 ## How to implement it (ServiceApps)

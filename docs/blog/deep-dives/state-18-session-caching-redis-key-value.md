@@ -7,7 +7,7 @@ Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built (SQLite, not 
 **Read in this order**
 
 1. [In plain words](#in-plain-words): what it is, without jargon
-2. [The problem it solves](#the-problem-it-solves): the book's problem, and its idea in my words
+2. [The problem it solves](#the-problem-it-solves): the problem, and the standard approach in my words
 3. [How to implement it (ServiceApps)](#how-to-implement-it-serviceapps): scenario, steps, code and real output
 4. [In NurseOps Now](#in-nurseops-now): built or not, and where
 5. [Trade-offs](#trade-offs) and [Interview answer](#interview-answer)
@@ -22,7 +22,7 @@ Session caching saves a conversation's whole state (history and current step) un
 
 **Summarization solves volume, not time**: closing the tab or a server restart loses the conversation unless it's saved somewhere.
 
-**What the book proposes** (in my words): serialize the chat history and current state into a JSON blob stored by session ID (for example in Redis), enabling pause-and-resume and episodic recall.
+**The standard approach** (in my words): serialize the chat history and current state into a JSON blob stored by session ID (for example in Redis), enabling pause-and-resume and episodic recall.
 
 :::highlight
 ## How to implement it (ServiceApps)

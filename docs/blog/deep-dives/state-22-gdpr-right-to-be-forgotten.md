@@ -7,7 +7,7 @@ Nov 19, 2026 · Michael Chang · Status in NurseOps Now: 🟡 partly built
 **Read in this order**
 
 1. [In plain words](#in-plain-words): what it is, without jargon
-2. [The problem it solves](#the-problem-it-solves): the book's problem, and its idea in my words
+2. [The problem it solves](#the-problem-it-solves): the problem, and the standard approach in my words
 3. [How to implement it (ServiceApps)](#how-to-implement-it-serviceapps): scenario, steps, code and real output
 4. [In NurseOps Now](#in-nurseops-now): built or not, and where
 5. [Trade-offs](#trade-offs) and [Interview answer](#interview-answer)
@@ -22,7 +22,7 @@ Under GDPR, a person can ask for their personal data to be deleted. For an AI as
 
 **Persistence creates liability**: memories spread across many stores, and forgetting one person means finding them all.
 
-**What the book proposes** (in my words): make sure the persistence layer complies with regulations like GDPR's right to be forgotten.
+**The standard approach** (in my words): make sure the persistence layer complies with regulations like GDPR's right to be forgotten.
 
 :::highlight
 ## How to implement it (ServiceApps)
