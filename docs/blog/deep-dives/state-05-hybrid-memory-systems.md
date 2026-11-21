@@ -7,7 +7,7 @@ Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built
 **Read in this order**
 
 1. [In plain words](#in-plain-words): what it is, without jargon
-2. [The problem it solves](#the-problem-it-solves): the book's problem, and its idea in my words
+2. [The problem it solves](#the-problem-it-solves): the problem, and the standard approach in my words
 3. [How to implement it (ServiceApps)](#how-to-implement-it-serviceapps): scenario, steps, code and real output
 4. [In NurseOps Now](#in-nurseops-now): built or not, and where
 5. [Trade-offs](#trade-offs) and [Interview answer](#interview-answer)
@@ -22,7 +22,7 @@ Hybrid memory combines a short buffer of the latest messages with a search over 
 
 **LLMs are stateless** and **The context window: finite, expensive, volatile**: a buffer alone forgets old facts, and long-term search alone loses the thread of the conversation.
 
-**What the book proposes** (in my words): couple a short-term conversational buffer with long-term vector retrieval (RAG).
+**The standard approach** (in my words): couple a short-term conversational buffer with long-term vector retrieval (RAG).
 
 :::highlight
 ## How to implement it (ServiceApps)

@@ -7,7 +7,7 @@ Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built
 **Read in this order**
 
 1. [In plain words](#in-plain-words): what it is, without jargon
-2. [The problem it solves](#the-problem-it-solves): the book's problem, and its idea in my words
+2. [The problem it solves](#the-problem-it-solves): the problem, and the standard approach in my words
 3. [How to implement it (ServiceApps)](#how-to-implement-it-serviceapps): scenario, steps, code and real output
 4. [In NurseOps Now](#in-nurseops-now): built or not, and where
 5. [Trade-offs](#trade-offs) and [Interview answer](#interview-answer)
@@ -22,7 +22,7 @@ Episodic memory is the record of what happened, in order: who asked what, what t
 
 **No external state**: without a log, you can't tell later why the AI said something or who changed a ticket, and the AI can't learn from past episodes.
 
-**What the book proposes** (in my words): keep a third tier, an append-only log of events, separate from the window and the knowledge store.
+**The standard approach** (in my words): keep a third tier, an append-only log of events, separate from the window and the knowledge store.
 
 :::highlight
 ## How to implement it (ServiceApps)

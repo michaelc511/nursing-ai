@@ -7,7 +7,7 @@ Nov 19, 2026 · Michael Chang · Status in NurseOps Now: 🟡 partly built
 **Read in this order**
 
 1. [In plain words](#in-plain-words): what it is, without jargon
-2. [The problem it solves](#the-problem-it-solves): the book's problem, and its idea in my words
+2. [The problem it solves](#the-problem-it-solves): the problem, and the standard approach in my words
 3. [How to implement it (ServiceApps)](#how-to-implement-it-serviceapps): scenario, steps, code and real output
 4. [In NurseOps Now](#in-nurseops-now): built or not, and where
 5. [Trade-offs](#trade-offs) and [Interview answer](#interview-answer)
@@ -22,7 +22,7 @@ Serialization means saving the agent's full working state (which step it's on, w
 
 **No external state**: a crash or restart mid-task loses the progress, or worse, repeats a step that shouldn't run twice (like sending an email).
 
-**What the book proposes** (in my words): implement strict state serialization so agents can pause, crash and resume without data loss.
+**The standard approach** (in my words): implement strict state serialization so agents can pause, crash and resume without data loss.
 
 :::highlight
 ## How to implement it (ServiceApps)

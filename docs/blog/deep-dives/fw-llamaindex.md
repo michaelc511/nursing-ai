@@ -90,7 +90,7 @@ oldest chat sent: I'm on the hotel guest Wi-Fi right now
 
 **🔁 Replace** = LlamaIndex does it, you configure it (13 of 27). **🤝 Complement** = use both: LlamaIndex gives the mechanism, you add the rules (8). **🛠 Still yours** = build it yourself (6). † = not a memory feature, so from general knowledge rather than the memory docs; check the current docs.
 
-| Book solution | With LlamaIndex | How | Solution |
+| Memory solution | With LlamaIndex | How | Solution |
 |---|---|---|---|
 | **Three-Tier Memory: Short-Term (Context Window)** | 🔁 Replace | `Memory.from_defaults(session_id=..., token_limit=...)` manages the chat history | [Deep dive](state-01-short-term-context-window.html) |
 | **Three-Tier Memory: Long-Term (Vector Store)** | 🔁 Replace | `VectorMemoryBlock` on any vector store | [Deep dive](state-02-long-term-vector-store.html) |

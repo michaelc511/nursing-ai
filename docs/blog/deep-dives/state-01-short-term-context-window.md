@@ -7,7 +7,7 @@ Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built
 **Read in this order**
 
 1. [In plain words](#in-plain-words): what it is, without jargon
-2. [The problem it solves](#the-problem-it-solves): the book's problem, and its idea in my words
+2. [The problem it solves](#the-problem-it-solves): the problem, and the standard approach in my words
 3. [How to implement it (ServiceApps)](#how-to-implement-it-serviceapps): scenario, steps, code and real output
 4. [In NurseOps Now](#in-nurseops-now): built or not, and where
 5. [Trade-offs](#trade-offs) and [Interview answer](#interview-answer)
@@ -22,7 +22,7 @@ Short-term memory is simply what the AI can see in this one call: its rules, the
 
 **LLMs are stateless**: the model forgets everything between calls, so the app must rebuild what it should know on every call. If it rebuilds too little, the AI forgets; too much, and it gets slow, costly and distracted.
 
-**What the book proposes** (in my words): treat the context window as the short-term tier of memory: a small, deliberately assembled workspace, separate from long-term storage and the event log.
+**The standard approach** (in my words): treat the context window as the short-term tier of memory: a small, deliberately assembled workspace, separate from long-term storage and the event log.
 
 :::highlight
 ## How to implement it (ServiceApps)

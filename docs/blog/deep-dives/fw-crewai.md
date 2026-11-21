@@ -76,7 +76,7 @@ memory.reset(scope="/customer/acme")                           # forget one cust
 
 **🔁 Replace** = CrewAI does it, you configure it (9 of 27). **🤝 Complement** = use both: CrewAI gives the mechanism, you add the rules (8). **🛠 Still yours** = build it yourself (10). † = not a memory feature, so from general knowledge rather than the memory docs; check the current docs.
 
-| Book solution | With CrewAI | How | Solution |
+| Memory solution | With CrewAI | How | Solution |
 |---|---|---|---|
 | **Three-Tier Memory: Short-Term (Context Window)** | 🤝 Complement | Recalled memories are injected before each task; no chat-window setting on the memory page | [Deep dive](state-01-short-term-context-window.html) |
 | **Three-Tier Memory: Long-Term (Vector Store)** | 🔁 Replace | Unified `Memory`: `remember` / `recall` with semantic search (LanceDB by default) | [Deep dive](state-02-long-term-vector-store.html) |

@@ -7,7 +7,7 @@ Nov 19, 2026 · Michael Chang · Status in NurseOps Now: 🟡 documents only
 **Read in this order**
 
 1. [In plain words](#in-plain-words): what it is, without jargon
-2. [The problem it solves](#the-problem-it-solves): the book's problem, and its idea in my words
+2. [The problem it solves](#the-problem-it-solves): the problem, and the standard approach in my words
 3. [How to implement it (ServiceApps)](#how-to-implement-it-serviceapps): scenario, steps, code and real output
 4. [In NurseOps Now](#in-nurseops-now): built or not, and where
 5. [Trade-offs](#trade-offs) and [Interview answer](#interview-answer)
@@ -22,7 +22,7 @@ Vector compression stores old conversation (or any long text) as embeddings outs
 
 **History can't keep growing**: summaries lose detail, and you can't keep all old turns in the window.
 
-**What the book proposes** (in my words): convert past text into embeddings in a vector database, and retrieve only relevant segments just in time.
+**The standard approach** (in my words): convert past text into embeddings in a vector database, and retrieve only relevant segments just in time.
 
 :::highlight
 ## How to implement it (ServiceApps)

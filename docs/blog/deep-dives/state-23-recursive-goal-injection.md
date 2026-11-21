@@ -7,7 +7,7 @@ Nov 19, 2026 · Michael Chang · Status in NurseOps Now: 🟡 partly built
 **Read in this order**
 
 1. [In plain words](#in-plain-words): what it is, without jargon
-2. [The problem it solves](#the-problem-it-solves): the book's problem, and its idea in my words
+2. [The problem it solves](#the-problem-it-solves): the problem, and the standard approach in my words
 3. [How to implement it (ServiceApps)](#how-to-implement-it-serviceapps): scenario, steps, code and real output
 4. [In NurseOps Now](#in-nurseops-now): built or not, and where
 5. [Trade-offs](#trade-offs) and [Interview answer](#interview-answer)
@@ -22,7 +22,7 @@ Recursive goal injection adds a short reminder of the most important rules right
 
 **Context Drift (The Alignment Failure)**: after many friendly turns, a strict assistant can drift into agreeing with whatever the user wants.
 
-**What the book proposes** (in my words): append a condensed version of the core rules to the end of the prompt before every generation, as a goal anchor.
+**The standard approach** (in my words): append a condensed version of the core rules to the end of the prompt before every generation, as a goal anchor.
 
 :::highlight
 ## How to implement it (ServiceApps)

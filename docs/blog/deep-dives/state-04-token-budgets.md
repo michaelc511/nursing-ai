@@ -7,7 +7,7 @@ Nov 19, 2026 · Michael Chang · Status in NurseOps Now: 🟡 partly built
 **Read in this order**
 
 1. [In plain words](#in-plain-words): what it is, without jargon
-2. [The problem it solves](#the-problem-it-solves): the book's problem, and its idea in my words
+2. [The problem it solves](#the-problem-it-solves): the problem, and the standard approach in my words
 3. [How to implement it (ServiceApps)](#how-to-implement-it-serviceapps): scenario, steps, code and real output
 4. [In NurseOps Now](#in-nurseops-now): built or not, and where
 5. [Trade-offs](#trade-offs) and [Interview answer](#interview-answer)
@@ -22,7 +22,7 @@ A token budget decides, before each call, how much of the window each part may u
 
 **The context window: finite, expensive, volatile** and **Flooding the context window**: everything competes for one fixed space, and the part that loses is usually the rules or the answer.
 
-**What the book proposes** (in my words): engineer the window like a budget, compressing and summarizing progressively as it fills.
+**The standard approach** (in my words): engineer the window like a budget, compressing and summarizing progressively as it fills.
 
 :::highlight
 ## How to implement it (ServiceApps)
