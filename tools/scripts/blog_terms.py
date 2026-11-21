@@ -408,6 +408,21 @@ def section_tips(body: str) -> str:
     return re.sub(r'<a href="#([^"]+)">(.*?)</a>', rep, body)
 
 
+def term_link_tips(body: str) -> str:
+    """A link whose text is exactly a key term (e.g. a book solution linking to its deep dive) gets that term's
+    meaning as a hover box, like a section link. Links that already have a class are left alone."""
+    lower = {k.lower(): v for k, v in TERMS.items()}
+
+    def rep(m):
+        href, rest, label = m.group(1), m.group(2), m.group(3)
+        tip = lower.get(html.unescape(re.sub(r"<[^>]+>", "", label)).strip().lower())
+        if not tip:
+            return m.group(0)
+        tip = tip[0].upper() + tip[1:]
+        return f'<a class="sec" href="{href}"{rest} data-tip="{html.escape(tip)}">{label}</a>'
+    return re.sub(r'<a href="([^"]+)"((?: target="_blank" rel="noopener")?)>(.*?)</a>', rep, body)
+
+
 def new_tab_links(body: str) -> str:
     """Links that leave the page (other pages, files, websites) open in a new tab; #anchors stay in the same tab."""
     return re.sub(r'<a href="(?!#)([^"]+)"(?![^>]*\btarget=)', r'<a href="\1" target="_blank" rel="noopener"', body)
@@ -418,6 +433,7 @@ def apply(body: str, css: str) -> tuple[str, str, str, str]:
     body = new_tab_links(body)
     body, uses = add_terms(body)
     body = section_tips(body)
+    body = term_link_tips(body)
     i = body.find("</p>", body.find("</h1>"))
     if i >= 0:
         body = body[:i + 4] + TOGGLE + body[i + 4:]

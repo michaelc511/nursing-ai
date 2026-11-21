@@ -281,7 +281,7 @@ def section_table(sec):
 
 If you build on an agent framework, some of this section's solutions come built in. **🔁 Replace** = the framework does it, you configure it. **🤝 Complement** = use both: the framework gives the mechanism, you add the rules. **🛠 Still yours** = build it yourself. Each framework name links to its deep dive.
 
-**In short:** of this section's {len(titles)} solutions, {rep} are mostly replaced by the frameworks, {yours} stay mostly yours, and the others are used together.
+**In short:** of this section's {len(titles)} solutions, {rep} {'is' if rep == 1 else 'are'} mostly replaced by the frameworks, {yours} {'stays' if yours == 1 else 'stay'} mostly yours, and the others are used together.
 
 {head}
 |---|---|---|---|---|---|

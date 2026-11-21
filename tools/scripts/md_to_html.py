@@ -42,6 +42,7 @@ STATUS_CLASS = {"Y": "st-y", "To Do When LLM is ready": "st-todo", "N/A - Option
 
 def inline(text: str) -> str:
     t = html.escape(text)
+    t = re.sub(r"\{#([a-z0-9-]+)\}", r'<span id="\1"></span>', t)  # {#id}: an anchor inside a table cell or line
     t = re.sub(r"`([^`]+)`", r"<code>\1</code>", t)
     t = re.sub(r"\*\*([^*]+)\*\*", r"<b>\1</b>", t)
     t = re.sub(r"(?<!\w)_([^_]+)_(?!\w)", r"<em>\1</em>", t)

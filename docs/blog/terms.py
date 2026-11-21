@@ -142,4 +142,11 @@ TERMS = {
     'hallucination drift': 'details slowly changing as summaries are summarized again',
     'summarization solves volume, not time': "a summary shrinks memory but doesn't survive a crash or restart",
     'persistence creates liability': 'saved data can leak personal details or secrets',
+    'working / short-term memory': 'what the AI holds for the current call: the context window',
+    'working memory': 'what the AI holds for the current call: the context window',
+    'episodic memory': 'long-term memory of what happened: dated events, past sessions, mistakes',
+    'semantic memory': 'long-term memory of what is true: facts, policies, records',
+    'procedural memory': 'long-term memory of how to do things: rules, workflows, tools',
+    'memory types': 'working memory plus three long-term kinds: episodic, semantic, procedural',
+    'vector compression via rag': 'storing text as vectors and pulling back only the parts that match',
 }
