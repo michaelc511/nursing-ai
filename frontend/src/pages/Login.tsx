@@ -37,9 +37,9 @@ export function Login({ onLogin }: { onLogin: (u: User) => void }) {
           </select>
         </label>
         <label>Password
-          <input type={hint ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         </label>
-        {hint && <p className="muted" data-testid="demo-hint">Demo password: <strong>{hint.password}</strong>{hint.until ? ` (shown until ${hint.until})` : ""}</p>}
+        {hint && <p className="muted" data-testid="demo-hint">Demo password filled in: just click Sign in.</p>}
         {error && <p role="alert" className="error">{error}</p>}
         <button disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>
       </form>
