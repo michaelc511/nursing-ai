@@ -1143,6 +1143,8 @@ The last three cover search (Steps 5–6) as much as ingestion, but they only pa
 
 "Our policies are 5-page PDFs, so before any question we cut them into chunks. Instead of cutting every 500 characters, which in our knee policy split a rule mid-word, we cut at the policy's own clauses, so one chunk is one complete rule. Each chunk carries a header with the policy, version, CPT code, section and page, so it makes sense alone and can be cited. That metadata also lets search filter to the one policy for the procedure. Long clauses fall back to a recursive split with overlap, injection-like text is kept out of the index, and we embed locally with all-MiniLM-L6-v2 into Chroma, replacing a policy's old chunks on re-index. The next step is measuring clause versus fixed-size chunks on the same questions."
 
+**War story:** [S14: the assistant kept giving half the configuration steps](../war-stories.html#war-story-1-s14-half-the-configuration-steps-fixed-by-chunking-on-headings): enterprise product docs, fixed by chunking on the document's own headings (opens in a new tab).
+
 ## What this proves
 
 Ingestion in NurseOps Now is a deliberate design, not a library default. Every chunk is a whole policy rule with its source attached, which makes citation, quote checking and policy filtering possible in the later steps. It is unit tested, and the parts that aren't proven or aren't built yet (the clause-vs-fixed score and the content hash) are named, with the plan step that closes each one.
