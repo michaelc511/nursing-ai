@@ -121,6 +121,8 @@ This is a standard technique, not a new one: it is **S14 Clause-Aware Chunking**
 
 **Deep dive:** [Ingestion, with the real code and output](deep-dives/01-ingestion.html): the 8 sub-steps, why clause chunks beat fixed-size, tests and honest gaps.
 
+**War story:** [S14: the assistant kept giving half the configuration steps](war-stories.html#war-story-1-s14-half-the-configuration-steps-fixed-by-chunking-on-headings): enterprise product docs, fixed by chunking on the document's own headings (opens in a new tab).
+
 [↑ Back to the list](#how-a-question-flows-and-where-we-check-it)
 
 ### Step 2: Read the request
@@ -388,6 +390,8 @@ The CI gate caught the drop on its own (`GATE FAILED: hit@1 0.889 -> 0.778`), wh
 - _"My knee keeps giving out"_ ranks the **definition** of mechanical symptoms above the **coverage rule**. Definitions now compete with rules, as they do in real policies.
 
 **Example for non-tech readers:** imagine testing a librarian with a library of one shelf. They always find the book. Put them in a full library with three books that have nearly the same title, and now you learn whether they are actually good.
+
+**War story:** [F17/F20: the eval said 100%, and that was the problem](war-stories.html#war-story-2-f17-f20-the-eval-said-100-fixed-by-making-the-test-as-hard-as-real-life): the same lesson in enterprise product docs (opens in a new tab).
 
 ## The sample questions
 

@@ -1,4 +1,4 @@
-"""Hover definitions for blog pages built by md_to_html.py (same idea as nurseops-now-blog-dets.html).
+"""Hover definitions for blog pages built by md_to_html.py (same idea as nurseops-now-blog.html?defs=y).
 
 Every use of a glossary term in a paragraph, list item or table cell is highlighted, shows a hover box
 with its plain-English meaning, and links to its entry in a generated "Key terms" glossary at the end;
