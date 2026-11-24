@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html), section [Context and State Management (Intro)](../nurseops-now-state.html#context-and-state-management-intro) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · [Three-Tier Memory: Long-Term (Vector Store) →](state-02-long-term-vector-store.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html), section [Context and State Management (Intro)](../nurseops-now-state-bk7.html#context-and-state-management-intro) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · [Three-Tier Memory: Long-Term (Vector Store) →](state-02-long-term-vector-store.html)
 
 **Read in this order**
 
@@ -85,7 +85,7 @@ sent 5 of 7 messages
 
 ## In NurseOps Now
 
-Built. `claude_answer()` in `backend/app/services/assist.py` sends the rules in the API's `system` field, the last `ASSIST_TURNS` (10) turns, and a note like "(The user is looking at case 3.)". The demo in the parent post stored 12 turns and sent 10. See [Step 2](../nurseops-now-state.html#step-2-build-the-window).
+Built. `claude_answer()` in `backend/app/services/assist.py` sends the rules in the API's `system` field, the last `ASSIST_TURNS` (10) turns, and a note like "(The user is looking at case 3.)". The demo in the parent post stored 12 turns and sent 10. See [Step 2](../nurseops-now-state-bk7.html#step-2-build-the-window).
 
 ## Trade-offs
 
@@ -98,4 +98,4 @@ Built. `claude_answer()` in `backend/app/services/assist.py` sends the rules in 
 
 All data in this post is made up. No real people, tickets or patient data.
 
-[← Back to all 27 solutions in the state management blog](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions in the state management blog](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

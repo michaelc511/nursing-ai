@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html), section [Implementing Long-Term Memory: External Persistence Architecture (7.3)](../nurseops-now-state.html#implementing-long-term-memory-external-persistence-architecture-7-3) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · [← Session Caching (Redis/Key-Value)](state-18-session-caching-redis-key-value.html) · [Sanitization layer →](state-20-sanitization-layer.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html), section [Implementing Long-Term Memory: External Persistence Architecture (7.3)](../nurseops-now-state-bk7.html#implementing-long-term-memory-external-persistence-architecture-7-3) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · [← Session Caching (Redis/Key-Value)](state-18-session-caching-redis-key-value.html) · [Sanitization layer →](state-20-sanitization-layer.html)
 
 **Read in this order**
 
@@ -94,7 +94,7 @@ What you know about this user:
 
 ## In NurseOps Now
 
-Built: AI Assist fetches the thread by ID from the checkpointer, filters to the last 10 turns, and injects them with the rules; case facts come live from tools. See [Step 1](../nurseops-now-state.html#step-1-pick-and-load-the-thread), [Step 2](../nurseops-now-state.html#step-2-build-the-window) and [Step 3](../nurseops-now-state.html#step-3-load-facts-only-when-needed).
+Built: AI Assist fetches the thread by ID from the checkpointer, filters to the last 10 turns, and injects them with the rules; case facts come live from tools. See [Step 1](../nurseops-now-state-bk7.html#step-1-pick-and-load-the-thread), [Step 2](../nurseops-now-state-bk7.html#step-2-build-the-window) and [Step 3](../nurseops-now-state-bk7.html#step-3-load-facts-only-when-needed).
 
 ## Trade-offs
 
@@ -107,4 +107,4 @@ Built: AI Assist fetches the thread by ID from the checkpointer, filters to the 
 
 All data in this post is made up. No real people, tickets or patient data.
 
-[← Back to all 27 solutions in the state management blog](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions in the state management blog](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

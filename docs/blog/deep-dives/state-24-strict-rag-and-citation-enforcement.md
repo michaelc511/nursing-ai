@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html), section [Preventing Drift and Hallucinations in Long-Running Agents (7.4)](../nurseops-now-state.html#preventing-drift-and-hallucinations-in-long-running-agents-7-4) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · [← Engineering Fix: Recursive Goal Injection](state-23-recursive-goal-injection.html) · [Input Filtering: Relevance Pruning →](state-25-input-filtering-relevance-pruning.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html), section [Preventing Drift and Hallucinations in Long-Running Agents (7.4)](../nurseops-now-state-bk7.html#preventing-drift-and-hallucinations-in-long-running-agents-7-4) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · [← Engineering Fix: Recursive Goal Injection](state-23-recursive-goal-injection.html) · [Input Filtering: Relevance Pruning →](state-25-input-filtering-relevance-pruning.html)
 
 **Read in this order**
 
@@ -88,7 +88,7 @@ OK (honest MISSING_INFO)     <- MISSING_INFO: I can't find your laptop's warrant
 
 ## In NurseOps Now
 
-Built: AI Assist's prompt says answer only from tools and say "I don't know" otherwise; the `check` node adds a "please check" note to answers without sources; and every case review quote must match the PDF exactly, or the review is sent back once. See [Step 11](../nurseops-now-state.html#step-11-ground-every-answer).
+Built: AI Assist's prompt says answer only from tools and say "I don't know" otherwise; the `check` node adds a "please check" note to answers without sources; and every case review quote must match the PDF exactly, or the review is sent back once. See [Step 11](../nurseops-now-state-bk7.html#step-11-ground-every-answer).
 
 ## Trade-offs
 
@@ -101,4 +101,4 @@ Built: AI Assist's prompt says answer only from tools and say "I don't know" oth
 
 All data in this post is made up. No real people, tickets or patient data.
 
-[← Back to all 27 solutions in the state management blog](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions in the state management blog](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

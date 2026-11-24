@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html), section [Preventing Drift and Hallucinations in Long-Running Agents (7.4)](../nurseops-now-state.html#preventing-drift-and-hallucinations-in-long-running-agents-7-4) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · [← Process Control: Self-Correction Loop](state-26-self-correction-loop.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html), section [Preventing Drift and Hallucinations in Long-Running Agents (7.4)](../nurseops-now-state-bk7.html#preventing-drift-and-hallucinations-in-long-running-agents-7-4) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · [← Process Control: Self-Correction Loop](state-26-self-correction-loop.html)
 
 **Read in this order**
 
@@ -83,7 +83,7 @@ INVALID  1 errors in: ['json']
 
 ## In NurseOps Now
 
-Built: every case review must match the `ReviewResult` Pydantic schema, requested through the Anthropic SDK's structured output (`messages.parse`) in `backend/app/llm/client.py`; a refusal or unparseable answer falls back to the backup model or returns "AI unavailable". See [Step 11](../nurseops-now-state.html#step-11-ground-every-answer).
+Built: every case review must match the `ReviewResult` Pydantic schema, requested through the Anthropic SDK's structured output (`messages.parse`) in `backend/app/llm/client.py`; a refusal or unparseable answer falls back to the backup model or returns "AI unavailable". See [Step 11](../nurseops-now-state-bk7.html#step-11-ground-every-answer).
 
 ## Trade-offs
 
@@ -96,4 +96,4 @@ Built: every case review must match the `ReviewResult` Pydantic schema, requeste
 
 All data in this post is made up. No real people, tickets or patient data.
 
-[← Back to all 27 solutions in the state management blog](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions in the state management blog](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

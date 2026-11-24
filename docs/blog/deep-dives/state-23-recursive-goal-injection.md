@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status in NurseOps Now: 🟡 partly built
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html), section [Preventing Drift and Hallucinations in Long-Running Agents (7.4)](../nurseops-now-state.html#preventing-drift-and-hallucinations-in-long-running-agents-7-4) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · [← GDPR Right to Be Forgotten](state-22-gdpr-right-to-be-forgotten.html) · [Engineering Fix: Strict RAG and Citation Enforcement →](state-24-strict-rag-and-citation-enforcement.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html), section [Preventing Drift and Hallucinations in Long-Running Agents (7.4)](../nurseops-now-state-bk7.html#preventing-drift-and-hallucinations-in-long-running-agents-7-4) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · [← GDPR Right to Be Forgotten](state-22-gdpr-right-to-be-forgotten.html) · [Engineering Fix: Strict RAG and Citation Enforcement →](state-24-strict-rag-and-citation-enforcement.html)
 
 **Read in this order**
 
@@ -81,7 +81,7 @@ extra tokens per call (rough): 17
 
 ## In NurseOps Now
 
-Partly built: the full rules are sent on every call in the system field, but there's no extra reminder at the end. More importantly, the critical rule is enforced in code: the state machine only lets a person approve ([Step 7](../nurseops-now-state.html#step-7-case-state-machine)). A 50-turn drift test is [Plan 5](../nurseops-now-state.html#plan-closing-the-gaps).
+Partly built: the full rules are sent on every call in the system field, but there's no extra reminder at the end. More importantly, the critical rule is enforced in code: the state machine only lets a person approve ([Step 7](../nurseops-now-state-bk7.html#step-7-case-state-machine)). A 50-turn drift test is [Plan 5](../nurseops-now-state-bk7.html#plan-closing-the-gaps).
 
 ## Trade-offs
 
@@ -94,4 +94,4 @@ Partly built: the full rules are sent on every call in the system field, but the
 
 All data in this post is made up. No real people, tickets or patient data.
 
-[← Back to all 27 solutions in the state management blog](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions in the state management blog](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

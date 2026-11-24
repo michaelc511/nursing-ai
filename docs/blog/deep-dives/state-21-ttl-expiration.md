@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ⬜ not built (illustrative)
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html), section [Implementing Long-Term Memory: External Persistence Architecture (7.3)](../nurseops-now-state.html#implementing-long-term-memory-external-persistence-architecture-7-3) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · [← Sanitization layer](state-20-sanitization-layer.html) · [GDPR Right to Be Forgotten →](state-22-gdpr-right-to-be-forgotten.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html), section [Implementing Long-Term Memory: External Persistence Architecture (7.3)](../nurseops-now-state-bk7.html#implementing-long-term-memory-external-persistence-architecture-7-3) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · [← Sanitization layer](state-20-sanitization-layer.html) · [GDPR Right to Be Forgotten →](state-22-gdpr-right-to-be-forgotten.html)
 
 **Read in this order**
 
@@ -87,7 +87,7 @@ audit: [('2026-11-19', 'ttl_purge', 'u42:INC0010001')]
 
 ## In NurseOps Now
 
-Not built: AI Assist threads are kept until a user clears them. Capping and expiring memory is [Plan 3](../nurseops-now-state.html#plan-closing-the-gaps). See [Step 9](../nurseops-now-state.html#step-9-forget-on-request).
+Not built: AI Assist threads are kept until a user clears them. Capping and expiring memory is [Plan 3](../nurseops-now-state-bk7.html#plan-closing-the-gaps). See [Step 9](../nurseops-now-state-bk7.html#step-9-forget-on-request).
 
 ## Trade-offs
 
@@ -100,4 +100,4 @@ Not built: AI Assist threads are kept until a user clears them. Capping and expi
 
 All data in this post is made up. No real people, tickets or patient data.
 
-[← Back to all 27 solutions in the state management blog](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions in the state management blog](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

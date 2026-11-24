@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status in NurseOps Now: 🟡 partly built
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html), section [Implementing Long-Term Memory: External Persistence Architecture (7.3)](../nurseops-now-state.html#implementing-long-term-memory-external-persistence-architecture-7-3) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · [← TTL (time-to-live) expiration](state-21-ttl-expiration.html) · [Engineering Fix: Recursive Goal Injection →](state-23-recursive-goal-injection.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html), section [Implementing Long-Term Memory: External Persistence Architecture (7.3)](../nurseops-now-state-bk7.html#implementing-long-term-memory-external-persistence-architecture-7-3) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · [← TTL (time-to-live) expiration](state-21-ttl-expiration.html) · [Engineering Fix: Recursive Goal Injection →](state-23-recursive-goal-injection.html)
 
 **Read in this order**
 
@@ -89,7 +89,7 @@ audit: [{'action': 'erase_user', 'items': 5}]
 
 ## In NurseOps Now
 
-Partly built: "Clear" deletes one AI Assist thread and writes an audit row (the parent post's demo). There's no single "erase everything for this user" across all stores. See [Step 9](../nurseops-now-state.html#step-9-forget-on-request).
+Partly built: "Clear" deletes one AI Assist thread and writes an audit row (the parent post's demo). There's no single "erase everything for this user" across all stores. See [Step 9](../nurseops-now-state-bk7.html#step-9-forget-on-request).
 
 ## Trade-offs
 
@@ -102,4 +102,4 @@ Partly built: "Clear" deletes one AI Assist thread and writes an audit row (the 
 
 All data in this post is made up. No real people, tickets or patient data.
 
-[← Back to all 27 solutions in the state management blog](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions in the state management blog](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

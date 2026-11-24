@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built (rules)
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html), section [Preventing Drift and Hallucinations in Long-Running Agents (7.4)](../nurseops-now-state.html#preventing-drift-and-hallucinations-in-long-running-agents-7-4) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · [← Engineering Fix: Strict RAG and Citation Enforcement](state-24-strict-rag-and-citation-enforcement.html) · [Process Control: Self-Correction Loop →](state-26-self-correction-loop.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html), section [Preventing Drift and Hallucinations in Long-Running Agents (7.4)](../nurseops-now-state-bk7.html#preventing-drift-and-hallucinations-in-long-running-agents-7-4) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · [← Engineering Fix: Strict RAG and Citation Enforcement](state-24-strict-rag-and-citation-enforcement.html) · [Process Control: Self-Correction Loop →](state-26-self-correction-loop.html)
 
 **Read in this order**
 
@@ -82,7 +82,7 @@ BLOCKED off-topic
 
 ## In NurseOps Now
 
-Built with rules, not a second model: the `gate` node runs `guard.check_input()` and `guard.intent_gate()` before the AI is called (no AI cost). The red-team suite sent 44 attacks to real Claude with 0 getting through. See [Step 10](../nurseops-now-state.html#step-10-gate-the-input-and-output).
+Built with rules, not a second model: the `gate` node runs `guard.check_input()` and `guard.intent_gate()` before the AI is called (no AI cost). The red-team suite sent 44 attacks to real Claude with 0 getting through. See [Step 10](../nurseops-now-state-bk7.html#step-10-gate-the-input-and-output).
 
 ## Trade-offs
 
@@ -95,4 +95,4 @@ Built with rules, not a second model: the `gate` node runs `guard.check_input()`
 
 All data in this post is made up. No real people, tickets or patient data.
 
-[← Back to all 27 solutions in the state management blog](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions in the state management blog](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

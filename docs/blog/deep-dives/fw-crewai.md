@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status: ⬜ not used in NurseOps Now (planned for restaurant-ai-platform, F14)
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · Other frameworks: [LangGraph](fw-langgraph.html) · [AutoGen](fw-autogen.html) · [LlamaIndex](fw-llamaindex.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · Other frameworks: [LangGraph](fw-langgraph.html) · [AutoGen](fw-autogen.html) · [LlamaIndex](fw-llamaindex.html)
 
 **Read in this order**
 
@@ -147,4 +147,4 @@ Not used in NurseOps Now. CrewAI is planned as feature F14 in restaurant-ai-plat
 
 All data in this post is made up.
 
-[← Back to all 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

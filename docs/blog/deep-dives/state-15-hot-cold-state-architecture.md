@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html), section [Implementing Long-Term Memory: External Persistence Architecture (7.3)](../nurseops-now-state.html#implementing-long-term-memory-external-persistence-architecture-7-3) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · [← The Engineering Trade-off: Fidelity vs. Capacity](state-14-engineering-trade-off-fidelity-vs-capacity.html) · [Structured Storage (SQL/Postgres) →](state-16-structured-storage-sql-postgres.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html), section [Implementing Long-Term Memory: External Persistence Architecture (7.3)](../nurseops-now-state-bk7.html#implementing-long-term-memory-external-persistence-architecture-7-3) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · [← The Engineering Trade-off: Fidelity vs. Capacity](state-14-engineering-trade-off-fidelity-vs-capacity.html) · [Structured Storage (SQL/Postgres) →](state-16-structured-storage-sql-postgres.html)
 
 **Read in this order**
 
@@ -88,7 +88,7 @@ cold (kept)        : [('preferred_contact', '"email"'), ('asset', '"LT-4471"')]
 
 ## In NurseOps Now
 
-Built. Hot = the window built per call; cold = SQLite (cases, reviews, decisions, audit), LangGraph checkpoints for chat, and Chroma for policies. See the [Intro](../nurseops-now-state.html#context-and-state-management-intro) and [Step 1](../nurseops-now-state.html#step-1-pick-and-load-the-thread).
+Built. Hot = the window built per call; cold = SQLite (cases, reviews, decisions, audit), LangGraph checkpoints for chat, and Chroma for policies. See the [Intro](../nurseops-now-state-bk7.html#context-and-state-management-intro) and [Step 1](../nurseops-now-state-bk7.html#step-1-pick-and-load-the-thread).
 
 ## Trade-offs
 
@@ -101,4 +101,4 @@ Built. Hot = the window built per call; cold = SQLite (cases, reviews, decisions
 
 All data in this post is made up. No real people, tickets or patient data.
 
-[← Back to all 27 solutions in the state management blog](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions in the state management blog](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

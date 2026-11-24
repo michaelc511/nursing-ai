@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html), section [Context and State Management (Intro)](../nurseops-now-state.html#context-and-state-management-intro) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · [← Agentic Outcome: Token Budgets](state-04-token-budgets.html) · [Agentic Outcome: Strict State Serialization →](state-06-strict-state-serialization.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html), section [Context and State Management (Intro)](../nurseops-now-state-bk7.html#context-and-state-management-intro) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · [← Agentic Outcome: Token Budgets](state-04-token-budgets.html) · [Agentic Outcome: Strict State Serialization →](state-06-strict-state-serialization.html)
 
 **Read in this order**
 
@@ -87,7 +87,7 @@ recalled: KB0010234 VPN error 809: avoid guest Wi-Fi, restart the client
 
 ## In NurseOps Now
 
-Built. AI Assist sends the last 10 turns (the buffer) and lets the model call RAG tools over policies and the user guide (`search_policy`, `search_guide`) plus case lookups. See [Step 2](../nurseops-now-state.html#step-2-build-the-window) and [Step 3](../nurseops-now-state.html#step-3-load-facts-only-when-needed).
+Built. AI Assist sends the last 10 turns (the buffer) and lets the model call RAG tools over policies and the user guide (`search_policy`, `search_guide`) plus case lookups. See [Step 2](../nurseops-now-state-bk7.html#step-2-build-the-window) and [Step 3](../nurseops-now-state-bk7.html#step-3-load-facts-only-when-needed).
 
 ## Trade-offs
 
@@ -100,4 +100,4 @@ Built. AI Assist sends the last 10 turns (the buffer) and lets the model call RA
 
 All data in this post is made up. No real people, tickets or patient data.
 
-[← Back to all 27 solutions in the state management blog](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions in the state management blog](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

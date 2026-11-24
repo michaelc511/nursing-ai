@@ -4,7 +4,7 @@
   solutions (framework_matrix.py), with a ServiceApps example. LangGraph code runs in backend/venv; AutoGen and
   LlamaIndex code run in a separate env given by FW_PYTHON (pip install autogen-agentchat autogen-ext llama-index-core);
   CrewAI code is illustrative (its memory needs an embedder + LLM API key). Example code: tools/scripts/fw_examples/.
-- docs/blog/nurseops-now-state.md: a "With LangGraph, AutoGen, CrewAI and LlamaIndex (<section>)" table after each
+- docs/blog/nurseops-now-state-bk7.md: a "With LangGraph, AutoGen, CrewAI and LlamaIndex (<section>)" table after each
   section's solutions (inserted or replaced in place).
 
 Usage (repo root):  FW_PYTHON=/path/to/env/bin/python python3 tools/scripts/make_framework_deep_dives.py
@@ -20,7 +20,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 BLOG = ROOT / "docs" / "blog"
 OUT = BLOG / "deep-dives"
-PARENT = BLOG / "nurseops-now-state.md"
+PARENT = BLOG / "nurseops-now-state-bk7.md"
 KIT = pathlib.Path("/Users/mike/projects/claude-config/blog-format/kit/build_blog.py")
 VENV = ROOT / "backend" / "venv" / "bin" / "python"
 FW_PY = os.environ.get("FW_PYTHON")
@@ -187,7 +187,7 @@ def fw_page(f):
 
 {DATE} · Michael Chang · Status: {i['status']}
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · Other frameworks: {others}
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · Other frameworks: {others}
 
 **Read in this order**
 
@@ -266,7 +266,7 @@ From the official memory docs ([{f} memory docs]({DOCS[f]})), checked on {DATE}:
 
 All data in this post is made up.
 
-[← Back to all 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)
 """
 
 
