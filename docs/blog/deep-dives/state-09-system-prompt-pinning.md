@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html), section [Implementing Short-Term Memory: Token Budgets and Window Management (7.1)](../nurseops-now-state.html#implementing-short-term-memory-token-budgets-and-window-management-7-1) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · [← Dynamic Context Loading](state-08-dynamic-context-loading.html) · [Textual Summarization →](state-10-textual-summarization.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html), section [Implementing Short-Term Memory: Token Budgets and Window Management (7.1)](../nurseops-now-state-bk7.html#implementing-short-term-memory-token-budgets-and-window-management-7-1) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · [← Dynamic Context Loading](state-08-dynamic-context-loading.html) · [Textual Summarization →](state-10-textual-summarization.html)
 
 **Read in this order**
 
@@ -76,7 +76,7 @@ pinned: rules present? True | first message: turn 4
 
 ## In NurseOps Now
 
-Built. The rules (`backend/app/prompts/assist_v1.md`) go in the API's `system` field on every call, and only the history list is trimmed to 10 turns. See [Step 2](../nurseops-now-state.html#step-2-build-the-window).
+Built. The rules (`backend/app/prompts/assist_v1.md`) go in the API's `system` field on every call, and only the history list is trimmed to 10 turns. See [Step 2](../nurseops-now-state-bk7.html#step-2-build-the-window).
 
 ## Trade-offs
 
@@ -89,4 +89,4 @@ Built. The rules (`backend/app/prompts/assist_v1.md`) go in the API's `system` f
 
 All data in this post is made up. No real people, tickets or patient data.
 
-[← Back to all 27 solutions in the state management blog](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions in the state management blog](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

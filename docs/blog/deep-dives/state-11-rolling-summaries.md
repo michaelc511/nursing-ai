@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ⬜ not built (illustrative)
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html), section [Compression Strategies: Summarization and Entity Extraction (7.2)](../nurseops-now-state.html#compression-strategies-summarization-and-entity-extraction-7-2) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · [← Textual Summarization](state-10-textual-summarization.html) · [Entity Extraction →](state-12-entity-extraction.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html), section [Compression Strategies: Summarization and Entity Extraction (7.2)](../nurseops-now-state-bk7.html#compression-strategies-summarization-and-entity-extraction-7-2) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · [← Textual Summarization](state-10-textual-summarization.html) · [Entity Extraction →](state-12-entity-extraction.html)
 
 **Read in this order**
 
@@ -81,7 +81,7 @@ window : ['turn 9: fact 9', 'turn 10: fact 10', 'turn 11: fact 11', 'turn 12: fa
 
 ## In NurseOps Now
 
-Not built. Older turns are dropped from the window but kept on disk ([Step 5](../nurseops-now-state.html#step-5-older-turns)); a rolling summary of what the nurse said is [Plan 2](../nurseops-now-state.html#plan-closing-the-gaps).
+Not built. Older turns are dropped from the window but kept on disk ([Step 5](../nurseops-now-state-bk7.html#step-5-older-turns)); a rolling summary of what the nurse said is [Plan 2](../nurseops-now-state-bk7.html#plan-closing-the-gaps).
 
 ## Trade-offs
 
@@ -94,4 +94,4 @@ Not built. Older turns are dropped from the window but kept on disk ([Step 5](..
 
 All data in this post is made up. No real people, tickets or patient data.
 
-[← Back to all 27 solutions in the state management blog](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions in the state management blog](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

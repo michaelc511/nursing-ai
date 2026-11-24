@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status: ✅ used in NurseOps Now (AI Assist)
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · Other frameworks: [AutoGen](fw-autogen.html) · [CrewAI](fw-crewai.html) · [LlamaIndex](fw-llamaindex.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · Other frameworks: [AutoGen](fw-autogen.html) · [CrewAI](fw-crewai.html) · [LlamaIndex](fw-llamaindex.html)
 
 **Read in this order**
 
@@ -176,4 +176,4 @@ Used today: AI Assist compiles its LangGraph graph with `SqliteSaver` (`backend/
 
 All data in this post is made up.
 
-[← Back to all 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

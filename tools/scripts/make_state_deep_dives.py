@@ -2,7 +2,7 @@
 
 For each solution: RUN its ServiceApps sketch (made-up data) to capture real output, write
 docs/blog/deep-dives/state-NN-<slug>.md, build all pages with the blog kit, then link each one from its
-yellow book row in docs/blog/nurseops-now-state.md (Deep dive column) and rebuild that page.
+yellow book row in docs/blog/nurseops-now-state-bk7.md (Deep dive column) and rebuild that page.
 
 Usage (from the repo root):  python3 tools/scripts/make_state_deep_dives.py
 Needs backend/venv (pydantic) for the sketches.
@@ -16,7 +16,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 BLOG = ROOT / "docs" / "blog"
 OUT = BLOG / "deep-dives"
-PARENT = BLOG / "nurseops-now-state.md"
+PARENT = BLOG / "nurseops-now-state-bk7.md"
 KIT = pathlib.Path("/Users/mike/projects/claude-config/blog-format/kit/build_blog.py")
 PY = ROOT / "backend" / "venv" / "bin" / "python"
 DATE = "Nov 19, 2026"
@@ -52,7 +52,7 @@ def page(i: int, s: dict, output: str) -> str:
 
 {DATE} · Michael Chang · Status in NurseOps Now: {s['status']}
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html), section [{sec_title}](../nurseops-now-state.html#{sec_anchor}) · [All {n} solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · {nav}
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html), section [{sec_title}](../nurseops-now-state-bk7.html#{sec_anchor}) · [All {n} solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · {nav}
 
 **Read in this order**
 
@@ -120,7 +120,7 @@ _Illustrative example: no ServiceApps instance is connected, so the scenario and
 
 All data in this post is made up. No real people, tickets or patient data.
 
-[← Back to all {n} solutions in the state management blog](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all {n} solutions in the state management blog](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)
 """
 
 

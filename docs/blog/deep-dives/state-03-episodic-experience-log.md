@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html), section [Context and State Management (Intro)](../nurseops-now-state.html#context-and-state-management-intro) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · [← Three-Tier Memory: Long-Term (Vector Store)](state-02-long-term-vector-store.html) · [Agentic Outcome: Token Budgets →](state-04-token-budgets.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html), section [Context and State Management (Intro)](../nurseops-now-state-bk7.html#context-and-state-management-intro) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · [← Three-Tier Memory: Long-Term (Vector Store)](state-02-long-term-vector-store.html) · [Agentic Outcome: Token Budgets →](state-04-token-budgets.html)
 
 **Read in this order**
 
@@ -80,7 +80,7 @@ all events: 4
 
 ## In NurseOps Now
 
-Built. The `audit_log` table records every status change, AI Assist question and clear; `llm_calls` records each AI call's tokens and cost; and LangSmith traces each run with a masked thread ID. See [Step 7](../nurseops-now-state.html#step-7-case-state-machine) and [Step 9](../nurseops-now-state.html#step-9-forget-on-request).
+Built. The `audit_log` table records every status change, AI Assist question and clear; `llm_calls` records each AI call's tokens and cost; and LangSmith traces each run with a masked thread ID. See [Step 7](../nurseops-now-state-bk7.html#step-7-case-state-machine) and [Step 9](../nurseops-now-state-bk7.html#step-9-forget-on-request).
 
 ## Trade-offs
 
@@ -93,4 +93,4 @@ Built. The `audit_log` table records every status change, AI Assist question and
 
 All data in this post is made up. No real people, tickets or patient data.
 
-[← Back to all 27 solutions in the state management blog](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions in the state management blog](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

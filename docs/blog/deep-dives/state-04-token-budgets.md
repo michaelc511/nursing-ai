@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status in NurseOps Now: 🟡 partly built
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html), section [Context and State Management (Intro)](../nurseops-now-state.html#context-and-state-management-intro) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · [← Three-Tier Memory: Episodic (Experience Log)](state-03-episodic-experience-log.html) · [Agentic Outcome: Hybrid Memory Systems →](state-05-hybrid-memory-systems.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html), section [Context and State Management (Intro)](../nurseops-now-state-bk7.html#context-and-state-management-intro) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · [← Three-Tier Memory: Episodic (Experience Log)](state-03-episodic-experience-log.html) · [Agentic Outcome: Hybrid Memory Systems →](state-05-hybrid-memory-systems.html)
 
 **Read in this order**
 
@@ -87,7 +87,7 @@ answer room reserved: 2000 tokens
 
 ## In NurseOps Now
 
-Partly built. NurseOps Now limits by count, not tokens: the last 10 turns, questions cut at 2,000 characters, each tool result at 12,000 characters, at most 4 tool rounds, and a fixed `max_tokens` for the answer. Token usage is recorded after each call, but there is no budget check before it ([Plan 1](../nurseops-now-state.html#plan-closing-the-gaps)).
+Partly built. NurseOps Now limits by count, not tokens: the last 10 turns, questions cut at 2,000 characters, each tool result at 12,000 characters, at most 4 tool rounds, and a fixed `max_tokens` for the answer. Token usage is recorded after each call, but there is no budget check before it ([Plan 1](../nurseops-now-state-bk7.html#plan-closing-the-gaps)).
 
 ## Trade-offs
 
@@ -100,4 +100,4 @@ Partly built. NurseOps Now limits by count, not tokens: the last 10 turns, quest
 
 All data in this post is made up. No real people, tickets or patient data.
 
-[← Back to all 27 solutions in the state management blog](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions in the state management blog](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

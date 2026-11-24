@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built (a different way)
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html), section [Compression Strategies: Summarization and Entity Extraction (7.2)](../nurseops-now-state.html#compression-strategies-summarization-and-entity-extraction-7-2) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · [← Rolling Summaries](state-11-rolling-summaries.html) · [Vector Compression via RAG →](state-13-vector-compression-via-rag.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html), section [Compression Strategies: Summarization and Entity Extraction (7.2)](../nurseops-now-state-bk7.html#compression-strategies-summarization-and-entity-extraction-7-2) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · [← Rolling Summaries](state-11-rolling-summaries.html) · [Vector Compression via RAG →](state-13-vector-compression-via-rag.html)
 
 **Read in this order**
 
@@ -93,7 +93,7 @@ pinned profile: 163 chars, instead of the chat: 418 chars
 
 ## In NurseOps Now
 
-Built, a different way. The AI review extracts the request's key fields (member, CPT code, ICD-10 codes, provider) into a validated JSON result stored in the `ai_reviews` table, and AI Assist fetches case facts with a tool instead of keeping a profile in the prompt. See [Step 4](../nurseops-now-state.html#step-4-hard-state-stays-in-sql).
+Built, a different way. The AI review extracts the request's key fields (member, CPT code, ICD-10 codes, provider) into a validated JSON result stored in the `ai_reviews` table, and AI Assist fetches case facts with a tool instead of keeping a profile in the prompt. See [Step 4](../nurseops-now-state-bk7.html#step-4-hard-state-stays-in-sql).
 
 ## Trade-offs
 
@@ -106,4 +106,4 @@ Built, a different way. The AI review extracts the request's key fields (member,
 
 All data in this post is made up. No real people, tickets or patient data.
 
-[← Back to all 27 solutions in the state management blog](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions in the state management blog](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

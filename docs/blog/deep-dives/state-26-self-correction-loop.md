@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built (reviews)
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html), section [Preventing Drift and Hallucinations in Long-Running Agents (7.4)](../nurseops-now-state.html#preventing-drift-and-hallucinations-in-long-running-agents-7-4) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · [← Input Filtering: Relevance Pruning](state-25-input-filtering-relevance-pruning.html) · [Output Guardrails: Schema Enforcement →](state-27-schema-enforcement.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html), section [Preventing Drift and Hallucinations in Long-Running Agents (7.4)](../nurseops-now-state-bk7.html#preventing-drift-and-hallucinations-in-long-running-agents-7-4) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · [← Input Filtering: Relevance Pruning](state-25-input-filtering-relevance-pruning.html) · [Output Guardrails: Schema Enforcement →](state-27-schema-enforcement.html)
 
 **Read in this order**
 
@@ -85,7 +85,7 @@ final: Error 809 means the VPN can't reach the server. [quote: "the VPN can't re
 
 ## In NurseOps Now
 
-Built for case reviews: `review_graph.py` runs `ai_review → verify`; a failed quote check sends Claude back once with the failures, unless the case's cost cap is reached. Tests: `test_failed_quote_retries_claude_once_with_feedback`, `test_no_retry_when_quotes_verify`. See [Step 11](../nurseops-now-state.html#step-11-ground-every-answer).
+Built for case reviews: `review_graph.py` runs `ai_review → verify`; a failed quote check sends Claude back once with the failures, unless the case's cost cap is reached. Tests: `test_failed_quote_retries_claude_once_with_feedback`, `test_no_retry_when_quotes_verify`. See [Step 11](../nurseops-now-state-bk7.html#step-11-ground-every-answer).
 
 ## Trade-offs
 
@@ -98,4 +98,4 @@ Built for case reviews: `review_graph.py` runs `ai_review → verify`; a failed 
 
 All data in this post is made up. No real people, tickets or patient data.
 
-[← Back to all 27 solutions in the state management blog](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions in the state management blog](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

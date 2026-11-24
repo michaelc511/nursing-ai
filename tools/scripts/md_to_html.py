@@ -7,7 +7,7 @@ import pathlib
 import re
 
 DOCS = pathlib.Path(__file__).resolve().parents[2] / "docs"
-FILES = ["requirements", "architecture", "features", "governance", "production-ops", "demo/4-demo-script", "demo/1-short_script", "demo/2-talk-notes", "blog/blog", "blog/nurseops-now-evals", "blog/war-stories", "eval-qa-plan"]
+FILES = ["requirements", "architecture", "features", "governance", "production-ops", "demo/4-demo-script", "demo/1-short_script", "demo/2-talk-notes", "blog/blog", "blog/nurseops-now-evals", "blog/war-stories", "blog/war-stories-platform", "eval-qa-plan"]
 
 CSS = """
 :root{--bg:#fff;--fg:#1c1f23;--muted:#5b6470;--line:#dde1e6;--code:#f3f5f7;--accent:#0b6e8a}
@@ -133,7 +133,7 @@ def page(title: str, body: str, css: str = CSS, head: str = "", tail: str = "") 
             f"<body><main>{body}</main>{tail}</body></html>\n")
 
 
-TERM_FILES = {"blog/nurseops-now-evals", "blog/war-stories"}  # pages with hover definitions + ?defs=1 (tools/scripts/blog_terms.py)
+TERM_FILES = {"blog/nurseops-now-evals", "blog/war-stories", "blog/war-stories-platform"}  # pages with hover definitions + ?defs=1 (tools/scripts/blog_terms.py)
 NAV_FILES = {"demo/4-demo-script", "demo/1-short_script", "blog/blog"}  # pages that get a contents list + "Top" links
 NAV_CSS = """
 #top{scroll-margin-top:0}h2,h3{scroll-margin-top:12px}

@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status: ⬜ not used in NurseOps Now
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · Other frameworks: [LangGraph](fw-langgraph.html) · [AutoGen](fw-autogen.html) · [CrewAI](fw-crewai.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · Other frameworks: [LangGraph](fw-langgraph.html) · [AutoGen](fw-autogen.html) · [CrewAI](fw-crewai.html)
 
 **Read in this order**
 
@@ -157,4 +157,4 @@ Not used in NurseOps Now; its RAG is built directly on Chroma and sentence-trans
 
 All data in this post is made up.
 
-[← Back to all 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

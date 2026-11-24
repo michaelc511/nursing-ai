@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built (SQLite, not Redis)
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html), section [Implementing Long-Term Memory: External Persistence Architecture (7.3)](../nurseops-now-state.html#implementing-long-term-memory-external-persistence-architecture-7-3) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · [← Semantic Storage (Vector DB like Pinecone, Weaviate, or Chroma)](state-17-semantic-storage-vector-db.html) · [The Rehydration Pattern →](state-19-rehydration-pattern.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html), section [Implementing Long-Term Memory: External Persistence Architecture (7.3)](../nurseops-now-state-bk7.html#implementing-long-term-memory-external-persistence-architecture-7-3) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · [← Semantic Storage (Vector DB like Pinecone, Weaviate, or Chroma)](state-17-semantic-storage-vector-db.html) · [The Rehydration Pattern →](state-19-rehydration-pattern.html)
 
 **Read in this order**
 
@@ -87,7 +87,7 @@ resumed    : {'history': ['user: VPN error 809', 'assistant: are you on guest Wi
 
 ## In NurseOps Now
 
-Built with SQLite instead of Redis: LangGraph's `SqliteSaver` checkpoints each AI Assist thread (`nurse1:case-3`) after every step in `assist_memory.db`, and it survives restarts. Expiry isn't built yet ([Plan 3](../nurseops-now-state.html#plan-closing-the-gaps)). See [Step 1](../nurseops-now-state.html#step-1-pick-and-load-the-thread).
+Built with SQLite instead of Redis: LangGraph's `SqliteSaver` checkpoints each AI Assist thread (`nurse1:case-3`) after every step in `assist_memory.db`, and it survives restarts. Expiry isn't built yet ([Plan 3](../nurseops-now-state-bk7.html#plan-closing-the-gaps)). See [Step 1](../nurseops-now-state-bk7.html#step-1-pick-and-load-the-thread).
 
 ## Trade-offs
 
@@ -100,4 +100,4 @@ Built with SQLite instead of Redis: LangGraph's `SqliteSaver` checkpoints each A
 
 All data in this post is made up. No real people, tickets or patient data.
 
-[← Back to all 27 solutions in the state management blog](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions in the state management blog](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

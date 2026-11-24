@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ⬜ not built (illustrative)
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html), section [Implementing Short-Term Memory: Token Budgets and Window Management (7.1)](../nurseops-now-state.html#implementing-short-term-memory-token-budgets-and-window-management-7-1) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · [← Agentic Outcome: Strict State Serialization](state-06-strict-state-serialization.html) · [Dynamic Context Loading →](state-08-dynamic-context-loading.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html), section [Implementing Short-Term Memory: Token Budgets and Window Management (7.1)](../nurseops-now-state-bk7.html#implementing-short-term-memory-token-budgets-and-window-management-7-1) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · [← Agentic Outcome: Strict State Serialization](state-06-strict-state-serialization.html) · [Dynamic Context Loading →](state-08-dynamic-context-loading.html)
 
 **Read in this order**
 
@@ -89,7 +89,7 @@ for i in range(1, 44):
 
 ## In NurseOps Now
 
-Not built. NurseOps Now records input and output tokens after each call (`llm_calls` table), but nothing counts them before the call; the window is limited by turns instead. This is [Plan 1](../nurseops-now-state.html#plan-closing-the-gaps).
+Not built. NurseOps Now records input and output tokens after each call (`llm_calls` table), but nothing counts them before the call; the window is limited by turns instead. This is [Plan 1](../nurseops-now-state-bk7.html#plan-closing-the-gaps).
 
 ## Trade-offs
 
@@ -102,4 +102,4 @@ Not built. NurseOps Now records input and output tokens after each call (`llm_ca
 
 All data in this post is made up. No real people, tickets or patient data.
 
-[← Back to all 27 solutions in the state management blog](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions in the state management blog](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

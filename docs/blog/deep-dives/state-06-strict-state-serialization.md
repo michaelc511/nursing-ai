@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status in NurseOps Now: 🟡 partly built
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html), section [Context and State Management (Intro)](../nurseops-now-state.html#context-and-state-management-intro) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · [← Agentic Outcome: Hybrid Memory Systems](state-05-hybrid-memory-systems.html) · [Token Counting Middleware →](state-07-token-counting-middleware.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html), section [Context and State Management (Intro)](../nurseops-now-state-bk7.html#context-and-state-management-intro) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · [← Agentic Outcome: Hybrid Memory Systems](state-05-hybrid-memory-systems.html) · [Token Counting Middleware →](state-07-token-counting-middleware.html)
 
 **Read in this order**
 
@@ -101,7 +101,7 @@ resumed:    finished ['triage', 'lookup_kb', 'draft_reply', 'send']
 
 ## In NurseOps Now
 
-Partly built. AI Assist chat is checkpointed after every graph step by LangGraph's `SqliteSaver` and survives restarts (the parent post's demo). The case review workflow (`review_graph.py`) is not checkpointed mid-run: a crash reruns it from the start, which is safe because the case status only changes when it finishes. See [Step 1](../nurseops-now-state.html#step-1-pick-and-load-the-thread).
+Partly built. AI Assist chat is checkpointed after every graph step by LangGraph's `SqliteSaver` and survives restarts (the parent post's demo). The case review workflow (`review_graph.py`) is not checkpointed mid-run: a crash reruns it from the start, which is safe because the case status only changes when it finishes. See [Step 1](../nurseops-now-state-bk7.html#step-1-pick-and-load-the-thread).
 
 ## Trade-offs
 
@@ -114,4 +114,4 @@ Partly built. AI Assist chat is checkpointed after every graph step by LangGraph
 
 All data in this post is made up. No real people, tickets or patient data.
 
-[← Back to all 27 solutions in the state management blog](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions in the state management blog](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

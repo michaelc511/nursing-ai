@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built (SQLite)
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html), section [Implementing Long-Term Memory: External Persistence Architecture (7.3)](../nurseops-now-state.html#implementing-long-term-memory-external-persistence-architecture-7-3) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · [← The Hot/Cold State Architecture](state-15-hot-cold-state-architecture.html) · [Semantic Storage (Vector DB like Pinecone, Weaviate, or Chroma) →](state-17-semantic-storage-vector-db.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html), section [Implementing Long-Term Memory: External Persistence Architecture (7.3)](../nurseops-now-state-bk7.html#implementing-long-term-memory-external-persistence-architecture-7-3) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · [← The Hot/Cold State Architecture](state-15-hot-cold-state-architecture.html) · [Semantic Storage (Vector DB like Pinecone, Weaviate, or Chroma) →](state-17-semantic-storage-vector-db.html)
 
 **Read in this order**
 
@@ -79,7 +79,7 @@ print(db.execute("select count(*) from tickets where opened >= '2026-11-15'").fe
 
 ## In NurseOps Now
 
-Built on SQLite (Postgres planned for production, per the project's CLAUDE.md): tables `cases`, `ai_reviews`, `decisions`, `audit_log`, `llm_calls`. The AI reads them only through tools like `get_case`. See [Step 4](../nurseops-now-state.html#step-4-hard-state-stays-in-sql).
+Built on SQLite (Postgres planned for production, per the project's CLAUDE.md): tables `cases`, `ai_reviews`, `decisions`, `audit_log`, `llm_calls`. The AI reads them only through tools like `get_case`. See [Step 4](../nurseops-now-state-bk7.html#step-4-hard-state-stays-in-sql).
 
 ## Trade-offs
 
@@ -92,4 +92,4 @@ Built on SQLite (Postgres planned for production, per the project's CLAUDE.md): 
 
 All data in this post is made up. No real people, tickets or patient data.
 
-[← Back to all 27 solutions in the state management blog](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions in the state management blog](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

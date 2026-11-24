@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html), section [Compression Strategies: Summarization and Entity Extraction (7.2)](../nurseops-now-state.html#compression-strategies-summarization-and-entity-extraction-7-2) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · [← Vector Compression via RAG](state-13-vector-compression-via-rag.html) · [The Hot/Cold State Architecture →](state-15-hot-cold-state-architecture.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html), section [Compression Strategies: Summarization and Entity Extraction (7.2)](../nurseops-now-state-bk7.html#compression-strategies-summarization-and-entity-extraction-7-2) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · [← Vector Compression via RAG](state-13-vector-compression-via-rag.html) · [The Hot/Cold State Architecture →](state-15-hot-cold-state-architecture.html)
 
 **Read in this order**
 
@@ -81,7 +81,7 @@ soft state (summary)  : Frustrated; wants a fix before Friday's demo; tried rein
 
 ## In NurseOps Now
 
-Built, more strictly: nothing is summarized at all. Case status, decisions, the AI review and audit rows are SQL records stored as-is, and tool errors are returned raw. See [Step 4](../nurseops-now-state.html#step-4-hard-state-stays-in-sql).
+Built, more strictly: nothing is summarized at all. Case status, decisions, the AI review and audit rows are SQL records stored as-is, and tool errors are returned raw. See [Step 4](../nurseops-now-state-bk7.html#step-4-hard-state-stays-in-sql).
 
 ## Trade-offs
 
@@ -94,4 +94,4 @@ Built, more strictly: nothing is summarized at all. Case status, decisions, the 
 
 All data in this post is made up. No real people, tickets or patient data.
 
-[← Back to all 27 solutions in the state management blog](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions in the state management blog](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)

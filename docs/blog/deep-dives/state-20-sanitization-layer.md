@@ -2,7 +2,7 @@
 
 Nov 19, 2026 · Michael Chang · Status in NurseOps Now: ✅ built
 
-**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state.html), section [Implementing Long-Term Memory: External Persistence Architecture (7.3)](../nurseops-now-state.html#implementing-long-term-memory-external-persistence-architecture-7-3) · [All 27 solutions](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives) · [← The Rehydration Pattern](state-19-rehydration-pattern.html) · [TTL (time-to-live) expiration →](state-21-ttl-expiration.html)
+**Part of:** [Remembering the right things: state management in NurseOps Now](../nurseops-now-state-bk7.html), section [Implementing Long-Term Memory: External Persistence Architecture (7.3)](../nurseops-now-state-bk7.html#implementing-long-term-memory-external-persistence-architecture-7-3) · [All 27 solutions](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives) · [← The Rehydration Pattern](state-19-rehydration-pattern.html) · [TTL (time-to-live) expiration →](state-21-ttl-expiration.html)
 
 **Read in this order**
 
@@ -86,7 +86,7 @@ saved : I'm [EMAIL], [PHONE], password: [SECRET] and my key is [SECRET]
 
 ## In NurseOps Now
 
-Built: `backend/app/pii.py` masks SSNs, dates, emails, phones, member IDs, NPI numbers, addresses and the case's member and provider names before chat memory is saved; a logging filter masks logs; LangSmith gets a masked thread ID. The parent post's demo showed DOB, phone and SSN masked. See [Step 6](../nurseops-now-state.html#step-6-mask-then-save-the-turn).
+Built: `backend/app/pii.py` masks SSNs, dates, emails, phones, member IDs, NPI numbers, addresses and the case's member and provider names before chat memory is saved; a logging filter masks logs; LangSmith gets a masked thread ID. The parent post's demo showed DOB, phone and SSN masked. See [Step 6](../nurseops-now-state-bk7.html#step-6-mask-then-save-the-turn).
 
 ## Trade-offs
 
@@ -99,4 +99,4 @@ Built: `backend/app/pii.py` masks SSNs, dates, emails, phones, member IDs, NPI n
 
 All data in this post is made up. No real people, tickets or patient data.
 
-[← Back to all 27 solutions in the state management blog](../nurseops-now-state.html#how-a-chat-turn-flows-and-where-state-lives)
+[← Back to all 27 solutions in the state management blog](../nurseops-now-state-bk7.html#how-a-chat-turn-flows-and-where-state-lives)
